@@ -23,7 +23,7 @@ Tài liệu [Collaboration](https://github.com/reqable/reqable-docs/blob/master/
 
 1. Chốt danh sách feature parity và thiết kế data model.
 2. Làm desktop local-first và tracker/split view.
-3. Thêm kết nối LAN/IP: stream capture và chuyển session/collections/rules.
+3. Sau khi app PC đạt feature parity, làm app phụ trợ Android/iOS và kết nối LAN/IP: stream capture và chuyển session/collections/rules.
 4. Chỉ cân nhắc relay tự host khi xuất hiện nhu cầu truy cập ngoài LAN.
 
 Không cần dựng cloud hay server riêng chỉ để dùng một máy hoặc ghép cặp trong LAN. Mobile capture vẫn cần VPN cục bộ và xử lý chứng chỉ trên từng hệ điều hành.
