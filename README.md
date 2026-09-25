@@ -2,7 +2,7 @@
 
 Ứng dụng desktop để bắt, phân tích, chỉnh sửa và kiểm thử lưu lượng HTTP(S), lấy cảm hứng từ workflow của Reqable. Ưu tiên local-first, nhiều phiên/bảng và giao diện tối rõ ràng.
 
-**Đích cuối:** đủ mọi tính năng Community + Premium của Reqable theo [checklist](FEATURE_INVENTORY.md), trừ phần chỉ có ở Enterprise, và thêm tracker/analytics/view theo yêu cầu. Các mốc bên dưới là thứ tự thực hiện, không phải cắt bớt phạm vi cuối.
+**Đích cuối:** đủ mọi tính năng Community + Premium của Reqable theo [checklist](FEATURE_INVENTORY.md), trừ phần chỉ có ở Enterprise, và thêm tracker/analytics/view theo yêu cầu. **App PC là sản phẩm chính và được làm trước; Android/iOS là app phụ trợ ở giai đoạn sau.** Các mốc bên dưới là thứ tự thực hiện, không phải cắt bớt phạm vi cuối.
 
 ## Vấn đề cần giải quyết
 
@@ -24,7 +24,7 @@
 
 ## MVP đề xuất
 
-Windows desktop trước: capture HTTP(S) qua explicit/system proxy, danh sách request + inspector, filter/search, replay, session persistence, tracker đa bảng, split view 2–4 pane. Các phần rewrite/mock, analytics sâu, mobile capture và sync triển khai sau khi lõi ổn định.
+Windows desktop trước: capture HTTP(S) qua explicit/system proxy, danh sách request + inspector, filter/search, replay, session persistence, tracker đa bảng, split view 2–4 pane. Sau đó hoàn thiện toàn bộ feature parity desktop (rewrite/mock, API client, analytics, rules, MCP và các mục trong checklist) trước khi bắt đầu app phụ trợ Android/iOS. Kết nối PC↔mobile qua LAN/IP chỉ triển khai khi đến giai đoạn mobile.
 
 ## Hướng kỹ thuật cần thử nghiệm
 
