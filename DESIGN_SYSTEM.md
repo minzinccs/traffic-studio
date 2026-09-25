@@ -37,7 +37,7 @@ Base grid uses 4 px units. Menu height 44 px, navigation rail 58 px, capture too
 
 ## Interaction state
 
-Record toggle, tab switching/closing, new API tab, local listener address editing, search and selectable sample traffic are interactive UI previews. Proxy listener, certificate state, HAR import, API send, rules, persistence and device pairing **are not wired to a core**; UI labels and notices indicate this. Sample traffic is synthetic and never claimed to be captured data.
+Record toggle, tab switching/closing, new API tab, local listener address editing, search and selectable sample traffic are interactive UI previews. The main workspace pages now include frontend interactions; API drafts can be saved to browser localStorage and a small set of toolbox transforms run locally. Proxy listener, certificate state, HAR import, API send, rule execution, durable workspace persistence and device pairing **are not wired to a core**; UI labels and notices indicate this. Sample traffic is synthetic and never claimed to be captured data.
 
 ## Next integration boundary
 

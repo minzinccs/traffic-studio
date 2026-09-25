@@ -52,6 +52,7 @@ Có thể dùng bảng màu charcoal + amber và mật độ thông tin giống 
 - [Cấu trúc và ranh giới module](STRUCTURE.md)
 - [Prompt bàn giao cho AI khác](AI_HANDOFF.md)
 - [Việc cần làm tiếp theo](NEXT_STEPS.md)
+- [Worklog và giới hạn hiện tại](WORKLOG.md)
 - [Repo mã nguồn mở để tham khảo](research.md)
 
 Đây là đề xuất ban đầu; các giới hạn không được ghi rõ trong tài liệu Reqable cần đối chiếu trực tiếp trong app trước khi coi là yêu cầu đã xác minh.

@@ -9,6 +9,7 @@ traffic-studio/
 ├─ AGENTS.md                 Agent rules and constraints
 ├─ AI_HANDOFF.md             Copy/paste brief for another AI
 ├─ INTERACTION_PLAN.md       Desktop interaction spec and phased plan
+├─ WORKLOG.md                Completed UI work, verification and remaining gaps
 ├─ DESIGN_DECISION.md        Product scope, stack and core gate
 ├─ DESIGN_SYSTEM.md          Theme, layout, typography and tokens
 ├─ FEATURE_INVENTORY.md      Reqable feature-parity checklist
@@ -20,9 +21,13 @@ traffic-studio/
 │  ├─ styles.css             Current global styles (needs gradual split)
 │  ├─ domain/types.ts        View, Tab and Flow UI types
 │  ├─ data/demoFlows.ts      Synthetic traffic fixture only
+│  ├─ shell/
+│  │  ├─ ExplorerSidebar.tsx Contextual Traffic/API tree and setup JSON editor
+│  │  └─ explorer.css        Explorer and Traffic table styling
 │  └─ views/
-│     ├─ ApiView.tsx         API client preview
-│     └─ PlaceholderView.tsx Rules/History/Devices/Toolbox previews
+│     ├─ ApiView.tsx         Editable API draft and local browser save
+│     ├─ WorkspacePages.tsx Rules, History, Devices, Toolbox, Tracker, Analytics, Environments UI
+│     └─ workspacePages.css Styles for primary workspace pages
 ├─ src-tauri/
 │  ├─ Cargo.toml             Rust package
 │  ├─ build.rs               Tauri build hook
@@ -36,9 +41,9 @@ traffic-studio/
 
 ## Real module status
 
-- **Physically separated now:** shared UI types, synthetic data, API view, placeholder views, Tauri shell.
+- **Physically separated now:** shared UI types, synthetic data, API view, main workspace pages, Tauri shell.
 - **Still shared/centralized:** `App.tsx` owns shell, toolbar, tab state, traffic preview and inspector; `styles.css` contains all UI styles. These are refactor targets as real features are added.
-- **Not implemented:** proxy engine, capture persistence, certificate management, HTTP client, rule engine, tracker, analytics, dockable pane engine, LAN transfer.
+- **Not implemented:** proxy engine, capture persistence, certificate management, HTTP client, rule execution, durable tracker/analytics storage, dockable pane engine, LAN transfer. Tracker and analytics now have frontend views using sample data.
 
 ## Target module boundaries
 

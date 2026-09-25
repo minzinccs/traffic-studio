@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Tab, View } from './domain/types';
 import { demoFlows } from './data/demoFlows';
 import { ApiView } from './views/ApiView';
-import { PlaceholderView } from './views/PlaceholderView';
+import { ExplorerSidebar, SetupFileView, type ExplorerNode } from './shell/ExplorerSidebar';
+import { AnalyticsView, DevicesView, EnvironmentsView, HistoryView, RulesView, ToolboxView, TrackerView } from './views/WorkspacePages';
+import './views/workspacePages.css';
 import {
-  Activity, Check,
+  Activity, BarChart3, Check,
   ChevronDown, CircleHelp, Code2,
-  Filter, FolderOpen, Globe2, History,
+  Filter, FolderOpen, Globe2, History, KanbanSquare,
   LayoutPanelLeft, Maximize2, MoreHorizontal, PanelLeftClose,
-  Pause, Play, Plus, Radio, Search, Settings2, ShieldCheck, SlidersHorizontal,
+  Pause, Play, Plus, Radio, Search, Settings2, ShieldCheck, SlidersHorizontal, KeyRound,
   Sparkles, Trash2, Wifi, Wrench, X,
 } from 'lucide-react';
 
@@ -17,6 +19,7 @@ const menuNames = ['File', 'Tools', 'View', 'Traffic', 'Proxy', 'Certificate', '
 function App() {
   const [tabs, setTabs] = useState<Tab[]>([{ id: 1, label: 'Traffic', view: 'traffic' }]);
   const [activeTab, setActiveTab] = useState(1);
+  const [section, setSection] = useState<View>('traffic');
   const [recording, setRecording] = useState(false);
   const [endpoint, setEndpoint] = useState('127.0.0.1:9000');
   const [editingEndpoint, setEditingEndpoint] = useState(false);
@@ -25,20 +28,27 @@ function App() {
   const [selectedFlow, setSelectedFlow] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   const [menu, setMenu] = useState<string | null>(null);
-  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [trackedIds, setTrackedIds] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('traffic-studio-tracked-flows') ?? '[]') as number[]; } catch { return []; } });
+  const [trafficFilter, setTrafficFilter] = useState('all');
   const [notice, setNotice] = useState<string | null>(null);
 
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
   const flows = useMemo(() => demoFlows.filter((flow) =>
-    `${flow.method} ${flow.host} ${flow.path} ${flow.status}`.toLowerCase().includes(query.toLowerCase()),
-  ), [query]);
+    `${flow.method} ${flow.host} ${flow.path} ${flow.status}`.toLowerCase().includes(query.toLowerCase()) &&
+    (trafficFilter === 'all' || (trafficFilter === 'tracked' && trackedIds.includes(flow.id)) || (trafficFilter.startsWith('host:') && flow.host === trafficFilter.slice(5)) || (trafficFilter.startsWith('path:') && flow.path.startsWith(trafficFilter.slice(5))) || (trafficFilter.startsWith('status:') && String(flow.status).startsWith(trafficFilter.slice(7)))),
+  ), [query, trafficFilter, trackedIds]);
   const selected = demoFlows.find((flow) => flow.id === selectedFlow);
 
-  function openTab(view: View, label?: string) {
-    const existing = tabs.find((tab) => tab.view === view && tab.label === (label ?? titleFor(view)));
-    if (existing) { setActiveTab(existing.id); return; }
+  useEffect(() => { localStorage.setItem('traffic-studio-tracked-flows', JSON.stringify(trackedIds)); }, [trackedIds]);
+  function toggleTracked(id: number) { setTrackedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
+  function openTab(view: View, label?: string, node?: ExplorerNode) {
+    setSection(view);
+    if (view !== 'api' && view !== 'traffic') { setMenu(null); return; }
+    const existing = tabs.find((tab) => tab.view === view && (node ? tab.node?.id === node.id : tab.label === (label ?? titleFor(view))));
+    if (existing) { setActiveTab(existing.id); setMenu(null); return; }
     const id = Date.now();
-    setTabs((current) => [...current, { id, label: label ?? titleFor(view), view }]);
+    setTabs((current) => [...current, { id, label: label ?? titleFor(view), view, node: node && node.kind !== 'group' ? { id: node.id, name: node.name, kind: node.kind } : undefined }]);
     setActiveTab(id);
     setMenu(null);
   }
@@ -47,7 +57,7 @@ function App() {
     if (tabs.length === 1) return;
     const remaining = tabs.filter((tab) => tab.id !== id);
     setTabs(remaining);
-    if (activeTab === id) setActiveTab(remaining[remaining.length - 1].id);
+    if (activeTab === id) { const sameSection = remaining.filter((tab) => tab.view === section); const next = sameSection.at(-1) ?? remaining.at(-1)!; setActiveTab(next.id); setSection(next.view); }
   }
 
   function flash(message: string) {
@@ -85,7 +95,7 @@ function App() {
               ['New workspace', () => flash('Workspace mới sẽ có trong giai đoạn tiếp theo.'), ''],
             ] : name === 'View' ? [
               ['Traffic', () => openTab('traffic'), ''], ['Rules', () => openTab('rules'), ''],
-              ['History', () => openTab('history'), ''], ['Toggle sidebar', () => setRailCollapsed((v) => !v), ''],
+              ['History', () => openTab('history'), ''], ['Tracker', () => openTab('tracker'), ''], ['Analytics', () => openTab('analytics'), ''], ['Environments', () => openTab('environments'), ''], ['Toggle sidebar', () => setShowSidebar((v) => !v), ''],
             ] : name === 'Traffic' ? [
               [recording ? 'Stop capture preview' : 'Start capture preview', () => { setRecording((v) => !v); flash('Capture state is simulated; the proxy core is not connected yet.'); }, 'Ctrl+G'],
               ['Load demo traffic', () => { setShowDemo(true); openTab('traffic'); }, ''],
@@ -100,21 +110,26 @@ function App() {
     </header>
 
     <div className="app-body">
-      <aside className={`side-rail ${railCollapsed ? 'collapsed' : ''}`}>
+      <aside className="side-rail">
         <div className="rail-group">
-          <RailButton icon={<Radio/>} label="Traffic" active={active.view === 'traffic'} onClick={() => openTab('traffic')}/>
-          <RailButton icon={<Code2/>} label="API client" active={active.view === 'api'} onClick={() => openTab('api')}/>
-          <RailButton icon={<SlidersHorizontal/>} label="Rules" active={active.view === 'rules'} onClick={() => openTab('rules')}/>
-          <RailButton icon={<History/>} label="History" active={active.view === 'history'} onClick={() => openTab('history')}/>
-          <RailButton icon={<Wifi/>} label="Devices" active={active.view === 'devices'} onClick={() => openTab('devices')}/>
+          <RailButton icon={<Radio/>} label="Traffic" active={section === 'traffic'} onClick={() => openTab('traffic')}/>
+          <RailButton icon={<Code2/>} label="API client" active={section === 'api'} onClick={() => openTab('api')}/>
+          <RailButton icon={<SlidersHorizontal/>} label="Rules" active={section === 'rules'} onClick={() => openTab('rules')}/>
+          <RailButton icon={<History/>} label="History" active={section === 'history'} onClick={() => openTab('history')}/>
+          <RailButton icon={<KanbanSquare/>} label="Tracker" active={section === 'tracker'} onClick={() => openTab('tracker')}/>
+          <RailButton icon={<BarChart3/>} label="Analytics" active={section === 'analytics'} onClick={() => openTab('analytics')}/>
+          <RailButton icon={<KeyRound/>} label="Environments" active={section === 'environments'} onClick={() => openTab('environments')}/>
+          <RailButton icon={<Wifi/>} label="Devices" active={section === 'devices'} onClick={() => openTab('devices')}/>
           <div className="rail-divider"/>
-          <RailButton icon={<Wrench/>} label="Toolbox" active={active.view === 'tools'} onClick={() => openTab('tools')}/>
+          <RailButton icon={<Wrench/>} label="Toolbox" active={section === 'tools'} onClick={() => openTab('tools')}/>
         </div>
         <div className="rail-group rail-bottom">
-          <RailButton icon={<PanelLeftClose/>} label="Toggle sidebar" onClick={() => setRailCollapsed((v) => !v)}/>
+          <RailButton icon={<PanelLeftClose/>} label="Toggle sidebar" onClick={() => setShowSidebar((v) => !v)}/>
           <RailButton icon={<Settings2/>} label="Settings" onClick={() => flash('Settings panel is planned for the next iteration.')}/>
         </div>
       </aside>
+
+      {showSidebar && (section === 'traffic' || section === 'api') && <ExplorerSidebar section={section} flows={showDemo ? demoFlows : []} trackedIds={trackedIds} selectedFlow={selectedFlow} onSelectFlow={(id) => { if (id) { setShowDemo(true); setSelectedFlow(id); } setTrafficFilter('all'); }} onTrack={toggleTracked} onOpenNode={(node) => openTab('api', node.name, node)} onCreateRequest={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onSetTrafficFilter={setTrafficFilter} trafficFilter={trafficFilter}/>}
 
       <main className="main-area">
         <div className="capture-toolbar">
@@ -133,26 +148,33 @@ function App() {
           <button className="clear-button" title="Clear traffic" onClick={() => { setShowDemo(false); setSelectedFlow(null); }}><Trash2 size={18}/></button>
         </div>
 
-        <div className="tab-bar">
-          <div className="tabs-scroll">{tabs.map((tab) => <div className={`workspace-tab ${activeTab === tab.id ? 'active' : ''}`} key={tab.id} onClick={() => setActiveTab(tab.id)}>
+        {(section === 'traffic' || section === 'api') && <div className="tab-bar">
+          <div className="tabs-scroll">{tabs.filter((tab) => tab.view === section).map((tab) => <div className={`workspace-tab ${activeTab === tab.id ? 'active' : ''}`} key={tab.id} onClick={() => setActiveTab(tab.id)}>
             {iconFor(tab.view)}<span>{tab.label}</span>{tab.view === 'traffic' && <span className="tab-count">{showDemo ? demoFlows.length : 0}</span>}
-            {tabs.length > 1 && <button className="tab-close" onClick={(event) => { event.stopPropagation(); closeTab(tab.id); }} title="Close tab"><X size={13}/></button>}
+            {tab.view === 'api' && <button className="tab-close" onClick={(event) => { event.stopPropagation(); closeTab(tab.id); }} title="Close tab"><X size={13}/></button>}
           </div>)}</div>
           <button className="new-tab" title="New API request" onClick={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)}><Plus size={19}/></button>
           <div className="tab-spacer"/>
           <button className="tab-tool" title="Panel layout" onClick={() => flash('Dockable panels will be available in the next iteration.')}><LayoutPanelLeft size={17}/></button>
           <button className="tab-tool" title="More view options" onClick={() => flash('View presets will be available in the next iteration.')}><MoreHorizontal size={18}/></button>
-        </div>
+        </div>}
 
         <div className="content-area">
-          {active.view === 'traffic' && (showDemo ? <div className="traffic-view">
-            <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>Live traffic</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input aria-label="Search traffic" placeholder="Search host, path, status…" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>⌘ K</kbd></div><button className="outline-button" onClick={() => flash('Advanced filters will connect to the proxy core.')}><Filter size={15}/> Filters <ChevronDown size={13}/></button></div></div>
-            <div className="traffic-layout"><div className="flow-list"><div className="flow-head"><span>METHOD</span><span>REQUEST</span><span>STATUS</span><span>TYPE</span><span>TIME</span><span>SIZE</span></div>{flows.map((flow) => <button className={`flow-row ${selectedFlow === flow.id ? 'selected' : ''}`} key={flow.id} onClick={() => setSelectedFlow(flow.id)}><span className={`method method-${flow.method.toLowerCase()}`}>{flow.method}</span><span className="flow-request"><strong>{flow.host}</strong><span>{flow.path}</span></span><span className={`status-code ${flow.status >= 400 ? 'error' : ''}`}>{flow.status}</span><span className="flow-type">{flow.type}</span><span className="flow-time">{flow.duration} ms</span><span className="flow-size">{flow.size}</span></button>)}{flows.length === 0 && <div className="no-results">No requests match your search.</div>}</div>
+          {section === 'traffic' && (showDemo ? <div className="traffic-view">
+            <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>Sample traffic</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input aria-label="Search traffic" placeholder="Search host, path, status…" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>⌘ K</kbd></div><button className="outline-button" onClick={() => flash('Advanced filters will connect to the proxy core.')}><Filter size={15}/> Filters <ChevronDown size={13}/></button></div></div>
+            <div className="traffic-filter-strip">{[['all','All'],['tracked','Bookmarked'],['status:2','2xx'],['status:4','4xx']].map(([value,label]) => <button key={value} className={trafficFilter === value ? 'active' : ''} onClick={() => setTrafficFilter(value)}>{label}</button>)}<span>Tick a request to bookmark it in Explorer</span></div>
+            <div className="traffic-layout"><div className="flow-list"><div className="flow-head"><span>TRACK</span><span>METHOD</span><span>REQUEST</span><span>STATUS</span><span>TYPE</span><span>TIME</span><span>SIZE</span></div>{flows.map((flow) => <div className={`flow-row ${selectedFlow === flow.id ? 'selected' : ''}`} key={flow.id} role="button" tabIndex={0} onClick={() => setSelectedFlow(flow.id)} onKeyDown={(event) => { if (event.key === 'Enter') setSelectedFlow(flow.id); }}><span className="flow-track"><input type="checkbox" checked={trackedIds.includes(flow.id)} aria-label={`Bookmark ${flow.method} ${flow.host}${flow.path}`} onClick={(event) => event.stopPropagation()} onChange={() => toggleTracked(flow.id)}/></span><span className={`method method-${flow.method.toLowerCase()}`}>{flow.method}</span><span className="flow-request"><strong>{flow.host}</strong><span>{flow.path}</span></span><span className={`status-code ${flow.status >= 400 ? 'error' : ''}`}>{flow.status}</span><span className="flow-type">{flow.type}</span><span className="flow-time">{flow.duration} ms</span><span className="flow-size">{flow.size}</span></div>)}{flows.length === 0 && <div className="no-results">No requests match the selected filter.</div>}</div>
             {selected && <aside className="inspector"><div className="inspector-title"><div><span className="eyebrow">REQUEST #{selected.id}</span><h2>{selected.method} {selected.path}</h2></div><button className="icon-button" onClick={() => setSelectedFlow(null)} title="Close inspector"><X size={17}/></button></div><div className="inspector-tabs"><button className="active">Overview</button><button onClick={() => flash('Headers inspector will connect to captured data.')}>Headers</button><button onClick={() => flash('Body inspector will connect to captured data.')}>Body</button></div><div className="inspector-body"><div className="detail-label">GENERAL</div><Detail label="Host" value={selected.host}/><Detail label="Method" value={selected.method}/><Detail label="Status" value={String(selected.status)}/><Detail label="Duration" value={`${selected.duration} ms`}/><Detail label="Content type" value={selected.type}/><div className="detail-label section-gap">TIMELINE</div><div className="timing-bar"><span style={{width:'12%'}}/><span style={{width:'27%'}}/><span style={{width:'61%'}}/></div><div className="timing-legend"><span>DNS</span><span>Connection</span><span>Response</span></div></div></aside>}
             </div>
           </div> : <div className="empty-canvas"><div className="empty-content"><div className="empty-graphic"><div className="graphic-ring ring-one"/><div className="graphic-ring ring-two"/><div className="graphic-core"><Activity size={29} strokeWidth={1.8}/></div><div className="orbit-dot orbit-a"/><div className="orbit-dot orbit-b"/></div><div className="eyebrow center">READY TO INSPECT</div><h1>See every request, clearly.</h1><p>Capture traffic from your desktop, inspect every detail, and turn any request into a reproducible test.</p><div className="empty-actions"><button className="primary-action" onClick={() => { setRecording(true); flash('Capture state is simulated; the proxy core is not connected yet.'); }}><Play size={16} fill="currentColor"/> Start capturing <span>Ctrl G</span></button><button className="secondary-action" onClick={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)}><Plus size={17}/> New API request</button></div><div className="quick-links"><button onClick={() => flash('Import HAR will be available with the capture core.')}><FolderOpen size={15}/> Open HAR file</button><span/><button onClick={() => setShowDemo(true)}><Sparkles size={15}/> Explore sample traffic</button></div></div></div>)}
-          {active.view === 'api' && <ApiView flash={flash}/>}
-          {active.view !== 'api' && active.view !== 'traffic' && <PlaceholderView view={active.view} flash={flash}/>}
+          {section === 'api' && (active.node?.kind === 'setup' ? <SetupFileView key={active.node.id} node={active.node}/> : <ApiView key={active.id} flash={flash} requestName={active.node?.name ?? active.label} tabId={active.id}/>)}
+          {section === 'rules' && <RulesView flash={flash}/>}
+          {section === 'history' && <HistoryView flash={flash}/>}
+          {section === 'devices' && <DevicesView flash={flash}/>}
+          {section === 'tools' && <ToolboxView flash={flash}/>}
+          {section === 'tracker' && <TrackerView flash={flash}/>}
+          {section === 'analytics' && <AnalyticsView/>}
+          {section === 'environments' && <EnvironmentsView flash={flash}/>}
         </div>
       </main>
     </div>
@@ -164,8 +186,8 @@ function App() {
   </div>;
 }
 
-function titleFor(view: View) { return ({ traffic: 'Traffic', api: 'API', rules: 'Rules', history: 'History', devices: 'Devices', tools: 'Toolbox' })[view]; }
-function iconFor(view: View) { return ({ traffic: <Radio size={15}/>, api: <Code2 size={15}/>, rules: <SlidersHorizontal size={15}/>, history: <History size={15}/>, devices: <Wifi size={15}/>, tools: <Wrench size={15}/> })[view]; }
+function titleFor(view: View) { return ({ traffic: 'Traffic', api: 'API', rules: 'Rules', history: 'History', devices: 'Devices', tools: 'Toolbox', tracker: 'Tracker', analytics: 'Analytics', environments: 'Environments' })[view]; }
+function iconFor(view: View) { return ({ traffic: <Radio size={15}/>, api: <Code2 size={15}/>, rules: <SlidersHorizontal size={15}/>, history: <History size={15}/>, devices: <Wifi size={15}/>, tools: <Wrench size={15}/>, tracker: <KanbanSquare size={15}/>, analytics: <BarChart3 size={15}/>, environments: <KeyRound size={15}/> })[view]; }
 function RailButton({icon,label,active,onClick}:{icon:ReactNode;label:string;active?:boolean;onClick:()=>void}) { return <button className={`rail-button ${active ? 'active' : ''}`} title={label} aria-label={label} onClick={onClick}>{icon}</button>; }
 function Detail({label,value}:{label:string;value:string}) { return <div className="detail-row"><span>{label}</span><strong>{value}</strong></div>; }
 
