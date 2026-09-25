@@ -2,6 +2,8 @@
 
 Ứng dụng desktop để bắt, phân tích, chỉnh sửa và kiểm thử lưu lượng HTTP(S), lấy cảm hứng từ workflow của Reqable. Ưu tiên local-first, nhiều phiên/bảng và giao diện tối rõ ràng.
 
+**Đích cuối:** đủ mọi tính năng Community + Premium của Reqable theo [checklist](FEATURE_INVENTORY.md), trừ phần chỉ có ở Enterprise, và thêm tracker/analytics/view theo yêu cầu. Các mốc bên dưới là thứ tự thực hiện, không phải cắt bớt phạm vi cuối.
+
 ## Vấn đề cần giải quyết
 
 - Muốn dùng tracker/analysis nâng cao mà không bị giới hạn theo gói trả phí.
@@ -26,8 +28,8 @@ Windows desktop trước: capture HTTP(S) qua explicit/system proxy, danh sách 
 
 ## Hướng kỹ thuật cần thử nghiệm
 
-- UI desktop: Tauri + React/TypeScript để có layout và trạng thái linh hoạt.
-- Proxy engine: đánh giá nhúng/điều khiển mitmproxy so với engine Rust tự xây. Làm spike đo độ ổn định, hiệu năng và khả năng cấp/chặn chứng chỉ trước khi chọn.
+- Ưu tiên đánh giá fork [ProxyPin](https://github.com/wanghongenpin/proxypin) trước: đã có Flutter đa nền tảng, capture/rewrite và kết nối QR giữa thiết bị. [Whistle](https://github.com/avwo/whistle) và [mitmproxy](https://github.com/mitmproxy/mitmproxy) là ứng viên engine nếu core ProxyPin thiếu khả năng cần thiết.
+- Chỉ chọn lại UI desktop sau khi kiểm tra mức tái sử dụng thực tế; không mặc định dựng engine từ đầu.
 - SQLite + FTS cho metadata/tìm kiếm; payload file riêng, có quota và redaction.
 - Mô hình dữ liệu: `request` ↔ `board_item` (many-to-many), `view` chứa filter/sort/columns/layout, `event` lưu audit.
 
@@ -35,6 +37,12 @@ Windows desktop trước: capture HTTP(S) qua explicit/system proxy, danh sách 
 
 Có thể dùng bảng màu charcoal + amber và mật độ thông tin giống ảnh tham khảo, nhưng tự thiết kế biểu tượng, tên, spacing, component và tài sản đồ họa riêng. Không sao chép mã nguồn hay tài sản độc quyền của Reqable.
 
-## Tham khảo
+## Tài liệu chi tiết
 
-Xem [research.md](research.md) cho các repo hiện có và giới hạn của từng hướng. Đây là đề xuất ban đầu; các giới hạn phiên bản Reqable cần đối chiếu trực tiếp trong app trước khi coi là yêu cầu đã xác minh.
+- [Kiểm kê tính năng Reqable](FEATURE_INVENTORY.md)
+- [Phương án self-host](SELF_HOSTING.md)
+- [Repo/core nên tái sử dụng](CORE_REUSE.md)
+- [Quyết định thiết kế và gate chọn core](DESIGN_DECISION.md)
+- [Repo mã nguồn mở để tham khảo](research.md)
+
+Đây là đề xuất ban đầu; các giới hạn không được ghi rõ trong tài liệu Reqable cần đối chiếu trực tiếp trong app trước khi coi là yêu cầu đã xác minh.
