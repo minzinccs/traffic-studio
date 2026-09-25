@@ -18,6 +18,7 @@ These instructions apply to the repository at `D:\nghiale\zstudio\nghiadev\traff
 4. `STRUCTURE.md`: current code map and intended module boundaries.
 5. `CORE_REUSE.md`: research only; runtime choice is still open.
 6. `INTERACTION_PLAN.md`: interaction behavior, persistence model, phases and acceptance gates.
+7. `NEXT_STEPS.md`: ordered implementation backlog and immediate handoff task.
 
 If documents disagree, prefer the most recent direct user instruction, then `DESIGN_DECISION.md`. Update stale documents when changing a decision.
 
