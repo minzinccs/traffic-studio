@@ -4,20 +4,20 @@ Kiểm tra ngày 2026-09-25. Số sao là ảnh chụp tại thời điểm ki�
 
 | Repo | Sao | License | Nên dùng cho | Chưa có/chưa xác nhận |
 | --- | ---: | --- | --- | --- |
-| [ProxyPin](https://github.com/wanghongenpin/proxypin) | 14,004 | Apache-2.0 | **Ứng viên fork số 1**: Flutter Windows/macOS/Linux/Android/iOS, HTTP(S) capture/inspect/rewrite, script JS, mock/mapping, history/HAR, QR kết nối và forward traffic giữa thiết bị | API client đầy đủ kiểu Reqable, HTTP/3, analytics, tracker đa bảng, split view nhiều pane chưa được xác nhận. Cần chạy thử. |
+| [ProxyPin](https://github.com/wanghongenpin/proxypin) | 14,004 | Apache-2.0 | Core Dart tham khảo cho PC Tauri: Flutter Windows/macOS/Linux/Android/iOS, HTTP(S) capture/inspect/rewrite, script JS, mock/mapping, history/HAR, QR kết nối và forward traffic giữa thiết bị | API client đầy đủ kiểu Reqable, HTTP/3, analytics, tracker đa bảng, split view nhiều pane chưa được xác nhận. Cần chạy thử. |
 | [Whistle](https://github.com/avwo/whistle) | 15,709 | MIT | Engine/server proxy: HTTP(S)/HTTP2/WebSocket/TCP, rules, plugins, Composer, UI; chạy headless và dùng như npm module | Mobile native, API collections/environments, tracker và UI Reqable phải bổ sung; HTTP/3 chưa xác nhận. |
 | [mitmproxy](https://github.com/mitmproxy/mitmproxy) | 45,146 | MIT | Engine MITM trưởng thành: interception, replay, modify, script/API, nhiều proxy mode; dùng qua sidecar/process | UI hiện có không phải workflow Reqable; tích hợp Python runtime, API client/board/split view cần thêm. |
 | [HTTP Toolkit UI + Server + Desktop](https://github.com/httptoolkit) | 377 / 563 / 734 | AGPL-3.0 | Nền desktop capture/inspect/rewrite/mock/API client gần dạng sản phẩm hoàn chỉnh | License AGPL ảnh hưởng việc phân phối/sửa đổi; mobile/LAN và tracker đa bảng chưa được xác nhận. |
 | [Hoppscotch](https://github.com/hoppscotch/hoppscotch) | 80,506 | MIT | API client/collections/testing nếu cần tham khảo chức năng | Không phải core MITM traffic capture; ghép nguyên app vào proxy khác rất tốn công. |
 | [Insomnia](https://github.com/Kong/insomnia) | 40,029 | Apache-2.0 | API client đa giao thức, local/Git storage | Không phải core capture proxy; app lớn, tích hợp nguyên khối phức tạp. |
 
-## Kết luận kỹ thuật hiện tại
+## Kết luận kỹ thuật hiện tại cho app PC
 
-1. **Bắt đầu bằng ProxyPin** vì khớp cả desktop/mobile lẫn QR forward qua LAN, đúng ưu tiên mới và giảm phần phải tự làm nhiều nhất. Repo [README](https://github.com/wanghongenpin/proxypin#features) xác nhận những phần này.
-2. Làm spike trên code/binary: HTTPS CA, Windows system proxy, mobile VPN, WebSocket, rewrite/mock/script, history/HAR, QR pairing; đo các gap với [feature inventory](FEATURE_INVENTORY.md). Chỉ sau spike mới quyết định fork hay dùng engine riêng.
-3. Nếu proxy core thiếu rule/extension quan trọng, so sánh Whistle và mitmproxy như engine thay thế. Tránh ghép 2 proxy engine trước khi có gap cụ thể.
-4. API client, tracker nhiều bảng, analytics và bố cục nhiều pane là phần bổ sung riêng có khả năng vẫn phải xây. Có thể tái sử dụng thư viện/component theo license, nhưng chưa thấy repo nhiều sao nào có sẵn toàn bộ đúng bộ tính năng.
+Giao diện đã chọn Tauri + React/TypeScript và **không dùng Flutter**. Vì ProxyPin là Dart core chạy trong Flutter process, không fork nguyên app hoặc nhúng trực tiếp core vào Rust. Cây mã nguồn ProxyPin bên dưới vẫn là tài liệu để đối chiếu tính năng và học cấu trúc.
 
+Đưa **Whistle** và **mitmproxy** vào spike runtime trên Windows để chọn sidecar proxy. Whistle có lợi thế Node module/headless/rule/plugin và MIT; mitmproxy có MITM/scripting trưởng thành. Chưa repo nào được xác nhận đạt toàn bộ Reqable. Kết quả spike sẽ quyết định core, không dựa riêng vào số sao.
+
+API client, tracker nhiều bảng, analytics và dockable views là phần sản phẩm cần xây quanh core được chọn. [Quyết định stack](DESIGN_DECISION.md) là nguồn hiện hành nếu các nhận định cũ trong tài liệu khảo sát khác đi.
 ## Kiểm tra trực tiếp cây mã nguồn ProxyPin
 
 Đã xác nhận **mã tồn tại**, chưa xác nhận chất lượng hoặc chạy đúng trên mọi OS:

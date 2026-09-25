@@ -1,28 +1,38 @@
-# Quyết định thiết kế v0.2
+# Quyết định thiết kế v0.3 — PC trước
 
-## Phạm vi
+## Mục tiêu
 
-Đích là tương đương toàn bộ chức năng Reqable Community + Premium, **ngoại trừ phần chỉ dành cho Enterprise**, bỏ giới hạn gói. **Thứ tự sản phẩm: Windows PC trước; macOS/Linux desktop sau khi lõi desktop ổn; Android/iOS là app phụ trợ sau cùng.** Bổ sung tracker nhiều bảng, trạng thái tùy chỉnh, analytics và bố cục view linh hoạt. [Checklist chi tiết](FEATURE_INVENTORY.md) là chuẩn để kiểm thử parity; không được đánh dấu hoàn thành chỉ vì một repo có tên file tương ứng.
+App **Windows PC là sản phẩm chính**. Đích cuối là bộ tính năng Reqable Community + Premium theo [checklist](FEATURE_INVENTORY.md), bỏ phần chỉ dành cho Enterprise, cộng tracker nhiều bảng, analytics và bố cục view linh hoạt. Android/iOS là app phụ trợ sau khi desktop ổn định. Việc triển khai theo giai đoạn không cắt bớt phạm vi cuối.
 
-## Giao diện
+## Stack đã chọn cho giao diện PC
 
-Thiết kế sản phẩm/UI riêng. Bố cục charcoal + amber có thể là cảm hứng thị giác, nhưng không sao chép tài sản, logo hay mã giao diện của Reqable. Editor gồm dockable panes/tabs: capture list, inspector, API client, diff, analytics, board. Pane có thể chia ngang/dọc, di chuyển, ghim và lưu layout theo workspace. ProxyPin hiện có component hai pane đơn giản; có thể thay lớp UI dần khi giữ core chạy.
+- **Tauri 2 + React 19 + TypeScript + Vite**, không dùng Flutter.
+- Rust cung cấp desktop shell và sau này là cầu nối lệnh/sự kiện với proxy engine.
+- Frontend gồm menu, sidebar, toolbar capture, tab workspace, traffic list/inspector, API workspace và các màn Rules/History/Devices/Toolbox.
+- Theme, layout và tokens ở [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Giao diện được thiết kế riêng, không sao chép tài sản/nhận diện Reqable.
+- Mã hiện tại là **UI shell**. Sample traffic là dữ liệu giả để thử bố cục; recording, certificate, HTTP send và import HAR chưa kết nối engine.
 
-## Core
+## Core còn phải kiểm tra
 
-Fork ProxyPin để thử nghiệm là hướng ưu tiên, do core Dart và Flutter desktop đã có; mobile/VPN/QR là lợi ích cho giai đoạn sau, **không phải lý do quyết định stack PC**. Giữ `lib/network` và các phần tích hợp Windows cần thiết; xây adapter giữa capture events và data model mới. Tránh tách core sang Tauri/React ngay vì sẽ phải tạo cầu nối Dart ↔ process/IPC. Nếu Flutter không đáp ứng dockable UI hoặc hiệu năng, quyết định lại sau prototype có số đo.
+Stack UI đã chốt, **proxy core chưa chốt**. Chuyển nguyên core ProxyPin vào app Tauri không còn là đường ngắn: nó được viết bằng Dart, chạy trong Flutter process và nối UI bằng event listener. Có thể tận dụng thuật toán/cấu trúc làm tham khảo, nhưng muốn dùng trực tiếp cần Dart sidecar/IPC. Do đó ProxyPin không còn là ứng viên fork nguyên app trong bản PC.
 
-Whistle hoặc mitmproxy là phương án dự phòng cho proxy engine khi spike tìm thấy gap cụ thể. Không ghép nhiều engine và API client lớn ngay từ đầu; chi phí tích hợp có thể lớn hơn tự bổ sung tính năng còn thiếu.
+Ưu tiên kiểm thử [Whistle](https://github.com/avwo/whistle) như headless proxy/sidecar Node vì MIT, rule engine, HTTP(S)/HTTP2/WebSocket, replay/Composer và API/plugin. Đối chiếu [mitmproxy](https://github.com/mitmproxy/mitmproxy) nếu Whistle thiếu khả năng then chốt. Chỉ viết proxy core Rust mới khi hai lựa chọn không đáp ứng yêu cầu hoặc chi phí đóng gói/tích hợp vượt chi phí tự xây.
+
+API client, tracker, analytics và dockable layout thuộc lớp sản phẩm của mình; có thể tái sử dụng thư viện/component, không ghép nguyên UI app khác.
+
+## Gate trước khi nối engine
+
+1. Build/run Whistle và mitmproxy trên Windows bằng traffic thử có kiểm soát.
+2. Kiểm tra từng mục [FEATURE_INVENTORY.md](FEATURE_INVENTORY.md), ghi `đạt`, `đạt một phần`, `thiếu`, `chưa kiểm tra` cùng bằng chứng. Đặc biệt: HTTPS CA, HTTP/2, HTTP/3/QUIC, WebSocket/SSE, breakpoint, rewrite, mock, script, reverse/upstream proxy, report, HAR và replay.
+3. Đo throughput, RAM, độ ổn định, cơ chế API/event, khả năng đóng gói cùng Tauri và license.
+4. Chọn engine rồi xây interface ổn định: `start_capture`, `stop_capture`, `set_proxy_endpoint`, `subscribe_flows`, `get_flow`, `import_har`, `send_request`.
+
+Hiện gate chưa hoàn thành; không được coi UI preview là đã có tính năng capture.
 
 ## Kết nối thiết bị
 
-Local-first. Capture, rule, API client và tracker hoạt động offline trên PC. Kết nối LAN/IP bằng QR/manual host:port cho stream traffic như ProxyPin đã có được giữ trong kế hoạch **giai đoạn mobile**, không chặn bản PC. Chuyển session, collections, rules và workspace là **tính năng mới cần thiết kế và kiểm thử**; không giả định chức năng QR hiện tại đã làm việc đó. Cloud hoặc server tự host luôn là tùy chọn, không nằm trong đường đi chính.
+Desktop local-first. Mobile và QR/IP LAN là giai đoạn sau. Cloud/server riêng không nằm trong luồng chính. Chuyển session, collections, rules và workspace giữa thiết bị là tính năng cần thiết kế/kiểm thử, không suy ra từ khả năng stream traffic hiện có của Reqable hoặc ProxyPin.
 
-## Gate chọn core trước khi viết nhiều UI
+## Điều kiện build native ở máy hiện tại
 
-1. Build/run ProxyPin trên Windows; kiểm tra system proxy, chứng chỉ, HTTPS, HTTP/2, WebSocket/SSE, replay, breakpoint, rewrite, map/mock, script, history/HAR. QR/VPN mobile kiểm thử sau.
-2. Lập ma trận từng mục trong [FEATURE_INVENTORY.md](FEATURE_INVENTORY.md): `đạt`, `đạt một phần`, `thiếu`, `chưa kiểm tra`; ghi nền tảng và bằng chứng test.
-3. Kiểm tra phụ thuộc, license Apache-2.0 và khả năng thay UI mà không phải sửa sâu proxy engine.
-4. Chỉ khi kết quả đạt đủ phần core thiết yếu mới khóa hướng fork và bắt đầu UI/data model mới.
-
-Hiện gate này **chưa hoàn thành**. Nghiên cứu mã nguồn cho thấy ứng viên mạnh, không phải đã chứng minh feature parity hoặc chất lượng runtime.
+Frontend đã build được bằng `npm run build`. `tauri info` hiện báo **chưa có Rust/Cargo và Visual Studio Build Tools với MSVC + Windows SDK**; vì vậy chưa thể biên dịch/chạy cửa sổ Tauri native trên máy này. Source Tauri đã được tạo để nối sau khi cài toolchain.

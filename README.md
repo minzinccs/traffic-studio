@@ -22,14 +22,18 @@
 7. **Analysis**: tổng hợp latency, status, lỗi, endpoint và kích thước payload; biểu đồ theo khoảng thời gian, drill-down về request gốc.
 8. **Local-first**: SQLite cho metadata; payload lưu cục bộ có giới hạn/retention; export/import HAR và định dạng dự án mở; secrets không nằm trong export mặc định.
 
+## Base giao diện đã tạo
+
+Source trong `src/` và `src-tauri/` là UI shell. `npm run build` đã build frontend; capture và API chưa có engine. Xem [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) để biết trạng thái tương tác hiện tại.
+
 ## MVP đề xuất
 
 Windows desktop trước: capture HTTP(S) qua explicit/system proxy, danh sách request + inspector, filter/search, replay, session persistence, tracker đa bảng, split view 2–4 pane. Sau đó hoàn thiện toàn bộ feature parity desktop (rewrite/mock, API client, analytics, rules, MCP và các mục trong checklist) trước khi bắt đầu app phụ trợ Android/iOS. Kết nối PC↔mobile qua LAN/IP chỉ triển khai khi đến giai đoạn mobile.
 
 ## Hướng kỹ thuật cần thử nghiệm
 
-- Ưu tiên đánh giá fork [ProxyPin](https://github.com/wanghongenpin/proxypin) trước: đã có Flutter đa nền tảng, capture/rewrite và kết nối QR giữa thiết bị. [Whistle](https://github.com/avwo/whistle) và [mitmproxy](https://github.com/mitmproxy/mitmproxy) là ứng viên engine nếu core ProxyPin thiếu khả năng cần thiết.
-- Chỉ chọn lại UI desktop sau khi kiểm tra mức tái sử dụng thực tế; không mặc định dựng engine từ đầu.
+- Giao diện PC: Tauri 2 + React/TypeScript, theme và layout riêng theo [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Không dùng Flutter.
+- Proxy core chưa chốt: kiểm thử Whistle và mitmproxy như sidecar trước khi cân nhắc viết engine Rust. ProxyPin/Dart chỉ là tài liệu tham khảo cho app PC.
 - SQLite + FTS cho metadata/tìm kiếm; payload file riêng, có quota và redaction.
 - Mô hình dữ liệu: `request` ↔ `board_item` (many-to-many), `view` chứa filter/sort/columns/layout, `event` lưu audit.
 
@@ -43,6 +47,10 @@ Có thể dùng bảng màu charcoal + amber và mật độ thông tin giống 
 - [Phương án self-host](SELF_HOSTING.md)
 - [Repo/core nên tái sử dụng](CORE_REUSE.md)
 - [Quyết định thiết kế và gate chọn core](DESIGN_DECISION.md)
+- [Design system giao diện PC](DESIGN_SYSTEM.md)
+- [Quy tắc cho AI/code agents](AGENTS.md)
+- [Cấu trúc và ranh giới module](STRUCTURE.md)
+- [Prompt bàn giao cho AI khác](AI_HANDOFF.md)
 - [Repo mã nguồn mở để tham khảo](research.md)
 
 Đây là đề xuất ban đầu; các giới hạn không được ghi rõ trong tài liệu Reqable cần đối chiếu trực tiếp trong app trước khi coi là yêu cầu đã xác minh.

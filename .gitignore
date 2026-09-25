@@ -4,3 +4,6 @@ dist/
 *.db
 *.sqlite
 captures/
+.npm-cache/
+*.tsbuildinfo
+src-tauri/target/
