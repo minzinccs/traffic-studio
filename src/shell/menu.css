@@ -1,0 +1,55 @@
+/* FE-1 menu bar + portal overlay layer.
+   The overlay is portaled to <body>, so it uses explicit Mine Shaft colors
+   instead of the .app-shell CSS variables (which would not apply there). */
+.menu-bar { display: flex; align-items: stretch; height: 100%; gap: 1px; }
+
+.menu-layer-root { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+
+.menu-layer-popover {
+  position: fixed;
+  min-width: 238px;
+  max-width: 340px;
+  background: #363636;
+  border: 1px solid #4b4b4b;
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 18px 42px #0009;
+  pointer-events: auto;
+}
+
+.menu-layer-list { list-style: none; margin: 0; padding: 0; }
+
+.menu-layer-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  color: #e6e6e6;
+  border-radius: 5px;
+  padding: 8px 9px;
+  font-size: 12px;
+  text-align: left;
+}
+.menu-layer-item:hover,
+.menu-layer-item.active,
+.menu-layer-item.expanded { background: #414141; color: #fff; }
+
+.menu-layer-item.disabled { color: #7d7d7d; cursor: not-allowed; }
+.menu-layer-item.disabled:hover { background: transparent; color: #7d7d7d; }
+
+.menu-layer-icon { display: grid; place-items: center; width: 16px; color: #c9a25a; flex: none; }
+.menu-layer-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-layer-kbd {
+  font: 10px 'JetBrains Mono', Consolas, monospace;
+  color: #9a9a9a;
+  background: #2b2b2b;
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex: none;
+}
+.menu-layer-check { color: #dfa73d; flex: none; }
+.menu-layer-caret { color: #8f8f8f; flex: none; }
+.menu-layer-sep { height: 1px; background: #474747; margin: 5px 4px; }

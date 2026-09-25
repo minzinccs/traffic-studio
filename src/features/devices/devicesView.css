@@ -1,0 +1,10 @@
+/* FE-2 — Devices view additions (selection + detail). */
+.device-card{text-align:left;font:inherit;color:inherit;cursor:pointer}
+.device-card:disabled{cursor:default;opacity:.72}
+.device-card.host.selected{border-color:#efb34f;box-shadow:inset 0 0 0 1px #6b5527}
+.device-detail{margin-top:14px;padding:20px;border:1px solid #383838;background:#2b2b2b;border-radius:8px}
+.device-detail .panel-kicker{padding:0 0 12px;height:auto;border-bottom:0}
+.device-detail h2{font-size:15px;margin:0 0 14px;color:#e7e9eb}
+.device-detail.empty p{margin:0;color:#8f989f;font-size:11px}
+.device-detail .device-spec{max-width:420px}
+.device-learn{margin-top:16px}

@@ -1,0 +1,3 @@
+.app-shell .explorer-sidebar{width:var(--explorer-width,272px)}
+.sidebar-resizer{width:5px;flex:none;cursor:col-resize;background:#383838;border-right:1px solid #424242}
+.sidebar-resizer:hover,.sidebar-resizer:focus-visible{background:#bb8b46}

@@ -1,0 +1,1 @@
+.inspector-shell{display:flex;flex:none;min-width:0;min-height:0}.inspector-shell .inspector{width:auto;min-width:0;flex:1}.inspector-resizer{width:5px;flex:none;cursor:col-resize;background:#303030;border-left:1px solid #424242}.inspector-resizer:hover,.inspector-resizer:focus-visible{background:#bb8b46}

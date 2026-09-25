@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, Code2, FileJson2, Folder, FolderPlus, ListTree, Plus, Radio, Search, Star, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Code2, FileJson2, Folder, FolderPlus, Plus, Radio, Search, Star, Trash2 } from 'lucide-react';
 import type { Flow, View } from '../domain/types';
 import './explorer.css';
 
-export type ExplorerNode = { id: string; parentId: string | null; kind: 'group' | 'request' | 'setup'; name: string };
+export type ExplorerNode = { id: string; parentId: string | null; kind: 'group' | 'request' | 'setup' | 'profile'; name: string };
 const treeKey = 'traffic-studio-explorer-v1';
 const defaultNodes: ExplorerNode[] = [
   { id: 'group-project', parentId: null, kind: 'group', name: 'Project workspace' },
@@ -14,11 +14,12 @@ const defaultNodes: ExplorerNode[] = [
 ];
 function readNodes(): ExplorerNode[] { try { const value = JSON.parse(localStorage.getItem(treeKey) ?? 'null'); return Array.isArray(value) ? value as ExplorerNode[] : defaultNodes; } catch { return defaultNodes; } }
 
-export function ExplorerSidebar({ section, flows, trackedIds, selectedFlow, onSelectFlow, onTrack, onOpenNode, onCreateRequest, onSetTrafficFilter, trafficFilter }: {
-  section: View; flows: Flow[]; trackedIds: number[]; selectedFlow: number | null;
-  onSelectFlow: (id: number) => void; onTrack: (id: number) => void;
+export function ExplorerSidebar({ section, flows, trackedIds, favoriteIds, selectedFlow, onSelectFlow, onTrack, onFavorite, onOpenNode, onCreateRequest, onSetTrafficFilter, trafficFilter, onShowCollections }: {
+  section: View; flows: Flow[]; trackedIds: number[]; favoriteIds: number[]; selectedFlow: number | null;
+  onSelectFlow: (id: number) => void; onTrack: (id: number) => void; onFavorite: (id: number) => void;
   onOpenNode: (node: ExplorerNode) => void; onCreateRequest: () => void;
   onSetTrafficFilter: (value: string) => void; trafficFilter: string;
+  onShowCollections: () => void;
 }) {
   const [nodes, setNodes] = useState<ExplorerNode[]>(readNodes);
   const [expanded, setExpanded] = useState<string[]>(['group-project', 'group-requests', 'group-config']);
@@ -29,7 +30,9 @@ export function ExplorerSidebar({ section, flows, trackedIds, selectedFlow, onSe
   const [renameName, setRenameName] = useState('');
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [trafficGroups, setTrafficGroups] = useState<string[]>(['Bookmark','Device','Domain']);
+  const [trafficGroups, setTrafficGroups] = useState<string[]>(['Favorite', 'Bookmark', 'Device', 'Application', 'Domain', 'Structure']);
+  const [trafficNodes, setTrafficNodes] = useState<string[]>([]);
+  const [trafficSearch, setTrafficSearch] = useState('');
   useEffect(() => { localStorage.setItem(treeKey, JSON.stringify(nodes)); }, [nodes]);
 
   const create = () => {
@@ -62,14 +65,42 @@ export function ExplorerSidebar({ section, flows, trackedIds, selectedFlow, onSe
 
   if (section === 'traffic') {
     const tracked = flows.filter((flow) => trackedIds.includes(flow.id));
+    const favorites = flows.filter((flow) => favoriteIds.includes(flow.id));
+    const devices = Array.from(new Set(flows.map((flow) => flow.device).filter(Boolean))) as string[];
+    const apps = Array.from(new Set(flows.map((flow) => flow.app).filter(Boolean))) as string[];
     const hosts = Array.from(new Set(flows.map((flow) => flow.host)));
     const paths = Array.from(new Set(flows.map((flow) => flow.path.split('/').filter(Boolean)[0]).filter(Boolean)));
     const toggle = (name: string) => setTrafficGroups((current) => current.includes(name) ? current.filter((item) => item !== name) : [...current, name]);
     const group = (name: string, count?: number) => <button className="explorer-section" onClick={() => toggle(name)}>{trafficGroups.includes(name) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>} {name} {count !== undefined && <strong>{count}</strong>}</button>;
-    return <aside className="explorer-sidebar" aria-label="Traffic explorer"><div className="explorer-title"><span>EXPLORER</span><Radio size={15}/></div>{group('Favorite',0)}{trafficGroups.includes('Favorite') && <div className="explorer-hint"><Star size={15}/><span>Favorites will appear here.</span></div>}{group('Bookmark',tracked.length)}{trafficGroups.includes('Bookmark') && (tracked.length ? tracked.map((flow) => <div key={flow.id} className={`explorer-trace ${selectedFlow === flow.id ? 'selected' : ''}`}><input type="checkbox" checked onChange={() => onTrack(flow.id)} aria-label={`Remove bookmark ${flow.path}`}/><button onClick={() => onSelectFlow(flow.id)} title={`${flow.method} ${flow.host}${flow.path}`}><span>{flow.method}</span>{flow.path}</button></div>) : <div className="explorer-hint"><Star size={15}/><span>Tick a request to bookmark it here.</span></div>)}{group('Device')}{trafficGroups.includes('Device') && <button className="explorer-simple" onClick={() => onSetTrafficFilter('all')}><ListTree size={15}/> Localhost <span>{flows.length}</span></button>}{group('Application')}{trafficGroups.includes('Application') && <button className="explorer-simple" onClick={() => onSetTrafficFilter('all')}><Code2 size={15}/> Sample source <span>{flows.length}</span></button>}{group('Domain',hosts.length)}{trafficGroups.includes('Domain') && hosts.map((host) => <button key={host} className={`explorer-simple nested ${trafficFilter === `host:${host}` ? 'selected' : ''}`} onClick={() => onSetTrafficFilter(`host:${host}`)}><Folder size={14}/>{host}<span>{flows.filter((flow) => flow.host === host).length}</span></button>)}{group('Structure')}{trafficGroups.includes('Structure') && paths.map((path) => <button key={path} className={`explorer-simple nested ${trafficFilter === `path:/${path}` ? 'selected' : ''}`} onClick={() => onSetTrafficFilter(`path:/${path}`)}><Folder size={14}/>/{path}<span>{flows.filter((flow) => flow.path.startsWith(`/${path}`)).length}</span></button>)}<div className="explorer-footer">Sample requests only · no live capture</div></aside>;
+    const trace = (flow: Flow, onRemove?: () => void) => <div key={flow.id} className={`explorer-trace ${selectedFlow === flow.id ? 'selected' : ''}`}>
+      {onRemove && <input type="checkbox" checked onChange={onRemove} aria-label={`Remove bookmark ${flow.method} ${flow.path}`}/>}
+      <button className="explorer-trace-main" onClick={() => onSelectFlow(flow.id)} title={`${flow.method} ${flow.host}${flow.path}`}><span>{flow.method}</span>{flow.path}</button>
+    </div>;
+    const matchesSearch = (flow: Flow) => `${flow.method} ${flow.host} ${flow.path} ${flow.app ?? ''} ${flow.device ?? ''}`.toLowerCase().includes(trafficSearch.toLowerCase());
+    const categoryNode = (category: string, value: string, filter: string, matching: Flow[]) => {
+      const key = `${category}:${value}`;
+      const open = trafficNodes.includes(key) || Boolean(trafficSearch);
+      const shown = matching.filter(matchesSearch);
+      if (trafficSearch && !shown.length && !value.toLowerCase().includes(trafficSearch.toLowerCase())) return null;
+      return <div className="explorer-category" key={key}><div className={`explorer-category-head ${trafficFilter === filter ? 'selected' : ''}`}><button className="explorer-category-expand" aria-label={`${open ? 'Collapse' : 'Expand'} ${value}`} aria-expanded={open} onClick={() => setTrafficNodes((current) => open ? current.filter((item) => item !== key) : [...current, key])}>{open ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}</button><button className="explorer-category-filter" onClick={() => onSetTrafficFilter(filter)} title={`Filter traffic by ${value}`}>{value}</button><span>{matching.length}</span></div>{open && (shown.length ? shown.map((flow) => trace(flow)) : <div className="explorer-hint">No matching requests.</div>)}</div>;
+    };
+    return <aside className="explorer-sidebar" aria-label="Traffic explorer"><div className="explorer-title"><span>EXPLORER · SAMPLE</span><Radio size={15}/></div><div className="explorer-search"><Search size={14}/><input aria-label="Search Traffic explorer" placeholder="Search groups and requests" value={trafficSearch} onChange={(event) => setTrafficSearch(event.target.value)}/></div><div className="traffic-explorer-scroll">
+      {group('Favorite', favorites.length)}
+      {trafficGroups.includes('Favorite') && (favorites.length ? favorites.filter(matchesSearch).map((flow) => <div key={flow.id} className={`explorer-trace ${selectedFlow === flow.id ? 'selected' : ''}`}><button className="explorer-star" title="Unfavorite" onClick={() => onFavorite(flow.id)}><Star size={13} fill="currentColor"/></button><button className="explorer-trace-main" onClick={() => onSelectFlow(flow.id)} title={`${flow.method} ${flow.host}${flow.path}`}><span>{flow.method}</span>{flow.path}</button></div>) : <div className="explorer-hint"><Star size={15}/><span>Star a request to add it here.</span></div>)}
+      {group('Bookmark', tracked.length)}
+      {trafficGroups.includes('Bookmark') && (tracked.length ? tracked.filter(matchesSearch).map((flow) => trace(flow, () => onTrack(flow.id))) : <div className="explorer-hint"><Star size={15}/><span>Tick a request to bookmark it here.</span></div>)}
+      {group('Device', devices.length)}
+      {trafficGroups.includes('Device') && (devices.length ? devices.map((device) => categoryNode('device', device, `device:${device}`, flows.filter((flow) => flow.device === device))) : <div className="explorer-hint"><span>No device data yet.</span></div>)}
+      {group('Application', apps.length)}
+      {trafficGroups.includes('Application') && (apps.length ? apps.map((app) => categoryNode('app', app, `app:${app}`, flows.filter((flow) => flow.app === app))) : <div className="explorer-hint"><span>No app data yet.</span></div>)}
+      {group('Domain', hosts.length)}
+      {trafficGroups.includes('Domain') && hosts.map((host) => categoryNode('host', host, `host:${host}`, flows.filter((flow) => flow.host === host)))}
+      {group('Structure')}
+      {trafficGroups.includes('Structure') && paths.map((path) => categoryNode('path', `/${path}`, `path:/${path}`, flows.filter((flow) => flow.path.startsWith(`/${path}`))))}
+    </div></aside>;
   }
   if (section !== 'api') return null;
-  return <aside className="explorer-sidebar" aria-label="API explorer"><div className="explorer-title"><span>EXPLORER</span><div><button title="New top-level group" onClick={() => startCreate('group', null)}><FolderPlus size={15}/></button><button title="New request" onClick={() => { if (selectedGroup) startCreate('request'); else onCreateRequest(); }}><Plus size={16}/></button></div></div><div className="explorer-search"><Search size={14}/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find in workspace" aria-label="Find in workspace"/></div><div className="explorer-create-bar"><button onClick={() => startCreate('group')}><FolderPlus size={14}/> Group</button><button onClick={() => startCreate('request')}><Code2 size={14}/> Request</button><button onClick={() => startCreate('setup')}><FileJson2 size={14}/> Setup</button></div><div className="explorer-tree"><div className="explorer-tree-caption">WORKSPACE FILES <span>{nodes.length}</span></div>{renderNodes(null, 0)}{creating && <div className="explorer-new"><span>{creating.kind === 'group' ? <Folder size={14}/> : creating.kind === 'setup' ? <FileJson2 size={14}/> : <Code2 size={14}/>}</span><input autoFocus value={newName} onChange={(event) => setNewName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') create(); if (event.key === 'Escape') setCreating(null); }} aria-label={`New ${creating.kind} name`}/><button onClick={create}>Add</button></div>}{pendingDelete && <div className="explorer-delete-confirm"><span>Delete {nodes.find((node) => node.id === pendingDelete)?.name} and its children?</span><button onClick={() => setPendingDelete(null)}>Cancel</button><button onClick={() => { removeNode(pendingDelete); setPendingDelete(null); }}>Delete</button></div>}</div><div className="explorer-footer">Right panel opens the selected request or setup file.</div></aside>;
+  return <aside className="explorer-sidebar" aria-label="API explorer"><div className="explorer-title"><span>EXPLORER</span><div><button title="New top-level group" onClick={() => startCreate('group', null)}><FolderPlus size={15}/></button><button title="New request" onClick={() => { if (selectedGroup) startCreate('request'); else onCreateRequest(); }}><Plus size={16}/></button></div></div><div className="api-sidebar-tabs"><button className="active">Explorer</button><button onClick={onShowCollections}>Collections</button></div><div className="explorer-search"><Search size={14}/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find in workspace" aria-label="Find in workspace"/></div><div className="explorer-create-bar"><button onClick={() => startCreate('group')}><FolderPlus size={14}/> Group</button><button onClick={() => startCreate('request')}><Code2 size={14}/> Request</button><button onClick={() => startCreate('setup')}><FileJson2 size={14}/> Setup</button></div><div className="explorer-tree"><div className="explorer-tree-caption">WORKSPACE FILES <span>{nodes.length}</span></div>{renderNodes(null, 0)}{creating && <div className="explorer-new"><span>{creating.kind === 'group' ? <Folder size={14}/> : creating.kind === 'setup' ? <FileJson2 size={14}/> : <Code2 size={14}/>}</span><input autoFocus value={newName} onChange={(event) => setNewName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') create(); if (event.key === 'Escape') setCreating(null); }} aria-label={`New ${creating.kind} name`}/><button onClick={create}>Add</button></div>}{pendingDelete && <div className="explorer-delete-confirm"><span>Delete {nodes.find((node) => node.id === pendingDelete)?.name} and its children?</span><button onClick={() => setPendingDelete(null)}>Cancel</button><button onClick={() => { removeNode(pendingDelete); setPendingDelete(null); }}>Delete</button></div>}</div><div className="explorer-footer">Right panel opens the selected request or setup file.</div></aside>;
 }
 
 export function SetupFileView({ node }: { node: Pick<ExplorerNode, 'id' | 'name' | 'kind'> }) {

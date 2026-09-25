@@ -1,0 +1,15 @@
+/* FE-2 — Device sidebar. Reuses .explorer-sidebar for width + resizer behaviour. */
+.device-scroll{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;padding-bottom:10px}
+.device-group{width:100%;height:31px;display:flex;align-items:center;gap:6px;padding:0 11px;border:0;border-top:1px solid #383838;background:transparent;color:#929ba2;font-size:10px;font-weight:700;letter-spacing:.09em;text-align:left}
+.device-group:hover{background:#303030;color:#e7e9ea}
+.device-group strong{margin-left:auto;font:10px 'JetBrains Mono',Consolas,monospace;color:#6dca9b}
+.device-node{width:100%;display:flex;align-items:center;gap:8px;padding:8px 11px;border:0;background:transparent;color:#abb3b8;text-align:left}
+.device-node:hover{background:#303030}
+.device-node.selected{background:#303030;color:#edc17e;box-shadow:inset 2px 0 #efb34f}
+.device-node>svg{flex:none;color:#d0a359}
+.device-node-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.device-node-copy strong{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.device-node-copy small{font-size:10px;color:#879099;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.device-pill{flex:none;border:1px solid #715b39;background:#383838;color:#efbe73;border-radius:4px;padding:3px 5px;font:9px 'JetBrains Mono',monospace;letter-spacing:.05em}
+.device-note{display:flex;align-items:flex-start;gap:7px;margin:14px 11px 0;padding-top:11px;border-top:1px solid #383838;color:#7f888f;font-size:10px;line-height:1.5}
+.device-note svg{flex:none;margin-top:1px;color:#c9af82}

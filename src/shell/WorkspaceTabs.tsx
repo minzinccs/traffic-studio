@@ -1,0 +1,31 @@
+import { useEffect, useState, type ReactNode } from 'react';
+import { MoreHorizontal, Plus, X } from 'lucide-react';
+import type { Tab } from '../domain/types';
+import './workspaceTabs.css';
+
+export function WorkspaceTabs({ tabs, activeId, section, closedCount, iconFor, onSelect, onNew, onClose, onCloseMany, onReorder, onPin, onRename, onReopen, onLayout }: {
+  tabs: Tab[]; activeId: number; section: 'traffic' | 'api'; closedCount: number; iconFor: (tab: Tab) => ReactNode;
+  onSelect: (id: number) => void; onNew: () => void; onClose: (id: number) => void; onCloseMany: (ids: number[]) => void;
+  onReorder: (source: number, target: number) => void; onPin: (id: number) => void; onRename: (id: number, name: string) => void;
+  onReopen: () => void; onLayout: () => void;
+}) {
+  const shown = tabs.filter((tab) => tab.view === section);
+  const [menuId, setMenuId] = useState<number | null>(null);
+  const [renaming, setRenaming] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [dragged, setDragged] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { setMenuId(null); setRenaming(null); setDragged(null); setDropTarget(null); } };
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, []);
+  const target = shown.find((tab) => tab.id === menuId);
+  const closeOthers = target ? shown.filter((tab) => tab.id !== target.id && tab.view === 'api').map((tab) => tab.id) : [];
+  const closeRight = target ? shown.slice(shown.findIndex((tab) => tab.id === target.id) + 1).filter((tab) => tab.view === 'api').map((tab) => tab.id) : [];
+  const startRename = (tab: Tab) => { setMenuId(null); setRenaming(tab.id); setRenameValue(tab.label); };
+  const finishRename = () => { if (renaming !== null && renameValue.trim()) onRename(renaming, renameValue.trim()); setRenaming(null); };
+  return <div className="tab-bar workspace-tabbar" onClick={() => menuId !== null && setMenuId(null)}><div className="tabs-scroll">{shown.map((tab) => <div key={tab.id} className={`workspace-tab ${activeId === tab.id ? 'active' : ''} ${tab.pinned ? 'pinned' : ''} ${dropTarget === tab.id ? 'drop-target' : ''}`} role="tab" tabIndex={0} aria-selected={activeId === tab.id} draggable={renaming !== tab.id} onDragStart={(event) => { setDragged(tab.id); event.dataTransfer.effectAllowed = 'move'; }} onDragOver={(event) => { event.preventDefault(); setDropTarget(tab.id); }} onDragLeave={() => setDropTarget(null)} onDrop={(event) => { event.preventDefault(); if (dragged !== null) onReorder(dragged, tab.id); setDragged(null); setDropTarget(null); }} onDragEnd={() => { setDragged(null); setDropTarget(null); }} onClick={() => onSelect(tab.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(tab.id); } }} onContextMenu={(event) => { event.preventDefault(); setMenuId(tab.id); }} onMouseDown={(event) => { if (event.button === 1 && tab.view === 'api') { event.preventDefault(); onClose(tab.id); } }} onDoubleClick={() => tab.view === 'api' && startRename(tab)}>
+      {iconFor(tab)}{renaming === tab.id ? <input className="tab-rename" autoFocus aria-label="Rename tab" value={renameValue} onClick={(event) => event.stopPropagation()} onChange={(event) => setRenameValue(event.target.value)} onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Enter') finishRename(); if (event.key === 'Escape') setRenaming(null); }} onBlur={finishRename}/> : <span className="tab-label" title={tab.label}>{tab.label}</span>}{tab.pinned && <span className="tab-pin" title="Pinned tab">●</span>}{tab.dirty && <span className="tab-dirty" title="Unsaved changes"/>}{tab.loading && <span className="tab-loading" title="Loading"/>}{tab.view === 'api' && <button className="tab-close" aria-label={`Close ${tab.label}`} onClick={(event) => { event.stopPropagation(); onClose(tab.id); }}><X size={13}/></button>}
+    </div>)}</div><button className="new-tab" title="New API request" aria-label="New API request" onClick={onNew}><Plus size={19}/></button><div className="tab-spacer"/><button className="tab-tool" title="Panel layout" aria-label="Panel layout" onClick={onLayout}><MoreHorizontal size={18}/></button>{menuId !== null && target && <div className="tab-context" role="menu" onClick={(event) => event.stopPropagation()}><div className="tab-context-title">{target.label}</div><button role="menuitem" onClick={() => { onPin(target.id); setMenuId(null); }}>{target.pinned ? 'Unpin tab' : 'Pin tab'}</button><button role="menuitem" disabled={target.view !== 'api'} onClick={() => startRename(target)}>Rename tab</button><hr/><button role="menuitem" disabled={target.view !== 'api'} onClick={() => { onClose(target.id); setMenuId(null); }}>Close</button><button role="menuitem" disabled={!closeOthers.length} onClick={() => { onCloseMany(closeOthers); setMenuId(null); }}>Close others <span>{closeOthers.length}</span></button><button role="menuitem" disabled={!closeRight.length} onClick={() => { onCloseMany(closeRight); setMenuId(null); }}>Close to right <span>{closeRight.length}</span></button><button role="menuitem" disabled={!shown.some((tab) => tab.view === 'api')} onClick={() => { onCloseMany(shown.filter((tab) => tab.view === 'api').map((tab) => tab.id)); setMenuId(null); }}>Close all API tabs</button><hr/><button role="menuitem" disabled={!closedCount} onClick={() => { onReopen(); setMenuId(null); }}>Reopen closed tab</button></div>}</div>;
+}

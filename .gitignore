@@ -7,3 +7,5 @@ captures/
 .npm-cache/
 *.tsbuildinfo
 src-tauri/target/
+# Local agent workspace: session memory notes and verification screenshots.
+.workbuddy-ai/

@@ -1,0 +1,55 @@
+/* Short spatial cues for desktop navigation and data inspection. */
+@keyframes workspace-enter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sidebar-enter {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes detail-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.workspace-page, .traffic-view, .api-document-layout, .empty-canvas, .setup-view {
+  animation: workspace-enter 220ms cubic-bezier(.2,.7,.2,1) both;
+}
+.explorer-sidebar { animation: sidebar-enter 200ms cubic-bezier(.2,.7,.2,1) both; }
+.inspector-shell, .collection-editor, .menu-popover, .traffic-column-menu, .traffic-row-menu {
+  animation: detail-enter 160ms ease-out both;
+}
+.inspector-body, .pair-editor, .mock-resp, .tool-main {
+  animation: detail-enter 170ms ease-out both;
+}
+.traffic-grid-row:nth-child(-n+13) { animation: detail-enter 160ms ease-out both; }
+.traffic-grid-row:nth-child(2), .traffic-grid-row:nth-child(3), .traffic-grid-row:nth-child(4),
+.traffic-grid-row:nth-child(5), .traffic-grid-row:nth-child(6) { animation-delay: 22ms; }
+.rail-button, .rail-button svg, .workspace-tab, .explorer-section, .explorer-category-head,
+.explorer-node, .traffic-grid-row, .item-row, .tracker-table-row, .issue-card, .library-row,
+.tool-sidebar button, .segment button, .request-tabs button, .inspector-tabs button,
+.api-response-tabs button, .traffic-filter-strip button, .traffic-quick-filter button {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.rail-button:hover svg { transform: translateY(-2px) scale(1.08); }
+.rail-button.active svg { transform: scale(1.08); }
+.rail-button.active::before { animation: sidebar-enter 180ms ease-out both; }
+.item-row:hover, .issue-card:hover, .library-row:hover { transform: translateY(-1px); }
+.traffic-grid-row:active, .item-row:active, .issue-card:active { transform: translateY(0); }
+.tool-sidebar button svg { flex: none; }
+.traffic-method { display: inline-flex; align-items: center; gap: 4px; }
+.traffic-method svg { flex: none; opacity: .8; }
+.traffic-row-menu button { display: flex; align-items: center; gap: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .app-shell:not([data-motion="on"]) *, .app-shell:not([data-motion="on"]) *::before, .app-shell:not([data-motion="on"]) *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.app-shell[data-motion="off"] *, .app-shell[data-motion="off"] *::before, .app-shell[data-motion="off"] *::after {
+  animation-duration: .01ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: .01ms !important;
+  scroll-behavior: auto !important;
+}

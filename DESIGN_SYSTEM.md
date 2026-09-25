@@ -6,23 +6,24 @@ Windows desktop app first. The current code is a **UI shell** and does not captu
 
 ## Visual language
 
-- Dark graphite workspace, soft panel separation, amber for primary actions and focus, mint for healthy/live status, red only for errors.
+- Mine Shaft gray workspace based on the user's `#2B2B2B` reference. Use nearby neutral grays for panel separation; keep amber as a restrained focus/accent color, mint for healthy/live status, red only for errors.
 - Dense developer-tool information in active workspaces, generous spacing in empty states.
 - Native window frame for the first version; app menu starts beneath the Windows title bar. Avoid copying Reqable's brand assets or exact layout measurements.
 - Typography: Segoe UI for interface, JetBrains Mono when installed (Consolas fallback) for addresses, methods, shortcuts, IDs and timings. The shell works offline.
+- Motion: 160–220 ms transitions for rail navigation, pane entry, tab content and selectable rows. View → Animations can disable them; icon transitions use the same timing.
 
 ## Tokens
 
 | Token | Value | Use |
 | --- | --- | --- |
-| Canvas | `#181a1d` | Main workspace |
-| Surface | `#202226` | Rail, panels |
-| Raised surface | `#25282d` | Toolbar, inputs |
-| Border | `#34383d` | Panel edges |
-| Text | `#e6e8e9` | Primary content |
-| Muted | `#8f969d` | Secondary content |
-| Amber | `#efb34f` | Primary actions, active tab |
-| Mint | `#5fc59a` | Live/healthy status |
+| Canvas | `#2b2b2b` | Main workspace |
+| Surface | `#303030` | Panels |
+| Raised surface | `#363636` | Menu, rail, toolbar, inputs |
+| Border | `#464646` | Panel edges |
+| Text | `#e9e9e9` | Primary content |
+| Muted | `#aaaaaa` | Secondary content |
+| Amber | `#dfa73d` | Focus and small accents |
+| Mint | `#6ec78c` | Live/healthy status |
 
 Base grid uses 4 px units. Menu height 44 px, navigation rail 58 px, capture toolbar 79 px, tab strip 47 px, status bar 29 px. Corners: 5–9 px for controls; 11 px for dialogs.
 

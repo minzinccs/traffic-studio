@@ -1,0 +1,10 @@
+/* FE-2 — History detail pane. Reuses .library-list / .large-empty / .demo-note. */
+.history-detail{display:flex;flex-direction:column;gap:4px}
+.history-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:6px}
+.history-detail-head h2{display:flex;align-items:center;gap:9px;font-size:19px;margin:6px 0 10px;color:#eceeef}
+.history-detail-head h2 svg{color:#d0a359}
+.history-meta{display:flex;align-items:center;flex-wrap:wrap;gap:9px;color:#939ca3;font-size:11px}
+.history-meta>span{display:inline-flex;align-items:center}
+.history-url{font-family:'JetBrains Mono',Consolas,monospace;color:#b0b8bd;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-detail .demo-note{margin:10px 0}
+.history-reveal{margin-top:14px}
