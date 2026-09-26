@@ -126,3 +126,9 @@ npm run tauri -- dev  # only after Rust + MSVC/Windows SDK are installed
 3. Implement a typed bridge interface with a mock provider. Keep sample traffic clearly synthetic.
 4. Benchmark Whistle and mitmproxy on Windows against `FEATURE_INVENTORY.md` before committing to a proxy core.
 5. Implement P0 shell interactions from `INTERACTION_PLAN.md` before expanding backend-dependent UI.
+
+## Current feature map — 2026-09-26
+
+New feature boundaries: settings (preferences/config/CA/integrations), notifications, layout, tools (local codecs/crypto/QR), protocols (WebSocket/SSE previews), rules, tracker, analytics, data-transfer (validated modal), environments. Capture owns MessagePane/annotations/Explorer/sessionFiles/session manager/comparison. API owns cURL/collection transfer/CollectionExplorer/multi-pane workspace. WorkspacePages now reexports feature views; shell/useDialogFocus owns shared modal focus behavior. See FE_STATUS.md for behavioral limits.
+
+features/workspaces exports WorkspaceRoot (main.tsx entry wrapper) and owns local snapshot switching/management. File menu and Settings dispatch the workspace manager event. Inspector owns persistent tab order/visibility. useDialogFocus now supports an optional enabled flag for conditionally mounted overlays.

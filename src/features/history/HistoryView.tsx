@@ -7,21 +7,22 @@ import './historyView.css';
 // The sidebar (mode F4) owns the list; this pane renders whatever is selected.
 // Sample sessions are always labelled as fixtures, and saved requests are
 // described as browser drafts rather than captured traffic.
-export function HistoryView({ flash, selection, sidebarVisible, onShowSidebar, onOpenRequest, onShowTraffic }: {
+export function HistoryView({ selection, sidebarVisible, onShowSidebar, onOpenRequest, onShowTraffic, onImport }: {
   flash: (message: string) => void;
   selection: HistorySelection;
   sidebarVisible: boolean;
   onShowSidebar: () => void;
   onOpenRequest: (name: string) => void;
   onShowTraffic: () => void;
+  onImport: () => void;
 }) {
   const session = selection?.kind === 'session' ? findSession(selection.id) : undefined;
   const saved = selection?.kind === 'saved' ? readSavedRequests().find((item) => item.name === selection.name) : undefined;
 
   return <div className="workspace-page">
     <div className="page-head">
-      <div><span className="eyebrow">LOCAL LIBRARY</span><h1>History</h1><p>Sample sessions bundled with the preview and API requests saved in this browser profile.</p></div>
-      <div className="page-head-action"><button className="outline-button" onClick={() => flash('HAR import needs the local file and storage bridge.')}><ArrowDownToLine size={15}/> Import HAR</button></div>
+      <div><span className="eyebrow">LOCAL LIBRARY</span><h1>History</h1><p>Bundled samples, imported or saved local preview sessions, and browser API drafts.</p></div>
+      <div className="page-head-action"><button className="outline-button" onClick={onImport}><ArrowDownToLine size={15}/> Import HAR</button></div>
     </div>
 
     {!session && !saved && <div className="large-empty">
@@ -37,7 +38,7 @@ export function HistoryView({ flash, selection, sidebarVisible, onShowSidebar, o
           <span className="eyebrow">SESSION</span>
           <h2><FileArchive size={19}/>{session.name}</h2>
           <div className="history-meta">
-            <span className="sample-pill">SAMPLE</span>
+            <span className="sample-pill">{session.id.startsWith('sample-') ? 'SAMPLE' : 'LOCAL PREVIEW'}</span>
             <span>{session.requestCount} requests</span>
             <span>{session.size}</span>
             <span>{session.capturedAt}</span>
@@ -57,7 +58,7 @@ export function HistoryView({ flash, selection, sidebarVisible, onShowSidebar, o
             <span>{flow.size}</span>
           </button>)}
         </div>}
-      <div className="demo-note"><Info size={15}/>Opening a request switches to the Traffic view and loads the sample table. Sample flows are not captured traffic.</div>
+      <div className="demo-note"><Info size={15}/>Opening an entry loads this session in Traffic. Local previews and sample flows are not live captures.</div>
     </div>}
 
     {saved && <div className="history-detail">
@@ -72,6 +73,6 @@ export function HistoryView({ flash, selection, sidebarVisible, onShowSidebar, o
       <div className="demo-note"><Info size={15}/>This is a request draft stored in your browser profile. It has never been sent from this preview.</div>
     </div>}
 
-    <div className="demo-note"><Info size={15}/>Captured sessions are not persisted yet — the capture core is not connected, so History stays limited to fixtures and browser drafts.</div>
+    <div className="demo-note"><Info size={15}/>Local preview sessions and API drafts are stored in this browser. The capture core is not connected.</div>
   </div>;
 }

@@ -98,3 +98,7 @@ Mọi dòng là **yêu cầu cần kiểm tra/triển khai**, chưa đánh dấu
 - [ ] Đối chiếu [changelog v3 hiện tại](https://github.com/reqable/reqable-docs/tree/master/en-US/changelogs) và chạy app trên từng nền tảng để bổ sung tính năng chưa có trang tài liệu riêng.
 
 Các checklist này không bao gồm tính năng độc quyền Enterprise đã nêu ở mục 6. Chúng cũng chưa chứng minh ProxyPin hoặc repo khác đã đáp ứng; dùng để đo gap trước khi chọn core.
+
+## Frontend implementation map — 2026-09-26
+
+See [FE_STATUS.md](FE_STATUS.md) for local interactions, mock configuration, verification evidence and remaining limitations. Runtime parity checkboxes above must not be marked complete solely because a mock screen exists.

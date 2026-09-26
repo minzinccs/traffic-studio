@@ -14,6 +14,7 @@ export const environmentRowsKey = 'traffic-studio-environment-rows-v1';
 export const environmentsEvent = 'traffic-studio-environments-change';
 
 const defaultNames = ['Global'];
+let memoryRows: EnvironmentRows = {};
 const defaultRows: EnvironmentRows = { Global: [{ id: 1, key: 'base_url', value: 'https://api.example.com', secret: false }] };
 
 export function withoutSecretValues(rows: EnvironmentRows): EnvironmentRows {
@@ -34,10 +35,11 @@ export function readEnvironmentNames(): string[] {
 
 export function readEnvironmentRows(): EnvironmentRows {
   const rows = read<EnvironmentRows>(environmentRowsKey, defaultRows);
-  return rows && typeof rows === 'object' ? rows : defaultRows;
+  return rows && typeof rows === 'object' ? mergeSecretValues(rows,memoryRows) : defaultRows;
 }
 
 export function writeEnvironments(names: string[], rows: EnvironmentRows) {
+  memoryRows=rows;
   try {
     localStorage.setItem(environmentNamesKey, JSON.stringify(names));
     localStorage.setItem(environmentRowsKey, JSON.stringify(withoutSecretValues(rows)));

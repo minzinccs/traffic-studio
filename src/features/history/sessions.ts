@@ -1,3 +1,4 @@
+import { readPreviewSessions } from '../capture/sessionFiles';
 import type { Flow } from '../../domain/types';
 import { listFlows } from '../../bridge/mockBridge';
 
@@ -90,12 +91,14 @@ export function readSavedRequests(): SavedRequest[] {
 }
 
 export function findSession(id: string): HistorySession | undefined {
-  return sampleSessions.find((session) => session.id === id);
+  return [...sampleSessions, ...readPreviewSessions().map(s => ({ id:s.id,name:s.name,requestCount:s.flows.length,size:sumSize(s.flows),capturedAt:s.created,note:'Saved local preview; not a live capture.',flowIds:s.flows.map(f => f.id) }))].find((session) => session.id === id);
 }
 
 export function flowsForSession(id: string): Flow[] {
   const session = findSession(id);
   if (!session) return [];
+  const saved=readPreviewSessions().find(s=>s.id===session.id);
+  if(saved) return saved.flows;
   return flows.filter((flow) => session.flowIds.includes(flow.id));
 }
 
@@ -107,3 +110,5 @@ export function matchesSession(session: HistorySession, query: string): boolean 
 export function matchesSavedRequest(request: SavedRequest, query: string): boolean {
   return `${request.name} ${request.method} ${request.url}`.toLowerCase().includes(query);
 }
+
+export function listHistorySessions(): HistorySession[] { return [...sampleSessions,...readPreviewSessions().map(s=>({id:s.id,name:s.name,requestCount:s.flows.length,size:sumSize(s.flows),capturedAt:s.created,note:'Saved local preview; not a live capture.',flowIds:s.flows.map(f=>f.id)}))]; }

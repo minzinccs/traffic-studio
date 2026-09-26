@@ -1,0 +1,5 @@
+import { useEffect, useRef, type RefObject } from 'react';
+export function useDialogFocus(root:RefObject<HTMLElement|null>,onClose:()=>void,enabled=true){
+  const close=useRef(onClose);close.current=onClose;
+  useEffect(()=>{if(!enabled)return;const previous=document.activeElement as HTMLElement|null;root.current?.querySelector<HTMLElement>('button,input,select,textarea')?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close.current();}if(e.key==='Tab'){const nodes=Array.from(root.current?.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')??[]).filter(v=>v.getClientRects().length);const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};window.addEventListener('keydown',key,true);return()=>{window.removeEventListener('keydown',key,true);previous?.focus();};},[root,enabled]);
+}

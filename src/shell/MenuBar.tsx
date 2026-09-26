@@ -181,6 +181,8 @@ export function MenuBar({ menus }: { menus: MenuDefinition[] }) {
               aria-haspopup={item.children ? 'menu' : undefined}
               aria-expanded={item.children ? expanded : undefined}
               title={item.disabledReason ?? item.hint ?? item.label}
+              onFocus={()=>{if(level===deepest)setActive(index);}}
+              onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();activate(level,item);}}}
               onMouseEnter={() => hover(level, item, index)}
               onClick={(event) => { event.stopPropagation(); activate(level, item); }}
             >

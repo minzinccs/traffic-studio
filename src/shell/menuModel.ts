@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { SettingsPage } from '../features/settings';
 import type { View } from '../domain/types';
 import { sidebarModes, type SidebarMode } from './sidebarModes';
 
@@ -56,6 +57,11 @@ export type MenuContext = {
   // Proxy / Certificate
   editEndpoint: () => void;
   // Help
+  openClipboard:()=>void; openIntegration:(tab:string)=>void;
+  openSessions: () => void; openCompare: () => void;
+  openProtocols: () => void;
+  openSettings: (page?: SettingsPage) => void;
+  zenActive: boolean; toggleZen: () => void; openLayouts: () => void; toggleDirection: () => void; direction: string;
   openAbout: () => void;
   openShortcuts: () => void;
 };
@@ -69,11 +75,11 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
     {
       id: 'file', label: 'File', items: [
         { id: 'file-new-http', label: 'New HTTP Request', shortcut: 'Ctrl+T', action: ctx.newApiRequest },
-        { id: 'file-new-ws', label: 'New WebSocket Request', ...disabled('The WebSocket client is not built yet.') },
-        { id: 'file-new-workspace', label: 'New Workspace', separatorBefore: true, ...disabled('Multi-workspace support is not built yet.') },
-        { id: 'file-open-file', label: 'Open File…', separatorBefore: true, ...disabled('The local file bridge is not connected.') },
-        { id: 'file-open-har', label: 'Open HAR File…', shortcut: 'Ctrl+O', hint: 'Preview only — HAR import needs the local storage bridge.', action: ctx.openHar },
-        { id: 'file-open-clipboard', label: 'Open from Clipboard', ...disabled('Clipboard import is not built yet.') },
+        { id: 'file-new-ws', label: 'New WebSocket Request', hint: 'Mock frames only; no socket is opened.', action: ctx.openProtocols },
+        { id: 'file-new-workspace', label: 'Workspaces…', separatorBefore: true, action:()=>window.dispatchEvent(new Event('traffic-studio-workspaces')) },
+        { id: 'file-open-file', label: 'Open File…', separatorBefore: true, action: ctx.openSessions },
+        { id: 'file-open-har', label: 'Open HAR File…', shortcut: 'Ctrl+O', hint: 'Parse HAR locally, with validation preview.', action: ctx.openHar },
+        { id: 'file-open-clipboard', label: 'Open from Clipboard', action: ctx.openClipboard },
         {
           id: 'file-recent', label: 'Recent', children: [
             { id: 'file-recent-1', label: 'No recent files', ...disabled('Recent items appear once local storage is connected.') },
@@ -83,18 +89,21 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
         { id: 'file-close-others', label: 'Close Other Tabs', ...(ctx.canCloseTabs ? { action: ctx.closeOtherTabs } : disabled('No other API tabs are open.')) },
         { id: 'file-close-all', label: 'Close All API Tabs', ...(ctx.canCloseTabs ? { action: ctx.closeAllTabs } : disabled('No API tabs are open.')) },
         { id: 'file-reopen', label: 'Reopen Closed Tab', shortcut: 'Ctrl+Shift+T', ...(ctx.canReopen ? { action: ctx.reopenClosedTab } : disabled('No recently closed tab.')) },
+        { id: 'file-settings', label: 'Settings…', action: () => ctx.openSettings() },
         { id: 'file-exit', label: 'Exit', separatorBefore: true, ...disabled('The native Windows build is not available on this machine.') },
       ],
     },
     {
       id: 'tools', label: 'Tools', items: [
+        { id: 'tools-protocols', label: 'WebSocket / SSE Preview', action: ctx.openProtocols },
+        { id: 'tools-regex', label: 'Regex Tester', action: () => ctx.openToolbox('Regex') },
         { id: 'tools-toolbox', label: 'Open Toolbox', action: () => ctx.openView('tools') },
         {
           id: 'tools-decode', label: 'Decode', separatorBefore: true, children: [
             { id: 'tools-decode-b64', label: 'Base64 Decode', action: () => ctx.openToolbox('Base64', 'Decode') },
             { id: 'tools-decode-url', label: 'URL Decode', action: () => ctx.openToolbox('URL', 'Decode') },
-            { id: 'tools-decode-hex', label: 'Hex → Text', ...disabled('Hex decode is not built yet.') },
-            { id: 'tools-decode-jwt', label: 'JWT Decode', ...disabled('JWT tools are not built yet.') },
+            { id: 'tools-decode-hex', label: 'Hex → Text', action: () => ctx.openToolbox('Hex', 'Decode') },
+            { id: 'tools-decode-jwt', label: 'JWT Decode', action: () => ctx.openToolbox('JWT') },
           ],
         },
         {
@@ -102,31 +111,32 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
             { id: 'tools-encode-b64', label: 'Base64 Encode', action: () => ctx.openToolbox('Base64', 'Encode') },
             { id: 'tools-encode-url', label: 'URL Encode', action: () => ctx.openToolbox('URL', 'Encode') },
             { id: 'tools-encode-json', label: 'JSON Format', action: () => ctx.openToolbox('JSON format') },
-            { id: 'tools-encode-hex', label: 'Text → Hex', ...disabled('Hex encode is not built yet.') },
+            { id: 'tools-encode-hex', label: 'Text → Hex', action: () => ctx.openToolbox('Hex', 'Encode') },
           ],
         },
         {
           id: 'tools-generate', label: 'Generate', children: [
+            { id: 'tools-gen-qr', label: 'QR Code', action: () => ctx.openToolbox('QR code') },
             { id: 'tools-gen-uuid', label: 'UUID v4', action: () => ctx.openToolbox('UUID') },
             { id: 'tools-gen-timestamp', label: 'Timestamp', action: () => ctx.openToolbox('Timestamp') },
           ],
         },
         {
           id: 'tools-hash', label: 'Hash / HMAC', children: [
-            { id: 'tools-hash-md5', label: 'MD5', ...disabled('Hash tools are not built yet.') },
-            { id: 'tools-hash-sha1', label: 'SHA-1', ...disabled('Hash tools are not built yet.') },
-            { id: 'tools-hash-sha256', label: 'SHA-256', ...disabled('Hash tools are not built yet.') },
-            { id: 'tools-hash-hmac', label: 'HMAC', ...disabled('Hash tools are not built yet.') },
+            { id: 'tools-hash-md5', label: 'MD5', ...disabled('MD5 is unavailable in browser Web Crypto.') },
+            { id: 'tools-hash-sha1', label: 'SHA-1', action: () => ctx.openToolbox('Hash / HMAC', 'SHA-1') },
+            { id: 'tools-hash-sha256', label: 'SHA-256', action: () => ctx.openToolbox('Hash / HMAC', 'SHA-256') },
+            { id: 'tools-hash-hmac', label: 'HMAC', action: () => ctx.openToolbox('Hash / HMAC', 'HMAC') },
           ],
         },
         {
           id: 'tools-crypto', label: 'Encrypt / Decrypt', children: [
-            { id: 'tools-crypto-aes', label: 'AES', ...disabled('No crypto core is wired up.') },
-            { id: 'tools-crypto-rsa', label: 'RSA', ...disabled('No crypto core is wired up.') },
+            { id: 'tools-crypto-aes', label: 'AES-GCM', action: () => ctx.openToolbox('AES') },
+            { id: 'tools-crypto-rsa', label: 'RSA-OAEP', action: () => ctx.openToolbox('RSA') },
           ],
         },
-        { id: 'tools-terminal', label: 'Proxy Terminal', separatorBefore: true, ...disabled(CORE) },
-        { id: 'tools-mcp', label: 'MCP Server', ...disabled(CORE) },
+        { id: 'tools-terminal', label: 'Proxy Terminal (mock)', separatorBefore: true, action: () => ctx.openIntegration('Terminal') },
+        { id: 'tools-mcp', label: 'MCP Server Preview', action: () => ctx.openIntegration('MCP') },
       ],
     },
     {
@@ -153,8 +163,10 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
         })),
         { id: 'view-split', label: ctx.splitActive ? 'Merge API Panes' : 'Split API Panes', separatorBefore: true, ...(ctx.apiActive ? { action: ctx.toggleSplit } : disabled('Open the API client to split panes.')) },
         { id: 'view-motion', label: `Animations: ${ctx.motionEnabled ? 'On' : 'Off'}`, checked: ctx.motionEnabled, action: ctx.toggleMotion },
-        { id: 'view-zen', label: 'Zen Mode', separatorBefore: true, ...disabled('Zen Mode lands with the layout package (FE-6).') },
-        { id: 'view-layout', label: 'Save Named Layout…', ...disabled('Named layouts land with FE-6.') },
+        { id: 'view-zen', label: 'Zen Mode', separatorBefore: true, checked: ctx.zenActive, action: ctx.toggleZen },
+        { id: 'view-direction', label: `Pane direction: ${ctx.direction}`, action: ctx.toggleDirection },
+        { id: 'view-appearance', label: 'Appearance…', action: () => ctx.openSettings('Appearance') },
+        { id: 'view-layout', label: 'Save Named Layout…', action: ctx.openLayouts },
       ],
     },
     {
@@ -163,35 +175,39 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
         { id: 'traffic-sample', label: 'Load Sample Traffic', action: ctx.loadSample },
         { id: 'traffic-clear', label: 'Clear Traffic', separatorBefore: true, ...(ctx.sampleLoaded ? { action: ctx.clearTraffic } : disabled('No sample traffic is loaded.')) },
         { id: 'traffic-import', label: 'Import HAR…', separatorBefore: true, hint: 'Preview only.', action: ctx.openHar },
-        { id: 'traffic-export', label: 'Export HAR…', ...disabled(CORE) },
+        { id: 'traffic-export', label: 'Export Preview HAR…', action: ctx.openSessions },
+        { id: 'traffic-sessions', label: 'Local Preview Sessions…', action: ctx.openSessions },
+        { id: 'traffic-compare', label: 'Compare Flows…', action: ctx.openCompare },
         { id: 'traffic-record', label: 'Start Recording to File', ...disabled(CORE) },
       ],
     },
     {
       id: 'proxy', label: 'Proxy', items: [
+        { id: 'proxy-config', label: 'Proxy Configuration…', action: () => ctx.openSettings('Proxy') },
         { id: 'proxy-endpoint', label: 'Edit Listen Address…', action: ctx.editEndpoint },
-        { id: 'proxy-system', label: 'System Proxy', separatorBefore: true, ...disabled('The proxy engine is not connected — no system proxy is changed.') },
-        { id: 'proxy-override', label: 'Auto Override Rules', ...disabled(CORE) },
-        { id: 'proxy-upstream', label: 'Upstream Proxy', ...disabled(CORE) },
-        { id: 'proxy-loopback', label: 'Loopback / SOCKS Mode', ...disabled(CORE) },
+        { id: 'proxy-system', label: 'System Proxy', separatorBefore: true, hint: 'Planned configuration only', action: () => ctx.openSettings('Proxy') },
+        { id: 'proxy-override', label: 'Auto Override Rules (config preview)', action: () => ctx.openSettings('Proxy') },
+        { id: 'proxy-upstream', label: 'Upstream Proxy (config preview)', action: () => ctx.openSettings('Proxy') },
+        { id: 'proxy-loopback', label: 'Loopback / SOCKS Mode (config preview)', action: () => ctx.openSettings('Proxy') },
       ],
     },
     {
       id: 'certificate', label: 'Certificate', items: [
+        { id: 'cert-center', label: 'Certificate Center…', action: () => ctx.openSettings('Certificate') },
         { id: 'cert-status', label: 'Status: Unknown (engine not connected)', ...disabled('The certificate manager reports once the capture core is wired up.') },
         { id: 'cert-install', label: 'Install Root Certificate', separatorBefore: true, ...disabled('Installing a root CA needs OS confirmation and the capture core.') },
         { id: 'cert-remove', label: 'Remove Root Certificate', ...disabled('Nothing is installed by this preview.') },
-        { id: 'cert-detail', label: 'SSL Proxying Detail', ...disabled(CORE) },
+        { id: 'cert-detail', label: 'SSL Proxying Configuration', action: () => ctx.openSettings('Certificate') },
       ],
     },
     {
       id: 'help', label: 'Help', items: [
         { id: 'help-shortcuts', label: 'Keyboard Shortcuts', action: ctx.openShortcuts },
         { id: 'help-about', label: 'About Traffic Studio', action: ctx.openAbout },
-        { id: 'help-docs', label: 'Documentation', separatorBefore: true, ...disabled('No documentation URL is configured.') },
+        { id: 'help-docs', label: 'Documentation', separatorBefore: true, action: () => ctx.openSettings('Help') },
         { id: 'help-feedback', label: 'Report an Issue', ...disabled('No external feedback URL is configured.') },
-        { id: 'help-recovery', label: 'Data Recovery', ...disabled('Local storage bridge is not connected.') },
-        { id: 'help-changelog', label: 'Changelog', ...disabled('No changelog is bundled.') },
+        { id: 'help-recovery', label: 'Data Recovery', action: () => ctx.openSettings('Storage') },
+        { id: 'help-changelog', label: 'Changelog', action: () => ctx.openSettings('Help') },
         { id: 'help-update', label: 'Check for Updates', ...disabled('The update channel is not configured.') },
       ],
     },

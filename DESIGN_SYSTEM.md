@@ -43,3 +43,13 @@ Record toggle, tab switching/closing, new API tab, local listener address editin
 ## Next integration boundary
 
 Expose a Rust-side interface for `start_capture`, `stop_capture`, `set_proxy_endpoint`, `subscribe_flows`, `get_flow`, `import_har` and `send_request`. Back it with the selected proxy core after benchmarking. Keep React state shaped around domain events rather than a specific engine's objects.
+
+## Local appearance controls — 2026-09-26
+
+Settings supports original dark and light palettes, accent color, compact/comfortable Traffic rows, 80–125% interface zoom and toolbar/status visibility. Dialogs cancel parent zoom to preserve usability; focus states and keyboard operation remain visible. Named layouts and Zen are browser-local preferences.
+
+Personalization adds Studio/Ocean/Paper/Focus preset drafts, named style profiles, text size 12–16px, system monospace/Consolas, soft/square corners, contrast and navigation labels. All preferences apply locally and persist in browser storage.
+
+2026-09-26 visual refinement: default accent #55b7c5, soft corners 3–4px for controls/cards/dialogs. Existing custom accents are preserved. Summary and response have separate content controls; header names/values form a readable two-column table. Semantic status colors remain distinct from interaction accent.
+
+User correction: retain original yellow accent #dfa73d. This supersedes the cyan default refinement above; geometry remains 3–4px.

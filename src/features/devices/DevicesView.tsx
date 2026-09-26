@@ -8,8 +8,9 @@ import './devicesView.css';
 // The sidebar tree selects a device; this pane shows the card grid and the
 // detail for the current selection. Nothing here claims a device is paired or
 // reachable, because the LAN/companion core is not built.
-export function DevicesView({ flash, selected, onSelect }: {
+export function DevicesView({ selected, onSelect, onPairing }: {
   flash: (message: string) => void;
+  onPairing:()=>void;
   selected: string | null;
   onSelect: (id: string) => void;
 }) {
@@ -20,7 +21,7 @@ export function DevicesView({ flash, selected, onSelect }: {
       kicker="LOCAL NETWORK"
       title="Devices"
       description="Prepare a secure connection between this PC and future mobile companions."
-      action={<button className="primary-action" disabled title="Pairing needs the LAN core, which is not built yet."><Wifi size={16}/> Pair device</button>}
+      action={<button className="primary-action" onClick={onPairing} title="Mock pairing configuration; no LAN connection"><Wifi size={16}/> Pairing preview</button>}
     />
     <div className="device-grid">
       <button className={`device-card host ${selected === hostDevice.id ? 'selected' : ''}`} onClick={() => onSelect(hostDevice.id)} aria-pressed={selected === hostDevice.id}>
@@ -52,7 +53,7 @@ export function DevicesView({ flash, selected, onSelect }: {
       </div>
       : <div className="device-detail empty"><div className="panel-kicker">SELECTED DEVICE</div><p>Select the host device to see its connection detail.</p></div>}
 
-    <div className="device-learn"><button className="outline-button" onClick={() => flash('LAN discovery is planned after the PC capture foundation.')}><Search size={15}/> Learn about pairing</button></div>
+    <div className="device-learn"><button className="outline-button" onClick={onPairing}><Search size={15}/> Learn about pairing</button></div>
     <DemoNote>{pairingNote}</DemoNote>
   </div>;
 }

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, Code2, FileArchive, Search, SearchX } from 'lucide-react';
-import { matchesSavedRequest, matchesSession, readSavedRequests, sampleSessions, type HistorySelection } from './sessions';
+import { matchesSavedRequest, matchesSession, readSavedRequests, listHistorySessions, type HistorySelection } from './sessions';
 import './historySidebar.css';
 
 // FE-2 — History sidebar (mode F4).
@@ -11,7 +11,9 @@ import './historySidebar.css';
 export function HistorySidebar({ selected, onSelect }: { selected: HistorySelection; onSelect: (value: HistorySelection) => void }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState({ sessions: true, saved: true });
-  const saved = useMemo(() => readSavedRequests(), []);
+  const [saved,setSaved]=useState(readSavedRequests);
+  const [sampleSessions,setSessions]=useState(listHistorySessions);
+  useEffect(()=>{const refresh=()=>{setSaved(readSavedRequests());setSessions(listHistorySessions());};window.addEventListener('traffic-studio-sessions-change',refresh);return()=>window.removeEventListener('traffic-studio-sessions-change',refresh);},[]);
 
   const needle = query.trim().toLowerCase();
   const sessions = needle ? sampleSessions.filter((session) => matchesSession(session, needle)) : sampleSessions;
@@ -22,7 +24,7 @@ export function HistorySidebar({ selected, onSelect }: { selected: HistorySelect
   const toggle = (group: 'sessions' | 'saved') => setOpen((current) => ({ ...current, [group]: !current[group] }));
 
   return <aside className="explorer-sidebar" aria-label="History sidebar">
-    <div className="explorer-title"><span>HISTORY · SAMPLE</span><FileArchive size={15}/></div>
+    <div className="explorer-title"><span>HISTORY · LOCAL</span><FileArchive size={15}/></div>
     <div className="explorer-search"><Search size={14}/><input aria-label="Search history" placeholder="Search sessions and requests" value={query} onChange={(event) => setQuery(event.target.value)}/></div>
 
     <div className="history-scroll">
@@ -42,7 +44,7 @@ export function HistorySidebar({ selected, onSelect }: { selected: HistorySelect
         >
           <FileArchive size={14}/>
           <span className="history-row-copy"><strong>{session.name}</strong><small>{session.requestCount} requests · {session.size}</small></span>
-          <span className="sample-pill">SAMPLE</span>
+          <span className="sample-pill">{session.id.startsWith('sample-') ? 'SAMPLE' : 'LOCAL'}</span>
         </button>) : <div className="explorer-hint">No sessions match this search.</div>)}
 
         <button className="history-group" aria-expanded={open.saved} onClick={() => toggle('saved')}>

@@ -16,6 +16,8 @@ export function TrafficFilters({ flows, filter, onFilter, facets, onFacets, adva
     { label: 'JSON', active: facets.type === 'json', click: () => set('type', 'json') },
     { label: 'JavaScript', active: facets.type === 'javascript', click: () => set('type', 'javascript') },
     { label: '2xx', active: facets.status === '2', click: () => set('status', '2') },
+    { label:'3xx',active:facets.status==='3',click:()=>set('status','3') },
+    { label:'5xx',active:facets.status==='5',click:()=>set('status','5') },
     { label: '4xx', active: facets.status === '4', click: () => set('status', '4') },
   ];
   const hosts = [...new Set(flows.map((flow) => flow.host))];

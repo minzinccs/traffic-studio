@@ -1,17 +1,25 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import type { Tab, View } from './domain/types';
-import { listFlows } from './bridge/mockBridge';
+import type { Tab, View, FlowDetail } from './domain/types';
+import { listFlows, getFlowDetail } from './bridge/mockBridge';
+import { ApiWorkspace } from './features/api/ApiWorkspace';
+import { CurlImport } from './features/api/CurlImport';
 import { ApiView } from './features/api/ApiView';
 import { CollectionsPanel } from './features/api/CollectionsPanel';
 import { HistoryView } from './features/history/HistoryView';
 import { HistorySidebar } from './features/history/HistorySidebar';
+import { findSession, flowsForSession } from './features/history/sessions';
 import type { HistorySelection } from './features/history/sessions';
 import type { ApiProfile } from './features/api/collections';
 import { DeviceSidebar } from './features/devices/DeviceSidebar';
 import { DevicesView } from './features/devices/DevicesView';
 import { EnvironmentSidebar } from './features/environments/EnvironmentSidebar';
 import { ToolboxSidebar } from './features/tools/ToolboxSidebar';
+import { ToolboxView } from './features/tools';
 import { defaultTool } from './features/tools/tools';
+import { SessionManager } from './features/capture/SessionManager';
+import { FlowCompare } from './features/capture/FlowCompare';
+import { readAnnotations } from './features/capture/FlowAnnotations';
+import { readPreviewSessions, type PreviewSession } from './features/capture/sessionFiles';
 import { TrafficInspector } from './features/capture/TrafficInspector';
 import { TrafficTable } from './features/capture/TrafficTable';
 import { TrafficFilters, emptyFacets, type TrafficFacets } from './features/capture/TrafficFilters';
@@ -20,13 +28,18 @@ import { WorkspaceTabs } from './shell/WorkspaceTabs';
 import { MenuBar } from './shell/MenuBar';
 import { buildMenus } from './shell/menuModel';
 import { isSidebarMode, modeForSection, sectionForMode, sidebarKindFor, sidebarModes, type SidebarMode } from './shell/sidebarModes';
-import { AnalyticsView, EnvironmentsView, RulesView, ToolboxView, TrackerView } from './views/WorkspacePages';
+import { AnalyticsView, EnvironmentsView, RulesView, TrackerView } from './views/WorkspacePages';
 import './views/workspacePages.css';
+import { SettingsCenter, usePreferences, type SettingsPage } from './features/settings';
+import { NotificationCenter, type Notice } from './features/notifications';
+import { ProtocolPreview } from './features/protocols';
+import { LayoutManager, type LayoutSnapshot } from './features/layout';
+
 import './shell/resizers.css';
 import './shell/splitPane.css';
 import {
-  Activity, BarChart3, Check,
-  ChevronDown, CircleHelp, Code2,
+  Activity, BarChart3, Bell, Check,
+  ChevronDown, CircleAlert, CircleHelp, Code2,
   Filter, FolderOpen, Globe2, History, Info, KanbanSquare, Keyboard,
   Maximize2, PanelLeftClose,
   Pause, Play, Plus, Radio, Search, Settings2, ShieldCheck, SlidersHorizontal, KeyRound,
@@ -40,7 +53,7 @@ const shortcutList: [string, string][] = [
   ['Ctrl+Shift+T', 'Reopen the last closed tab'],
   ['Ctrl+Tab / Ctrl+Shift+Tab', 'Cycle workspace tabs'],
   ['Ctrl+G', 'Toggle capture preview (simulated)'],
-  ['Ctrl+O', 'Open HAR file (preview)'],
+  ['Ctrl+O', 'Open local HAR/session preview'],
   ['Ctrl+K', 'Focus the traffic search box'],
   ['F1 – F6', 'Switch the contextual sidebar (Explorer → Toolbox)'],
   ['Esc', 'Close the current menu or dialog'],
@@ -58,7 +71,29 @@ function sessionMode(session: Session | null): SidebarMode {
 }
 
 function App() {
-  const allFlows = useMemo(() => listFlows(), []);
+  const [protocolOpen, setProtocolOpen] = useState(false);
+  const [prefs,savePreferences] = usePreferences();
+  const [clipboardCurl,setClipboardCurl]=useState<string|null>(null);
+  const [integrationTab,setIntegrationTab]=useState('MCP');
+  const [settingsPage, setSettingsPage] = useState<SettingsPage | null>(null);
+  const [notifications, setNotifications] = useState<Notice[]>([]);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const toastTimer = useRef<number | undefined>(undefined);
+  const [dropEdge,setDropEdge]=useState<'left'|'right'|null>(null);
+  const [paneCount,setPaneCount] = useState(() => Math.min(4,Math.max(1,Number(localStorage.getItem('traffic-studio-pane-count')) || 1)));
+  useEffect(()=>{localStorage.setItem('traffic-studio-pane-count',String(paneCount));},[paneCount]);
+  const [zen, setZen] = useState(false);
+  const [layoutOpen, setLayoutOpen] = useState(false);
+  const [direction, setDirection] = useState<'horizontal' | 'vertical'>(() => localStorage.getItem('traffic-studio-layout-direction') === 'vertical' ? 'vertical' : 'horizontal');
+  useEffect(() => { localStorage.setItem('traffic-studio-layout-direction', direction); }, [direction]);
+  const [annotationRevision,setAnnotationRevision]=useState(0);
+  useEffect(()=>{const sync=()=>setAnnotationRevision(v=>v+1);window.addEventListener('traffic-studio-annotations-change',sync);return()=>window.removeEventListener('traffic-studio-annotations-change',sync);},[]);
+  const [allFlows, setAllFlows] = useState(() => listFlows());
+  const [details, setDetails] = useState<Record<number, FlowDetail>>({});
+  const [sessionSource,setSessionSource]=useState('Sample traffic');
+  const [sessionName, setSessionName] = useState('Sample traffic');
+  const [sessionOpen, setSessionOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const savedSession = readSession();
   const [tabs, setTabs] = useState<Tab[]>(savedSession?.tabs ?? [{ id: 1, label: 'Traffic', view: 'traffic' }]);
   const nextTabId = useRef(Math.max(...(savedSession?.tabs ?? [{ id: 1 }]).map((tab) => tab.id)) + 1);
@@ -70,13 +105,17 @@ function App() {
   const [splitTabId, setSplitTabId] = useState<number | null>(savedSession?.splitTabId ?? null);
   const [splitRatio, setSplitRatio] = useState(savedSession?.splitRatio ?? 50);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => sessionMode(savedSession));
+  const [toolboxAlgorithm,setToolboxAlgorithm]=useState('SHA-256');
   const [toolboxTool, setToolboxTool] = useState(defaultTool);
   const [toolboxMode, setToolboxMode] = useState<'Encode' | 'Decode'>('Encode');
   const [envActive, setEnvActive] = useState('Global');
   const [historySelection, setHistorySelection] = useState<HistorySelection>(null);
   const [deviceSelected, setDeviceSelected] = useState<string | null>(null);
+  const [capturePhase,setCapturePhase]=useState('Stopped');
+  const captureTimer=useRef<number|undefined>(undefined);
+  useEffect(()=>()=>window.clearTimeout(captureTimer.current),[]);
   const [recording, setRecording] = useState(false);
-  const [endpoint, setEndpoint] = useState('127.0.0.1:9000');
+  const [endpoint, setEndpoint] = useState(`${prefs.proxy.host}:${prefs.proxy.port}`);
   const [editingEndpoint, setEditingEndpoint] = useState(false);
   const [endpointDraft, setEndpointDraft] = useState(endpoint);
   const [showDemo, setShowDemo] = useState(false);
@@ -93,20 +132,21 @@ function App() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
+  const flowAnnotations=useMemo(()=>readAnnotations(),[annotationRevision]);
   const flows = useMemo(() => allFlows.filter((flow) =>
     `${flow.method} ${flow.host} ${flow.path} ${flow.status}`.toLowerCase().includes(query.toLowerCase()) &&
-    (trafficFilter === 'all' || (trafficFilter === 'tracked' && trackedIds.includes(flow.id)) || (trafficFilter === 'favorite' && favoriteIds.includes(flow.id)) || (trafficFilter.startsWith('host:') && flow.host === trafficFilter.slice(5)) || (trafficFilter.startsWith('path:') && flow.path.startsWith(trafficFilter.slice(5))) || (trafficFilter.startsWith('status:') && String(flow.status).startsWith(trafficFilter.slice(7))) || (trafficFilter.startsWith('device:') && flow.device === trafficFilter.slice(7)) || (trafficFilter.startsWith('app:') && flow.app === trafficFilter.slice(4))) &&
+    (trafficFilter === 'all' || (trafficFilter.startsWith('folder:') && flowAnnotations[`${sessionSource}:${flow.id}`]?.folder === trafficFilter.slice(7)) || (trafficFilter === 'tracked' && trackedIds.includes(flow.id)) || (trafficFilter === 'favorite' && favoriteIds.includes(flow.id)) || (trafficFilter.startsWith('host:') && flow.host === trafficFilter.slice(5)) || (trafficFilter.startsWith('path:') && flow.path.startsWith(trafficFilter.slice(5))) || (trafficFilter.startsWith('status:') && String(flow.status).startsWith(trafficFilter.slice(7))) || (trafficFilter.startsWith('device:') && flow.device === trafficFilter.slice(7)) || (trafficFilter.startsWith('app:') && flow.app === trafficFilter.slice(4))) &&
     (!trafficFacets.scheme || flow.scheme === trafficFacets.scheme) &&
     (!trafficFacets.type || flow.type.toLowerCase().includes(trafficFacets.type)) &&
     (!trafficFacets.method || flow.method === trafficFacets.method) &&
     (!trafficFacets.status || String(flow.status).startsWith(trafficFacets.status)) &&
     (!trafficFacets.host || flow.host === trafficFacets.host) &&
     (!trafficFacets.app || flow.app === trafficFacets.app),
-  ), [allFlows, query, trafficFilter, trackedIds, favoriteIds, trafficFacets]);
+  ), [allFlows, query, trafficFilter, trackedIds, favoriteIds, trafficFacets, sessionSource, flowAnnotations]);
   const selected = allFlows.find((flow) => flow.id === selectedFlow);
 
-  useEffect(() => { localStorage.setItem('traffic-studio-tracked-flows', JSON.stringify(trackedIds)); }, [trackedIds]);
-  useEffect(() => { localStorage.setItem('traffic-studio-favorite-flows', JSON.stringify(favoriteIds)); }, [favoriteIds]);
+  useEffect(() => { localStorage.setItem(sessionSource==='Sample traffic'?'traffic-studio-tracked-flows':`traffic-studio-tracked-flows-${encodeURIComponent(sessionSource)}`, JSON.stringify(trackedIds)); }, [trackedIds,sessionSource]);
+  useEffect(() => { localStorage.setItem(sessionSource==='Sample traffic'?'traffic-studio-favorite-flows':`traffic-studio-favorite-flows-${encodeURIComponent(sessionSource)}`, JSON.stringify(favoriteIds)); }, [favoriteIds,sessionSource]);
   useEffect(() => { localStorage.setItem('traffic-studio-animations-v1', motionEnabled ? 'on' : 'off'); }, [motionEnabled]);
   useEffect(() => {
     localStorage.setItem(sessionKey, JSON.stringify({ tabs, activeTab, section, showSidebar, sidebarWidth, splitTabId, splitRatio, sidebarMode }));
@@ -120,6 +160,25 @@ function App() {
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop);
   }
 
+  async function openClipboard(){try{const text=await navigator.clipboard.readText();setClipboardCurl(text);}catch{flash('Clipboard read unavailable. Use Import cURL and paste manually.');}}
+  function importClipboardDraft(value:{method:string;url:string;headers:{key:string;value:string}[];body:string}){const id=nextTabId.current;sessionStorage.setItem(`traffic-studio-api-draft-${id}`,JSON.stringify({name:'Clipboard request',...value,headers:value.headers.filter(h=>!/^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key)$/i.test(h.key)).map((h,i)=>({...h,id:i,enabled:true})),params:[],auth:''}));openTab('api',`Clipboard request ${id}`);setClipboardCurl(null);flash('Created a local cURL draft. Credential headers were excluded.');}
+  function composeFlow(id:number){
+    const flow=allFlows.find(f=>f.id===id);if(!flow)return;
+    const detail=details[id]??getFlowDetail(id);const newId=nextTabId.current;
+    sessionStorage.setItem(`traffic-studio-api-draft-${newId}`,JSON.stringify({name:`From flow #${id}`,method:flow.method,url:detail?.url??`${flow.scheme??'https'}://${flow.host}${flow.path}`,params:[],headers:(detail?.requestHeaders??[]).filter(h=>!/^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key)$/i.test(h.key)).map((h,i)=>({...h,id:i+1,enabled:true})),body:detail?.requestBody??'',auth:''}));
+    openTab('api',`From flow #${id} · ${newId}`);
+  }
+  function saveEndpoint(){const match=/^(.+):(\d+)$/.exec(endpointDraft);if(!match||Number(match[2])<1||Number(match[2])>65535){flash('Invalid port: use 1–65535.');return;}savePreferences({...prefs,proxy:{...prefs.proxy,host:match[1],port:Number(match[2])}});setEndpoint(endpointDraft);setEditingEndpoint(false);}
+  function toggleCapturePreview(){
+    if(capturePhase==='Starting'||capturePhase==='Stopping')return;
+    const stopping=recording;setCapturePhase(stopping?'Stopping':'Starting');
+    captureTimer.current=window.setTimeout(()=>{if(!stopping&&prefs.captureScenario==='Failure'){setRecording(false);setCapturePhase('Error');flash('Simulated capture error: the sample listener failed. No network service was started.');}else{setRecording(!stopping);setCapturePhase(stopping?'Stopped':'Recording');flash('Capture state is simulated; no proxy listener is running.');}},250);
+  }
+  function loadSession(session: PreviewSession) {
+    setSessionSource(session.id);setTrackedIds(readFlowMarks('tracked',session.id));setFavoriteIds(readFlowMarks('favorite',session.id));setAllFlows(session.flows); setDetails(session.details); setSessionName(session.name); setSelectedFlow(null); setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); setShowDemo(true); openTab('traffic');
+  }
+  function readFlowMarks(kind:string,source:string):number[]{try{return JSON.parse(localStorage.getItem(source==='Sample traffic'?`traffic-studio-${kind}-flows`:`traffic-studio-${kind}-flows-${encodeURIComponent(source)}`)??'[]');}catch{return[];}}
+  function loadSamples() {setSessionSource('Sample traffic');setTrackedIds(readFlowMarks('tracked','Sample traffic'));setFavoriteIds(readFlowMarks('favorite','Sample traffic')); setSessionSource('Sample traffic');setAllFlows(listFlows()); setDetails({}); setSessionName('Sample traffic'); setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); setShowDemo(true); openTab('traffic'); }
   function toggleTracked(id: number) { setTrackedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
   function toggleFavorite(id: number) { setFavoriteIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
 
@@ -173,14 +232,19 @@ function App() {
   }
   function toggleSplit() {
     if (section !== 'api') { flash('Open two API tabs to use the two-pane editor.'); return; }
-    if (splitTabId !== null) { setSplitTabId(null); return; }
+    if (splitTabId !== null || paneCount > 1) { setSplitTabId(null); setPaneCount(1); return; }
     const other = tabs.find((tab) => tab.view === 'api' && tab.id !== activeTab);
     if (!other) { flash('Open a second API tab, then choose Panel layout.'); return; }
-    setSplitTabId(other.id);
+    setSplitTabId(other.id); setPaneCount(2);
+  }
+  function choosePaneCount(count: number) {
+    setPaneCount(count);
+    if(count===2) setSplitTabId(tabs.find(t=>t.view==='api'&&t.id!==activeTab)?.id ?? null);
+    else setSplitTabId(null);
   }
   function startSplitResize(event: React.PointerEvent<HTMLDivElement>) {
-    event.preventDefault(); const start = event.clientX; const ratio = splitRatio; const width = event.currentTarget.parentElement?.getBoundingClientRect().width ?? 1000;
-    const move = (next: PointerEvent) => setSplitRatio(Math.min(70, Math.max(30, ratio + (next.clientX - start) / width * 100)));
+    event.preventDefault(); const start = direction === 'vertical' ? event.clientY : event.clientX; const ratio = splitRatio; const bounds = event.currentTarget.parentElement?.getBoundingClientRect(); const width = (direction === 'vertical' ? bounds?.height : bounds?.width) ?? 1000;
+    const move = (next: PointerEvent) => setSplitRatio(Math.min(70, Math.max(30, ratio + ((direction === 'vertical' ? next.clientY : next.clientX) - start) / width * 100)));
     const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop);
   }
@@ -190,24 +254,31 @@ function App() {
   }
 
   function flash(message: string) {
-    setNotice(message);
-    window.setTimeout(() => setNotice(null), 3000);
+    setNotifications(current => [{ id: Date.now() + Math.random(), text: message, time: new Date().toLocaleTimeString(), read: false, kind: /error|invalid|failed|unavailable/i.test(message) ? 'error' as const : 'info' as const }, ...current].slice(0, 100));
+    window.clearTimeout(toastTimer.current);
+    if (prefs.toastEnabled) { setNotice(message); toastTimer.current = window.setTimeout(() => setNotice(null), prefs.toastSeconds * 1000); }
   }
+  function applyLayout(value: LayoutSnapshot) {
+    setSidebarWidth(Math.min(480, Math.max(190, value.sidebarWidth))); setShowSidebar(value.showSidebar); setSplitRatio(Math.min(75, Math.max(25, value.splitRatio))); setDirection(value.direction); setZen(value.zen); choosePaneCount(value.paneCount ?? 1);
+  }
+  useEffect(() => { setEndpoint(`${prefs.proxy.host}:${prefs.proxy.port}`); }, [prefs.proxy.host, prefs.proxy.port]);
+
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (!infoPanel && !editingEndpoint) {
+      if(clipboardCurl!==null || settingsPage || layoutOpen || protocolOpen || sessionOpen || compareOpen) return;
+      if (!infoPanel && !editingEndpoint && !settingsPage && !layoutOpen && !protocolOpen && !sessionOpen && !compareOpen) {
         const fkey = /^F([1-6])$/.exec(event.key);
         if (fkey) { event.preventDefault(); openMode(sidebarModes[Number(fkey[1]) - 1].mode); return; }
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'g') {
-        event.preventDefault(); setRecording((value) => !value); flash('Capture state is simulated; the proxy core is not connected yet.');
+        event.preventDefault(); toggleCapturePreview();
       }
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 't') {
         event.preventDefault(); openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`);
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'o') {
-        event.preventDefault(); flash('Import HAR sẽ được nối với core ở giai đoạn tiếp theo.');
+        event.preventDefault(); setSessionOpen(true);
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && section === 'traffic' && showDemo) {
         event.preventDefault(); trafficSearchRef.current?.focus();
@@ -226,11 +297,11 @@ function App() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [tabs, activeTab, section, showDemo, closedTabs, infoPanel, editingEndpoint]);
+  }, [tabs, activeTab, section, showDemo, closedTabs, infoPanel, editingEndpoint, settingsPage, layoutOpen, protocolOpen, sessionOpen, compareOpen, prefs, recording, capturePhase, clipboardCurl]);
 
   const menus = buildMenus({
     newApiRequest: () => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`),
-    openHar: () => flash('Import HAR sẽ được nối với core ở giai đoạn tiếp theo.'),
+    openHar: () => setSessionOpen(true),
     closeActiveTab: () => closeTabs([activeTab]),
     closeOtherTabs: () => closeTabs(tabs.filter((tab) => tab.view === 'api' && tab.id !== activeTab).map((tab) => tab.id)),
     closeAllTabs: () => closeTabs(tabs.filter((tab) => tab.view === 'api').map((tab) => tab.id)),
@@ -242,7 +313,7 @@ function App() {
     openToolbox: (tool, mode) => {
       openTab('tools');
       setToolboxTool(tool);
-      if (mode === 'Encode' || mode === 'Decode') setToolboxMode(mode);
+      setToolboxMode(mode==='Decode'?'Decode':'Encode');if(mode?.startsWith('SHA-')||mode==='HMAC')setToolboxAlgorithm(mode);
       flash(`${tool}${mode ? ` · ${mode}` : ''} — runs locally in the Toolbox.`);
     },
     sidebarVisible: showSidebar,
@@ -252,23 +323,34 @@ function App() {
     setSidebarMode: openMode,
     motionEnabled,
     toggleMotion: () => setMotionEnabled((value) => !value),
-    splitActive: splitTabId !== null,
+    splitActive: paneCount>1 || splitTabId !== null,
     toggleSplit,
     captureRunning: recording,
-    toggleCapture: () => { setRecording((value) => !value); flash('Capture state is simulated; the proxy core is not connected yet.'); },
+    toggleCapture: () => { toggleCapturePreview(); },
     sampleLoaded: showDemo,
-    loadSample: () => { setShowDemo(true); openTab('traffic'); },
+    loadSample: loadSamples,
     clearTraffic: () => { setShowDemo(false); setSelectedFlow(null); },
     editEndpoint: () => { setEndpointDraft(endpoint); setEditingEndpoint(true); },
+    openClipboard,
+    openIntegration:(tab)=>{setIntegrationTab(tab);setSettingsPage('Integrations');},
+    openSessions: () => setSessionOpen(true),
+    openCompare: () => { if (allFlows.length) setCompareOpen(true); },
+    openProtocols: () => setProtocolOpen(true),
+    openSettings: (page = 'General') => setSettingsPage(page),
+    zenActive: zen,
+    toggleZen: () => setZen(v => !v),
+    openLayouts: () => setLayoutOpen(true),
+    toggleDirection: () => setDirection(v => v === 'horizontal' ? 'vertical' : 'horizontal'),
+    direction,
     openAbout: () => setInfoPanel('about'),
     openShortcuts: () => setInfoPanel('shortcuts'),
   });
 
-  return <div className="app-shell" data-motion={motionEnabled ? 'on' : 'off'} style={{ '--explorer-width': `${sidebarWidth}px` } as CSSProperties}>
+  return <div className="app-shell" data-theme={prefs.theme} data-contrast={prefs.contrast} data-corners={prefs.corners} data-rail-labels={prefs.sidebarLabels} data-density={prefs.density} data-toolbar={prefs.toolbar} data-statusbar={prefs.statusbar} data-zen={zen} data-motion={motionEnabled ? 'on' : 'off'} style={{ '--explorer-width': `${sidebarWidth}px`, '--user-accent': prefs.accent, zoom: prefs.zoom / 100, height: `${10000/prefs.zoom}%`, width: `${10000/prefs.zoom}%`, '--ui-zoom':prefs.zoom/100,'--amber':prefs.accent, '--personal-font-size':`${prefs.fontSize}px`, '--personal-code-font':prefs.codeFont==='consolas'?'Consolas, monospace':'ui-monospace, SFMono-Regular, monospace' } as CSSProperties}>
     <header className="app-menu">
       <div className="brand" title="Traffic Studio"><div className="brand-mark"><Activity size={18} strokeWidth={2.3}/></div><span>TRAFFIC<span className="brand-accent">STUDIO</span></span></div>
       <MenuBar menus={menus}/>
-      <div className="menu-right"><span className="workspace-badge"><span className="badge-dot"/> UI PREVIEW</span><button className="header-icon" title="About & shortcuts" aria-label="About and keyboard shortcuts" onClick={() => setInfoPanel('about')}><CircleHelp size={16}/></button></div>
+      <div className="menu-right"><button className="header-icon" aria-label={`Notifications (${notifications.filter(n => !n.read).length} unread)`} title="Notifications" onClick={() => setNotificationOpen(v => !v)}><Bell size={16}/><small>{notifications.filter(n => !n.read).length || ""}</small></button><span className="workspace-badge"><span className="badge-dot"/> UI PREVIEW · {prefs.displayName || 'My workspace'}</span><button className="header-icon" title="About & shortcuts" aria-label="About and keyboard shortcuts" onClick={() => setInfoPanel('about')}><CircleHelp size={16}/></button></div>
     </header>
 
     <div className="app-body">
@@ -287,12 +369,12 @@ function App() {
         </div>
         <div className="rail-group rail-bottom">
           <RailButton icon={<PanelLeftClose/>} label="Toggle sidebar" onClick={() => setShowSidebar((v) => !v)}/>
-          <RailButton icon={<Settings2/>} label="Settings" onClick={() => flash('Settings panel is planned for the next iteration.')}/>
+          <RailButton icon={<Settings2/>} label="Settings" onClick={() => setSettingsPage('General')}/>
         </div>
       </aside>
 
       {sidebarKind === 'collections' && <CollectionsPanel onShowExplorer={() => openMode('explorer')} onOpenProfile={(profile: ApiProfile) => openTab('api', profile.name, { id: profile.id, parentId: null, name: profile.name, kind: 'profile' })}/>}
-      {(sidebarKind === 'traffic' || sidebarKind === 'explorer') && <ExplorerSidebar section={section} flows={showDemo ? allFlows : []} trackedIds={trackedIds} favoriteIds={favoriteIds} selectedFlow={selectedFlow} onSelectFlow={(id) => { if (id) { setShowDemo(true); setSelectedFlow(id); } setTrafficFilter('all'); }} onTrack={toggleTracked} onFavorite={toggleFavorite} onOpenNode={(node) => openTab('api', node.name, node)} onCreateRequest={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onSetTrafficFilter={setTrafficFilter} trafficFilter={trafficFilter} onShowCollections={() => openMode('collections')}/>}
+      {(sidebarKind === 'traffic' || sidebarKind === 'explorer') && <ExplorerSidebar source={sessionSource} section={section} flows={showDemo ? allFlows : []} trackedIds={trackedIds} favoriteIds={favoriteIds} selectedFlow={selectedFlow} onSelectFlow={(id) => { if (id) { setShowDemo(true); setSelectedFlow(id); } setTrafficFilter('all'); }} onTrack={toggleTracked} onFavorite={toggleFavorite} onOpenNode={(node) => openTab('api', node.name, node)} onCreateRequest={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onSetTrafficFilter={setTrafficFilter} trafficFilter={trafficFilter} onShowCollections={() => openMode('collections')}/>}
       {sidebarKind === 'history' && <HistorySidebar selected={historySelection} onSelect={setHistorySelection}/>}
       {sidebarKind === 'device' && <DeviceSidebar selected={deviceSelected} onSelect={setDeviceSelected}/>}
       {sidebarKind === 'environment' && <EnvironmentSidebar active={envActive} onActive={setEnvActive}/>}
@@ -308,9 +390,9 @@ function App() {
             <span className="toolbar-separator"/>
             <span className="proxy-status"><ShieldCheck size={17}/><span>Engine not connected</span></span>
           </div>
-          <button className={`record-button ${recording ? 'is-recording' : ''}`} onClick={() => { setRecording((v) => !v); flash('Capture state is simulated; the proxy core is not connected yet.'); }}>
+          <button className={`record-button ${recording ? 'is-recording' : ''}`} disabled={capturePhase==='Starting'||capturePhase==='Stopping'} onClick={() => { toggleCapturePreview(); }}>
             {recording ? <Pause size={17} fill="currentColor"/> : <Play size={17} fill="currentColor"/>}
-            <span>{recording ? 'Pause capture' : 'Start capture'}</span>
+            <span>{capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase} mock…`:recording ? 'Pause capture' : 'Start capture'}</span>
             <kbd>Ctrl G</kbd>
           </button>
           <button className="clear-button" title="Clear traffic" onClick={() => { setShowDemo(false); setSelectedFlow(null); }}><Trash2 size={18}/></button>
@@ -320,17 +402,17 @@ function App() {
 
         <div className="content-area">
           {section === 'traffic' && (showDemo ? <div className="traffic-view">
-            <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>Sample traffic</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input ref={trafficSearchRef} aria-label="Search traffic" placeholder="Search host, path, status…" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>Ctrl K</kbd></div><button className="outline-button" aria-expanded={advancedFiltersOpen} onClick={() => setAdvancedFiltersOpen((value) => !value)}><Filter size={15}/> Filters <ChevronDown size={13}/></button></div></div>
+            <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>{sessionName} · PREVIEW</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input ref={trafficSearchRef} aria-label="Search traffic" placeholder="Search host, path, status…" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>Ctrl K</kbd></div><button className="outline-button" aria-expanded={advancedFiltersOpen} onClick={() => setAdvancedFiltersOpen((value) => !value)}><Filter size={15}/> Filters <ChevronDown size={13}/></button></div></div>
             <TrafficFilters flows={allFlows} filter={trafficFilter} onFilter={setTrafficFilter} facets={trafficFacets} onFacets={setTrafficFacets} advancedOpen={advancedFiltersOpen}/>
-            <div className="traffic-layout"><TrafficTable flows={flows} selectedFlow={selectedFlow} favoriteIds={favoriteIds} trackedIds={trackedIds} onSelectFlow={setSelectedFlow} onFavorite={toggleFavorite} onTrack={toggleTracked}/>
-            <TrafficInspector flow={selected} onClose={() => setSelectedFlow(null)} flash={flash}/>
+            <div className="traffic-layout"><TrafficTable onFeedback={flash} onCompose={composeFlow} onCompare={()=>setCompareOpen(true)} density={prefs.density} onClearFilters={() => { setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); }} flows={flows} selectedFlow={selectedFlow} favoriteIds={favoriteIds} trackedIds={trackedIds} onSelectFlow={setSelectedFlow} onFavorite={toggleFavorite} onTrack={toggleTracked}/>
+            <TrafficInspector onProtocols={()=>setProtocolOpen(true)} onCertificate={()=>setSettingsPage('Certificate')} source={sessionSource} detailOverride={selected ? details[selected.id] : undefined} onExport={() => setSessionOpen(true)} flow={selected} onClose={() => setSelectedFlow(null)} flash={flash}/>
             </div>
-          </div> : <div className="empty-canvas"><div className="empty-content"><div className="empty-graphic"><div className="graphic-ring ring-one"/><div className="graphic-ring ring-two"/><div className="graphic-core"><Activity size={29} strokeWidth={1.8}/></div><div className="orbit-dot orbit-a"/><div className="orbit-dot orbit-b"/></div><div className="eyebrow center">READY TO INSPECT</div><h1>See every request, clearly.</h1><p>Capture traffic from your desktop, inspect every detail, and turn any request into a reproducible test.</p><div className="empty-actions"><button className="primary-action" onClick={() => { setRecording(true); flash('Capture state is simulated; the proxy core is not connected yet.'); }}><Play size={16} fill="currentColor"/> Start capturing <span>Ctrl G</span></button><button className="secondary-action" onClick={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)}><Plus size={17}/> New API request</button></div><div className="quick-links"><button onClick={() => flash('Import HAR will be available with the capture core.')}><FolderOpen size={15}/> Open HAR file</button><span/><button onClick={() => setShowDemo(true)}><Sparkles size={15}/> Explore sample traffic</button></div></div></div>)}
-          {section === 'api' && <div className={`api-document-layout ${splitTabId !== null ? 'split' : ''}`}><div className="api-document-pane" style={{ width: splitTabId !== null ? `${splitRatio}%` : '100%' }}>{active.node?.kind === 'setup' ? <SetupFileView key={active.node.id} node={active.node}/> : <ApiView key={active.id} flash={flash} requestName={active.node?.name ?? active.label} profileId={active.node?.kind === 'profile' ? active.node.id : undefined} tabId={active.id} onDirty={(dirty) => setDirty(active.id, dirty)}/>}</div>{splitTabId !== null && tabs.some((tab) => tab.id === splitTabId && tab.view === 'api') && <><div className="api-document-divider" role="separator" aria-label="Resize API panes" aria-orientation="vertical" aria-valuenow={splitRatio} aria-valuemin={30} aria-valuemax={70} tabIndex={0} onPointerDown={startSplitResize} onDoubleClick={() => setSplitRatio(50)} onKeyDown={(event) => { if (event.key === 'ArrowLeft') setSplitRatio((value) => Math.max(30, value - 2)); if (event.key === 'ArrowRight') setSplitRatio((value) => Math.min(70, value + 2)); }}/><div className="api-document-pane" style={{ flex: 1 }}><div className="api-pane-caption">{tabs.find((tab) => tab.id === splitTabId)?.label}<button onClick={() => setSplitTabId(null)}>Close split</button></div>{(() => { const tab = tabs.find((item) => item.id === splitTabId)!; return tab.node?.kind === 'setup' ? <SetupFileView key={tab.node.id} node={tab.node}/> : <ApiView key={tab.id} flash={flash} requestName={tab.node?.name ?? tab.label} profileId={tab.node?.kind === 'profile' ? tab.node.id : undefined} tabId={tab.id} onDirty={(dirty) => setDirty(tab.id, dirty)}/>; })()}</div></>}</div>}
+          </div> : <div className="empty-canvas"><div className="empty-content"><div className="empty-graphic"><div className="graphic-ring ring-one"/><div className="graphic-ring ring-two"/><div className="graphic-core"><Activity size={29} strokeWidth={1.8}/></div><div className="orbit-dot orbit-a"/><div className="orbit-dot orbit-b"/></div><div className="eyebrow center">READY TO INSPECT</div><h1>See every request, clearly.</h1><p>Capture traffic from your desktop, inspect every detail, and turn any request into a reproducible test.</p><div className="empty-actions"><button className="primary-action" onClick={() => { toggleCapturePreview(); }}><Play size={16} fill="currentColor"/> Start capturing <span>Ctrl G</span></button><button className="secondary-action" onClick={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)}><Plus size={17}/> New API request</button></div><div className="quick-links"><button onClick={() => setSessionOpen(true)}><FolderOpen size={15}/> Open HAR file</button><span/><button onClick={loadSamples}><Sparkles size={15}/> Explore sample traffic</button></div></div></div>)}
+          {section === 'api' && <div className="api-multi-workspace" onDragOver={e=>{if(!e.dataTransfer.types.includes('text/plain'))return;e.preventDefault();const r=e.currentTarget.getBoundingClientRect();setDropEdge(e.clientX<r.left+70?'left':e.clientX>r.right-70?'right':null);}} onDragLeave={()=>setDropEdge(null)} onDrop={e=>{e.preventDefault();const id=Number(e.dataTransfer.getData('text/plain'));const other=tabs.find(t=>t.view==='api'&&t.id!==id);if(dropEdge&&tabs.some(t=>t.id===id&&t.view==='api')&&other){setPaneCount(2);setActiveTab(dropEdge==='left'?id:other.id);setSplitTabId(dropEdge==='left'?other.id:id);}setDropEdge(null);}}>{dropEdge&&<div className={`api-edge-drop ${dropEdge}`}>Split API pane</div>}<div className="api-multi-toolbar"><label>Pane preset <select aria-label="Workspace pane preset" value={paneCount} onChange={e=>choosePaneCount(Number(e.target.value))}>{[1,2,3,4].map(v=><option key={v} value={v}>{v} pane{v>1?'s':''}</option>)}</select></label><button className="outline-button" onClick={()=>setDirection(v=>v==='horizontal'?'vertical':'horizontal')}>{direction}</button></div>{paneCount>2 ? <ApiWorkspace tabs={tabs} active={active} count={paneCount} direction={direction} environment={envActive} flash={flash} onDirty={setDirty} ratio={splitRatio} onRatio={setSplitRatio} onCount={choosePaneCount}/> : <div className={`api-document-layout ${direction} ${splitTabId !== null ? 'split' : ''}`}><div className="api-document-pane" style={{ width: direction==='horizontal' && splitTabId !== null ? `${splitRatio}%` : '100%', height:direction==='vertical'&&splitTabId!==null?`${splitRatio}%`:undefined }}>{active.node?.kind === 'setup' ? <SetupFileView key={active.node.id} node={active.node}/> : <ApiView key={active.id} flash={flash} environment={envActive} requestName={active.node?.name ?? active.label} profileId={active.node?.kind === 'profile' ? active.node.id : undefined} tabId={active.id} onDirty={(dirty) => setDirty(active.id, dirty)}/>}</div>{splitTabId !== null && tabs.some((tab) => tab.id === splitTabId && tab.view === 'api') && <><div className="api-document-divider" role="separator" aria-label="Resize API panes" aria-orientation={direction==='vertical'?'horizontal':'vertical'} aria-valuenow={splitRatio} aria-valuemin={30} aria-valuemax={70} tabIndex={0} onPointerDown={startSplitResize} onDoubleClick={() => setSplitRatio(50)} onKeyDown={(event) => { if (event.key === 'ArrowLeft'||event.key==='ArrowUp') setSplitRatio((value) => Math.max(30, value - 2)); if (event.key === 'ArrowRight'||event.key==='ArrowDown') setSplitRatio((value) => Math.min(70, value + 2)); }}/><div className="api-document-pane" style={{ flex: 1 }}><div className="api-pane-caption">{tabs.find((tab) => tab.id === splitTabId)?.label}<button onClick={() => {setSplitTabId(null);setPaneCount(1);}}>Close split</button></div>{(() => { const tab = tabs.find((item) => item.id === splitTabId)!; return tab.node?.kind === 'setup' ? <SetupFileView key={tab.node.id} node={tab.node}/> : <ApiView key={tab.id} flash={flash} environment={envActive} requestName={tab.node?.name ?? tab.label} profileId={tab.node?.kind === 'profile' ? tab.node.id : undefined} tabId={tab.id} onDirty={(dirty) => setDirty(tab.id, dirty)}/>; })()}</div></>}</div>}</div>}
           {section === 'rules' && <RulesView flash={flash}/>}
-          {section === 'history' && <HistoryView flash={flash} selection={historySelection} sidebarVisible={sidebarKind === 'history'} onShowSidebar={() => setShowSidebar(true)} onOpenRequest={(name) => openTab('api', name)} onShowTraffic={() => { setActiveTab(tabs.find((tab) => tab.view === 'traffic')?.id ?? 0); setSection('traffic'); setShowDemo(true); }}/>}
-          {section === 'devices' && <DevicesView flash={flash} selected={deviceSelected} onSelect={setDeviceSelected}/>}
-          {section === 'tools' && <ToolboxView flash={flash} tool={toolboxTool} mode={toolboxMode} onTool={setToolboxTool} onMode={setToolboxMode} showList={sidebarKind !== 'toolbox'}/>}
+          {section === 'history' && <HistoryView flash={flash} selection={historySelection} sidebarVisible={sidebarKind === 'history'} onShowSidebar={() => setShowSidebar(true)} onOpenRequest={(name) => openTab('api', name)} onImport={() => setSessionOpen(true)} onShowTraffic={() => { if(historySelection?.kind==='session'){const saved=readPreviewSessions().find(s=>s.id===historySelection.id);if(saved){loadSession(saved);return;}const fixture=findSession(historySelection.id);if(fixture){loadSession({id:fixture.id,name:fixture.name,flows:flowsForSession(fixture.id),details:{},created:new Date().toISOString()});return;}}loadSamples(); }}/>}
+          {section === 'devices' && <DevicesView onPairing={()=>{setIntegrationTab('LAN pairing');setSettingsPage('Integrations');}} flash={flash} selected={deviceSelected} onSelect={setDeviceSelected}/>}
+          {section === 'tools' && <ToolboxView algorithm={toolboxAlgorithm} flash={flash} tool={toolboxTool} mode={toolboxMode} onTool={setToolboxTool} onMode={setToolboxMode} showList={sidebarKind !== 'toolbox'}/>}
           {section === 'tracker' && <TrackerView flash={flash}/>}
           {section === 'analytics' && <AnalyticsView onInspectHost={(host) => { setTrafficFilter(`host:${host}`); setActiveTab(tabs.find((tab) => tab.view === 'traffic')?.id ?? 0); setShowDemo(true); setSection('traffic'); }}/>}
           {section === 'environments' && <EnvironmentsView flash={flash} active={envActive} onActive={setEnvActive} showList={sidebarKind !== 'environment'}/>}
@@ -338,24 +420,32 @@ function App() {
       </main>
     </div>
 
-    <footer className="status-bar"><div className="status-left"><span className={`footer-led ${recording ? 'live' : ''}`}/><span>{recording ? 'DEMO CAPTURE' : 'UI PREVIEW'}</span><span className="status-divider"/><span>{endpoint}</span></div><div className="status-center"><Sparkles size={14}/> Desktop shell preview · No network traffic is being captured</div><div className="status-right"><span>HTTP / HTTPS</span><span className="status-divider"/><span>0.1.0 Preview</span><button title="Expand view" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={14}/></button></div></footer>
+    <footer className="status-bar"><div className="status-left"><span className={`footer-led ${recording ? 'live' : ''}`}/><span>{capturePhase==='Error'?'MOCK CAPTURE ERROR':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase.toUpperCase()} MOCK`:recording ? 'DEMO CAPTURE' : 'UI PREVIEW'}</span><span className="status-divider"/><span>{endpoint}</span></div><div className="status-center"><Sparkles size={14}/> Desktop shell preview · No network traffic is being captured</div><div className="status-right"><span>HTTP / HTTPS</span><span className="status-divider"/><span>0.1.0 Preview</span><button title="Expand view" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={14}/></button></div></footer>
 
-    {editingEndpoint && <div className="modal-backdrop" onClick={() => setEditingEndpoint(false)}><div className="modal" onClick={(event) => event.stopPropagation()}><div className="modal-icon"><Globe2 size={20}/></div><h2>Proxy address</h2><p>Choose the local interface and port used by the desktop capture engine.</p><label htmlFor="endpoint-input">LISTEN ADDRESS</label><input id="endpoint-input" autoFocus value={endpointDraft} onChange={(event) => setEndpointDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && /^.+:\d+$/.test(endpointDraft)) { setEndpoint(endpointDraft); setEditingEndpoint(false); } }}/><div className="modal-actions"><button className="secondary-action" onClick={() => setEditingEndpoint(false)}>Cancel</button><button className="primary-action" disabled={!/^.+:\d+$/.test(endpointDraft)} onClick={() => { setEndpoint(endpointDraft); setEditingEndpoint(false); }}>Save address</button></div><div className="modal-note">UI setting only — the proxy service is not connected yet.</div></div></div>}
+    {editingEndpoint && <div className="modal-backdrop" onClick={() => setEditingEndpoint(false)}><div className="modal" onClick={(event) => event.stopPropagation()}><div className="modal-icon"><Globe2 size={20}/></div><h2>Proxy address</h2><p>Choose the local interface and port used by the desktop capture engine.</p><label htmlFor="endpoint-input">LISTEN ADDRESS</label><input id="endpoint-input" autoFocus value={endpointDraft} onChange={(event) => setEndpointDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && /^.+:\d+$/.test(endpointDraft)) { saveEndpoint(); } }}/><div className="modal-actions"><button className="secondary-action" onClick={() => setEditingEndpoint(false)}>Cancel</button><button className="primary-action" disabled={!/^.+:\d+$/.test(endpointDraft)} onClick={() => { saveEndpoint(); }}>Save address</button></div><div className="modal-note">UI setting only — the proxy service is not connected yet.</div></div></div>}
     {infoPanel && <div className="modal-backdrop" onClick={() => setInfoPanel(null)}><div className="modal" onClick={(event) => event.stopPropagation()}>
       <div className="modal-icon">{infoPanel === 'about' ? <Info size={20}/> : <Keyboard size={20}/>}</div>
       <h2>{infoPanel === 'about' ? 'About Traffic Studio' : 'Keyboard Shortcuts'}</h2>
       {infoPanel === 'about'
-        ? <p>Traffic Studio is a Windows desktop workspace preview (Tauri 2 + React / TypeScript / Vite). This build is frontend-only: no proxy listener, HTTP client, certificate manager or local storage is connected, so capture, Send and rule execution are simulated.</p>
+        ? <p>Traffic Studio is a Windows desktop workspace preview (Tauri 2 + React / TypeScript / Vite). This build is frontend-only: no proxy listener, HTTP client, certificate manager or native storage is connected, so capture, Send and rule execution are simulated.</p>
         : <ul className="shortcut-list">{shortcutList.map(([keys, label]) => <li key={keys}><kbd>{keys}</kbd><span>{label}</span></li>)}</ul>}
       <div className="modal-actions"><button className="primary-action" onClick={() => setInfoPanel(null)}>Close</button></div>
       {infoPanel === 'about' && <div className="modal-note">Version 0.1.0 Preview · UI only — no network traffic is captured.</div>}
     </div></div>}
-    {notice && <div className="toast"><Check size={16}/>{notice}</div>}
+    {zen && <button className="zen-exit" onClick={() => setZen(false)}>Exit Zen</button>}
+    {clipboardCurl!==null && <CurlImport initialText={clipboardCurl} applyLabel="Create API draft" onApply={importClipboardDraft} onClose={()=>setClipboardCurl(null)}/>}
+    {sessionOpen && <SessionManager flows={allFlows} details={details} onLoad={loadSession} onClose={() => setSessionOpen(false)}/>}
+    {compareOpen && <FlowCompare flows={allFlows} details={details} onClose={() => setCompareOpen(false)}/>}
+    {protocolOpen && <ProtocolPreview onClose={() => setProtocolOpen(false)}/>}
+    {settingsPage && <SettingsCenter integrationTab={integrationTab} initial={settingsPage} onClose={() => setSettingsPage(null)} flash={flash} motion={motionEnabled} onMotion={() => setMotionEnabled(v => !v)}/>}
+    {layoutOpen && <LayoutManager current={{ sidebarWidth, showSidebar, splitRatio, direction, zen, paneCount }} onApply={applyLayout} onClose={() => setLayoutOpen(false)}/>}
+    {notificationOpen && <NotificationCenter items={notifications} onRead={() => setNotifications(v => v.map(n => ({ ...n, read: true })))} onClear={() => setNotifications([])} onClose={() => setNotificationOpen(false)}/>}
+    {notice && <div className="toast" role="status">{/error|invalid|failed|unavailable/i.test(notice)?<CircleAlert size={16}/>:<Check size={16}/>} {notice}</div>}
   </div>;
 }
 
 function titleFor(view: View) { return ({ traffic: 'Traffic', api: 'API', rules: 'Rules', history: 'History', devices: 'Devices', tools: 'Toolbox', tracker: 'Tracker', analytics: 'Analytics', environments: 'Environments' })[view]; }
 function iconFor(view: View) { return ({ traffic: <Radio size={15}/>, api: <Code2 size={15}/>, rules: <SlidersHorizontal size={15}/>, history: <History size={15}/>, devices: <Wifi size={15}/>, tools: <Wrench size={15}/>, tracker: <KanbanSquare size={15}/>, analytics: <BarChart3 size={15}/>, environments: <KeyRound size={15}/> })[view]; }
-function RailButton({icon,label,active,onClick,hint}:{icon:ReactNode;label:string;active?:boolean;onClick:()=>void;hint?:string}) { return <button className={`rail-button ${active ? 'active' : ''}`} title={hint ? `${label} · ${hint}` : label} aria-label={label} onClick={onClick}>{icon}</button>; }
+function RailButton({icon,label,active,onClick,hint}:{icon:ReactNode;label:string;active?:boolean;onClick:()=>void;hint?:string}) { return <button className={`rail-button ${active ? 'active' : ''}`} title={hint ? `${label} · ${hint}` : label} aria-label={label} onClick={onClick}>{icon}<span className="rail-label">{label}</span></button>; }
 
 export default App;
