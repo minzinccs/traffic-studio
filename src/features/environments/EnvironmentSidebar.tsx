@@ -1,3 +1,4 @@
+import { UiText } from '../localization';
 import { Globe2, Info, KeyRound, Plus } from 'lucide-react';
 import { useEnvironments } from './environments';
 import './environmentSidebar.css';
@@ -17,7 +18,7 @@ export function EnvironmentSidebar({ active, onActive }: { active: string; onAct
 
   return <aside className="explorer-sidebar" aria-label="Environment sidebar">
     <div className="explorer-title"><span>ENVIRONMENT · LOCAL</span><Globe2 size={15}/></div>
-    <div className="env-sidebar-actions"><button className="env-add" onClick={add}><Plus size={14}/> New environment</button></div>
+    <div className="env-sidebar-actions"><button className="env-add" onClick={add}><Plus size={14}/> <UiText text={"New environment"}/></button></div>
     <div className="env-scroll">
       {names.map((name) => <button
         key={name}
@@ -29,7 +30,7 @@ export function EnvironmentSidebar({ active, onActive }: { active: string; onAct
         <span className="env-row-copy"><strong>{name}</strong><small>{(rows[name] ?? []).length} variables</small></span>
       </button>)}
       {names.length === 0 && <div className="explorer-hint">No environments yet.</div>}
-      <div className="env-note"><Info size={14}/><span>Secret values are masked when saved to this browser profile. Nothing is sent anywhere.</span></div>
+      <div className="env-note"><Info size={14}/><span>Secret values stay in memory and clear on reload. Nothing is sent anywhere.</span></div>
     </div>
   </aside>;
 }

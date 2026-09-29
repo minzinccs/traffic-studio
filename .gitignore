@@ -7,5 +7,10 @@ captures/
 .npm-cache/
 *.tsbuildinfo
 src-tauri/target/
+src-tauri/gen/schemas/
+__pycache__/
+*.pyc
 # Local agent workspace: session memory notes and verification screenshots.
 .workbuddy-ai/
+.runtime/
+.workbuddy-ai/engine-spikes/

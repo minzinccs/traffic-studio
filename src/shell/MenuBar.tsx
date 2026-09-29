@@ -3,10 +3,12 @@ import { createPortal } from 'react-dom';
 import { Check, ChevronRight } from 'lucide-react';
 import type { MenuDefinition, MenuItem } from './menuModel';
 import './menu.css';
+import { UiText, useUiTranslation } from '../features/localization';
 
 type Level = { anchor: string; items: MenuItem[] };
 
 export function MenuBar({ menus }: { menus: MenuDefinition[] }) {
+  const ui = useUiTranslation();
   const [openTop, setOpenTop] = useState<string | null>(null);
   const [subPath, setSubPath] = useState<string[]>([]);
   const [active, setActive] = useState(0);
@@ -180,14 +182,14 @@ export function MenuBar({ menus }: { menus: MenuDefinition[] }) {
               aria-disabled={disabled || undefined}
               aria-haspopup={item.children ? 'menu' : undefined}
               aria-expanded={item.children ? expanded : undefined}
-              title={item.disabledReason ?? item.hint ?? item.label}
+              title={ui.translate(item.disabledReason ?? item.hint ?? item.label)}
               onFocus={()=>{if(level===deepest)setActive(index);}}
               onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();activate(level,item);}}}
               onMouseEnter={() => hover(level, item, index)}
               onClick={(event) => { event.stopPropagation(); activate(level, item); }}
             >
               {item.icon && <span className="menu-layer-icon">{item.icon}</span>}
-              <span className="menu-layer-label">{item.label}</span>
+              <span className="menu-layer-label"><UiText text={item.label}/></span>
               {item.checked && <Check className="menu-layer-check" size={14}/>}
               {item.shortcut && <kbd className="menu-layer-kbd">{item.shortcut}</kbd>}
               {item.children && <ChevronRight className="menu-layer-caret" size={14}/>}
@@ -225,7 +227,7 @@ export function MenuBar({ menus }: { menus: MenuDefinition[] }) {
               openTopMenu(menu.id);
             }}
           >
-            {menu.label}
+            <UiText text={menu.label}/>
           </button>
         );
       })}

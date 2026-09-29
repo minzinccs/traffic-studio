@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "local-main",
+  "description": "Local main window core event permissions; no remote origins or network plugins.",
+  "windows": [
+    "main",
+    "workbench-*"
+  ],
+  "permissions": [
+    "core:default"
+  ]
+}

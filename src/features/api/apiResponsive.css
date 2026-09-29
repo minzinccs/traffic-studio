@@ -1,0 +1,64 @@
+.api-view { container: api-view / inline-size; }
+.api-view .api-preview-controls { flex-wrap: wrap; justify-content: flex-start; align-items: center; }
+.api-view .api-preview-controls label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.api-view .api-preview-controls > span { min-width: 0; overflow-wrap: anywhere; }
+.api-view .request-tabs { min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.api-view .request-tabs button { flex: none; white-space: nowrap; }
+.api-view .request-compose { min-width: 0; }
+.api-view .api-topline > div { min-width: 0; }
+.api-view .api-title-input { width: 100%; max-width: 350px; min-width: 0; }
+
+.key-value-grid { container: pair-grid / inline-size; min-width: 0; width: 100%; }
+.key-value-grid .pair-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 42px; padding: 6px 2px 10px; }
+.key-value-grid .pair-toolbar button,
+.key-value-grid .pair-bulk-editor button { min-height: 30px; width: auto; padding: 5px 10px; border: 1px solid #505050; border-radius: 5px; background: #343434; color: #d6dbde; white-space: nowrap; line-height: 1.2; }
+.key-value-grid .pair-toolbar button:hover:not(:disabled),
+.key-value-grid .pair-bulk-editor button:hover { border-color: #ad8349; color: #f3c47c; }
+.key-value-grid .pair-toolbar button:last-child { margin-left: auto; }
+.key-value-grid .pair-toolbar button:disabled { opacity: .45; }
+.key-value-grid .pair-head,
+.key-value-grid .pair-row { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 116px; width: 100%; min-width: 0; }
+.key-value-grid .pair-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.key-value-grid .pair-row > input:not([type=checkbox]) { min-width: 0; width: 100%; }
+.key-value-grid .pair-row-actions { width: 116px; min-width: 0; justify-content: stretch; }
+.key-value-grid .pair-row-actions button { flex: 1 1 25%; min-width: 0; width: auto; padding: 0; }
+.key-value-grid .pair-bulk-editor { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; margin: 5px 0 12px; border: 1px solid #4a4a4a; border-radius: 6px; background: #303030; }
+.key-value-grid .pair-bulk-editor p { flex-basis: 100%; margin: 0 0 4px; }
+.key-value-grid .pair-bulk-editor textarea { flex-basis: 100%; min-width: 0; min-height: 120px; max-height: 40vh; resize: vertical; padding: 9px; border: 1px solid #555; border-radius: 5px; background: #242424; color: #e9ecee; }
+
+@container api-view (max-width: 700px) {
+  .api-view .api-topline { flex-wrap: wrap; gap: 10px; }
+  .api-view .api-top-actions { flex-wrap: wrap; }
+  .api-view .api-topline > div { flex: 1 1 180px; }
+  .api-view .api-preview-controls { row-gap: 8px; }
+  .api-view .api-workspace { flex-direction: column; min-height: 0; }
+  .api-view .api-workspace .api-editor { width: 100% !important; min-height: 220px; }
+  .api-view .api-workspace .api-response { width: 100%; min-height: 170px; }
+  .api-view .api-split-resizer { display: none; }
+}
+
+@container api-view (max-width: 480px) {
+  .api-view .request-compose { flex-wrap: wrap; height: auto; overflow: visible; border: 0; background: transparent; gap: 6px; }
+  .api-view .request-compose .method-select { flex: 0 0 96px; height: 38px; border: 1px solid #4a4a4a; border-radius: 5px; }
+  .api-view .request-compose > input { flex: 1 1 calc(100% - 102px); height: 38px; border: 1px solid #4a4a4a; border-radius: 5px; background: #303030; }
+  .api-view .request-compose > .primary-action { flex: 1 1 100%; height: 38px; border-radius: 5px; }
+  .api-view .request-tabs { gap: 12px; }
+  .api-view .api-preview-controls > span { flex-basis: 100%; }
+}
+
+@container pair-grid (max-width: 300px) {
+  .key-value-grid .pair-head { display: none; }
+  .key-value-grid .pair-row { height: auto; grid-template-columns: 28px minmax(0, 1fr); grid-template-rows: 36px 36px 30px; padding: 2px 0; }
+  .key-value-grid .pair-row > input[type=checkbox] { grid-column: 1; grid-row: 1; }
+  .key-value-grid .pair-row > input[data-cell=key] { grid-column: 2; grid-row: 1; }
+  .key-value-grid .pair-row > input[data-cell=value] { grid-column: 2; grid-row: 2; border-top: 1px solid #424242; }
+  .key-value-grid .pair-row-actions { grid-column: 1 / -1; grid-row: 3; justify-self: end; border-top: 1px solid #424242; }
+  .key-value-grid .pair-toolbar button:last-child { margin-left: 0; }
+}
+
+@media (max-height: 650px) {
+  .api-view { padding-block: 12px; }
+  .api-view .request-compose { margin-top: 12px; }
+  .api-view .request-tabs { height: 40px; }
+  .api-view .api-workspace { margin-top: 8px; }
+}

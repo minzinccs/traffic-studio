@@ -1,0 +1,5 @@
+import type { BodyReference } from './workspace';
+import type { ScriptResult } from './scripts';
+export type HttpInput = { workspaceId: string; runId: string; method: string; url: string; headers: {key:string;value:string}[]; body: string; bodyRef: string | null; multipart: {key:string;value:string}[] | null; multipartFiles?:{key:string;filename:string;mimeType:string;bodyRef:string}[]; timeoutMs: number; followRedirects: boolean; protocol: string; proxyUrl?:string|null; customCaPem?:string|null; tlsVerify?:boolean; cookiesEnabled?:boolean; digest?:{username:string;password:string}|null };
+export type HttpResult = { runId:string; status:number; statusText:string; headers:{key:string;value:string}[]; finalUrl:string; protocol:string; durationMs:number; size:number; previewBase64:string; previewTruncated:boolean; timings?:{headersMs:number;bodyMs:number}; body:BodyReference };
+export type ApiResponse = { simulated:boolean; status:number; statusText:string; headers:{key:string;value:string}[]; durationMs:number; size:string; body:string; native?:HttpResult; scripts?:ScriptResult[]; scriptError?:string };

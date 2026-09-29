@@ -1,6 +1,6 @@
 # Traffic Studio — rules for coding agents
 
-These instructions apply to the repository at `D:\nghiale\zstudio\nghiadev\traffic-studio`.
+These instructions apply to the repository at `H:\Zstudio\tech stuff\coding helper\traffic-studio`.
 
 ## Product and scope
 
@@ -19,6 +19,7 @@ These instructions apply to the repository at `D:\nghiale\zstudio\nghiadev\traff
 5. `CORE_REUSE.md`: research only; runtime choice is still open.
 6. `INTERACTION_PLAN.md`: interaction behavior, persistence model, phases and acceptance gates.
 7. `NEXT_STEPS.md`: ordered implementation backlog and immediate handoff task.
+8. `APP_IMPLEMENTATION_PLAN.md`, `APP_ROUTE_MAP.md`, `APP_TRACKER.json` and generated `APP_TASKS.md`: full app phases/routes/modules/dependencies/acceptance. Edit tracker JSON and run `node scripts/check-plan.mjs --render`; never mark mock/runtime work done without evidence.
 
 If documents disagree, prefer the most recent direct user instruction, then `DESIGN_DECISION.md`. Update stale documents when changing a decision.
 
@@ -41,5 +42,5 @@ Several agents may work on this repo. Assign ownership by directory: `src/featur
 
 - Run `npm run build` after TypeScript/UI changes. Use `npm run dev` or `npm run preview` for visual review.
 - For a new interaction, verify the visible result and the empty/error states. Do not write tests that only mirror markup.
-- Native Tauri build has **not** been verified on this machine: `tauri info` reported missing Rust/Cargo and Visual Studio Build Tools with MSVC + Windows SDK. Do not claim a Windows executable was built until those prerequisites are present and a native build succeeds.
+- Native debug build was verified on 2026-09-27 (WORKLOG 22): Rust/Cargo 1.98.1 at configured CARGO_HOME, VS2022 MSVC/Windows SDK and WebView2 present; Cargo build succeeded. Native interaction acceptance and release installer remain unverified. Use scripts/dev-native.ps1 for local dev; do not claim complete native feature behavior from compilation/startup alone.
 - Record what is implemented, what is simulated, and what remains untested in the final handoff.

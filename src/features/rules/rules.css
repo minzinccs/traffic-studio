@@ -1,3 +1,13 @@
 .rules-layout .detail-panel{padding:20px;overflow:auto}.rules-layout .detail-panel>label{display:flex;flex-direction:column;gap:7px;margin:12px 0;font-size:12px;color:#aaa}.rules-layout input,.rules-layout select,.rules-layout textarea,.rule-item button,.rule-test button{background:#363636;color:#ddd;border:1px solid #565656;border-radius:4px;padding:8px}.rules-layout textarea{min-height:130px;resize:vertical;font-family:Consolas,monospace}.rule-item{display:flex;border-bottom:1px solid #464646}.rule-item>.item-row{flex:1;border:0}.rule-item>div{display:flex;align-items:center;padding:4px}.rule-item>div button{padding:5px}.rule-test{border:1px solid #565656;padding:12px;margin:15px 0;border-radius:5px}.rule-test input{width:100%}.rule-test p{font-size:12px;color:#aaa}
 
 .rule-action-fields{padding:12px;border:1px solid #565656;border-radius:5px}.rule-action-fields label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0;font-size:12px;color:#aaa}.rule-action-fields input{max-width:65%}
+.rules-toolbar { justify-content:flex-start; gap:10px; }
+.rules-toolbar .search-field { flex:0 1 360px; }
+.rules-toolbar .rules-type-filter { flex:0 1 220px; height:38px; }
+.rules-toolbar > .outline-button { margin-left:auto; }
+.rules-layout .detail-panel > label > .select-field { width:100%; min-height:38px; }
+.rules-layout .detail-panel > label.rule-enabled { flex-direction:row; align-items:center; gap:9px; margin:17px 0; color:#c4cbd0; }
+.rules-layout .rule-enabled input[type=checkbox] { flex:none; width:16px; height:16px; margin:0; accent-color:#eab35b; }
+.rule-test .select-field { min-width:120px; min-height:36px; }
+@media(max-width:700px){.rules-toolbar .search-field{flex:1 1 240px}.rules-toolbar .rules-type-filter{flex:1 1 120px}.rules-toolbar>.outline-button{margin-left:0}}
+@media(max-width:700px){.rules-layout .detail-panel{min-width:0;padding:14px}.rules-layout .detail-panel :is(input:not([type=checkbox]),select,textarea){min-width:0;max-width:100%;width:100%}.rule-action-fields label{flex-wrap:wrap}.rule-action-fields input{max-width:100%}.rules-layout .item-panel{max-height:190px;overflow:auto}}

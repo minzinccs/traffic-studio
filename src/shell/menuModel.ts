@@ -1,5 +1,7 @@
+import { binding, type Keybindings } from '../features/settings/shortcuts';
 import type { ReactNode } from 'react';
 import type { SettingsPage } from '../features/settings';
+import type { CertificateTarget } from '../features/certificates/setup';
 import type { View } from '../domain/types';
 import { sidebarModes, type SidebarMode } from './sidebarModes';
 
@@ -25,6 +27,7 @@ export type MenuItem = {
 export type MenuDefinition = { id: string; label: string; items: MenuItem[] };
 
 export type MenuContext = {
+  keybindings?: Keybindings;
   // File
   newApiRequest: () => void;
   openHar: () => void;
@@ -56,6 +59,7 @@ export type MenuContext = {
   clearTraffic: () => void;
   // Proxy / Certificate
   editEndpoint: () => void;
+  openCertificate: (target:CertificateTarget) => void;
   // Help
   openClipboard:()=>void; openIntegration:(tab:string)=>void;
   openSessions: () => void; openCompare: () => void;
@@ -74,21 +78,21 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
   return [
     {
       id: 'file', label: 'File', items: [
-        { id: 'file-new-http', label: 'New HTTP Request', shortcut: 'Ctrl+T', action: ctx.newApiRequest },
+        { id: 'file-new-http', label: 'New HTTP Request', shortcut: binding(ctx.keybindings ?? {}, 'newRequest'), action: ctx.newApiRequest },
         { id: 'file-new-ws', label: 'New WebSocket Request', hint: 'Mock frames only; no socket is opened.', action: ctx.openProtocols },
         { id: 'file-new-workspace', label: 'Workspaces…', separatorBefore: true, action:()=>window.dispatchEvent(new Event('traffic-studio-workspaces')) },
         { id: 'file-open-file', label: 'Open File…', separatorBefore: true, action: ctx.openSessions },
-        { id: 'file-open-har', label: 'Open HAR File…', shortcut: 'Ctrl+O', hint: 'Parse HAR locally, with validation preview.', action: ctx.openHar },
+        { id: 'file-open-har', label: 'Open HAR File…', shortcut: binding(ctx.keybindings ?? {}, 'openSession'), hint: 'Parse HAR locally, with validation preview.', action: ctx.openHar },
         { id: 'file-open-clipboard', label: 'Open from Clipboard', action: ctx.openClipboard },
         {
           id: 'file-recent', label: 'Recent', children: [
             { id: 'file-recent-1', label: 'No recent files', ...disabled('Recent items appear once local storage is connected.') },
           ],
         },
-        { id: 'file-close', label: 'Close Tab', shortcut: 'Ctrl+W', separatorBefore: true, ...(ctx.canCloseActive ? { action: ctx.closeActiveTab } : disabled('No closeable API tab is active.')) },
+        { id: 'file-close', label: 'Close Tab', shortcut: binding(ctx.keybindings ?? {}, 'closeTab'), separatorBefore: true, ...(ctx.canCloseActive ? { action: ctx.closeActiveTab } : disabled('No closeable API tab is active.')) },
         { id: 'file-close-others', label: 'Close Other Tabs', ...(ctx.canCloseTabs ? { action: ctx.closeOtherTabs } : disabled('No other API tabs are open.')) },
         { id: 'file-close-all', label: 'Close All API Tabs', ...(ctx.canCloseTabs ? { action: ctx.closeAllTabs } : disabled('No API tabs are open.')) },
-        { id: 'file-reopen', label: 'Reopen Closed Tab', shortcut: 'Ctrl+Shift+T', ...(ctx.canReopen ? { action: ctx.reopenClosedTab } : disabled('No recently closed tab.')) },
+        { id: 'file-reopen', label: 'Reopen Closed Tab', shortcut: binding(ctx.keybindings ?? {}, 'reopenTab'), ...(ctx.canReopen ? { action: ctx.reopenClosedTab } : disabled('No recently closed tab.')) },
         { id: 'file-settings', label: 'Settings…', action: () => ctx.openSettings() },
         { id: 'file-exit', label: 'Exit', separatorBefore: true, ...disabled('The native Windows build is not available on this machine.') },
       ],
@@ -156,7 +160,7 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
         ...sidebarModes.map((meta) => ({
           id: `view-mode-${meta.mode}`,
           label: `Sidebar: ${meta.label}`,
-          shortcut: meta.shortcut,
+          shortcut: binding(ctx.keybindings ?? {}, meta.mode),
           hint: meta.hint,
           checked: ctx.sidebarMode === meta.mode,
           action: () => ctx.setSidebarMode(meta.mode),
@@ -171,7 +175,7 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
     },
     {
       id: 'traffic', label: 'Traffic', items: [
-        { id: 'traffic-capture', label: ctx.captureRunning ? 'Stop Capture (preview)' : 'Start Capture (preview)', shortcut: 'Ctrl+G', hint: 'Simulated — no proxy listener is running.', action: ctx.toggleCapture },
+        { id: 'traffic-capture', label: ctx.captureRunning ? 'Stop Capture (preview)' : 'Start Capture (preview)', shortcut: binding(ctx.keybindings ?? {}, 'capture'), hint: 'Simulated — no proxy listener is running.', action: ctx.toggleCapture },
         { id: 'traffic-sample', label: 'Load Sample Traffic', action: ctx.loadSample },
         { id: 'traffic-clear', label: 'Clear Traffic', separatorBefore: true, ...(ctx.sampleLoaded ? { action: ctx.clearTraffic } : disabled('No sample traffic is loaded.')) },
         { id: 'traffic-import', label: 'Import HAR…', separatorBefore: true, hint: 'Preview only.', action: ctx.openHar },
@@ -193,11 +197,17 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
     },
     {
       id: 'certificate', label: 'Certificate', items: [
-        { id: 'cert-center', label: 'Certificate Center…', action: () => ctx.openSettings('Certificate') },
-        { id: 'cert-status', label: 'Status: Unknown (engine not connected)', ...disabled('The certificate manager reports once the capture core is wired up.') },
-        { id: 'cert-install', label: 'Install Root Certificate', separatorBefore: true, ...disabled('Installing a root CA needs OS confirmation and the capture core.') },
-        { id: 'cert-remove', label: 'Remove Root Certificate', ...disabled('Nothing is installed by this preview.') },
-        { id: 'cert-detail', label: 'SSL Proxying Configuration', action: () => ctx.openSettings('Certificate') },
+        { id: 'cert-local-machine', label: 'Install Root Certificate to Local Machine…', action:()=>ctx.openCertificate('local-machine') },
+        { id: 'cert-android', label: 'Install Root Certificate to Android…', action:()=>ctx.openCertificate('android') },
+        { id: 'cert-ios', label: 'Install Root Certificate to iOS…', action:()=>ctx.openCertificate('ios') },
+        { id: 'cert-firefox', label: 'Install Root Certificate to Firefox…', action:()=>ctx.openCertificate('firefox') },
+        { id: 'cert-java', label: 'Install Root Certificate to Java VM…', action:()=>ctx.openCertificate('java') },
+        { id: 'cert-view', label: 'View Root Certificate…', separatorBefore:true, action:()=>ctx.openCertificate('view') },
+        { id: 'cert-management', label: 'Root Certificate Management', children:[
+          { id:'cert-manage-create', label:'Create / Export CA…', action:()=>ctx.openCertificate('manage') },
+          { id:'cert-manage-trust', label:'Trust / Remove for Current User…', action:()=>ctx.openCertificate('manage') },
+        ] },
+        { id: 'cert-ssl', label: 'SSL Certificate…', separatorBefore:true, action:()=>ctx.openCertificate('ssl') },
       ],
     },
     {

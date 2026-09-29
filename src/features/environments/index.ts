@@ -1,3 +1,2 @@
-export { EnvironmentsView } from './EnvironmentsView';
-export { EnvironmentSidebar } from './EnvironmentSidebar';
-export { useEnvironments } from './environments';
+export { NativeEnvironmentPanel } from './NativeEnvironmentPanel';
+export type { Variable } from './resolution';

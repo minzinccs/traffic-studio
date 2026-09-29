@@ -10,6 +10,7 @@ const icons: Record<string, ReactNode> = {
   UUID: <Fingerprint size={14}/>,
   JWT: <FileKey2 size={14}/>,
   'Hash / HMAC': <Hash size={14}/>,
+  'Decoder script': <FileKey2 size={14}/>,
   AES: <LockKeyhole size={14}/>,
   Regex: <ScanSearch size={14}/>,
   'QR code': <QrCode size={14}/>,

@@ -17,3 +17,16 @@
 /* FE-2 — when the Toolbox/Environment sidebar owns the list, the view drops its own list column. */
 .tool-workspace.no-list{grid-template-columns:minmax(0,1fr)}
 .two-panel.env-layout.no-list{grid-template-columns:minmax(0,1fr)}
+@media(max-width:700px){
+  .two-panel{grid-template-columns:minmax(0,1fr);min-height:0}
+  .two-panel.env-layout,.tool-workspace{grid-template-columns:minmax(0,1fr);min-height:0}
+  .env-layout .item-panel,.tool-workspace .tool-sidebar{max-height:190px;overflow:auto}
+  .env-layout .detail-panel,.tool-workspace .tool-main{min-width:0;padding:14px}
+  .env-layout .detail-head,.tool-workspace .tool-title{gap:10px;flex-wrap:wrap}
+  .env-layout .page-toolbar,.tool-workspace .tool-options,.tool-workspace .tool-actions{justify-content:flex-start;flex-wrap:wrap}
+  .env-layout .page-toolbar input{min-width:0;flex:1 1 160px}
+  .env-layout .env-table{overflow-x:auto}
+  .env-layout .env-head,.env-layout .env-row{min-width:300px}
+  .tool-workspace .tool-columns{grid-template-columns:minmax(0,1fr)}
+  .tool-workspace .tool-columns label{min-width:0}
+}

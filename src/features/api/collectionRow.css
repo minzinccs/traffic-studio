@@ -1,0 +1,21 @@
+.explorer-collection-row,.collection-folder { position:relative; display:flex; align-items:center; min-width:0; }
+.explorer-collection-row { min-height:34px; padding:0 6px 0 9px; }
+.explorer-collection-row:hover,.collection-folder:hover,.collection-folder.menu-open { background:#34383a; }
+.explorer-collection-main { display:flex; align-items:center; gap:8px; flex:1; min-width:0; min-height:34px; padding:0 4px; border:0; background:transparent; color:#c7cdd0; text-align:left; font-size:11px; }
+.explorer-collection-main:hover { color:#f5d39c; }
+.explorer-collection-main span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.explorer-collection-main small { color:#84cda7; font-size:10px; }
+.collection-hover-actions { display:flex; align-items:center; gap:2px; flex:none; opacity:0; pointer-events:none; transition:opacity .12s; }
+.explorer-collection-row:hover .collection-hover-actions,.explorer-collection-row:focus-within .collection-hover-actions,.collection-folder:hover .collection-hover-actions,.collection-folder:focus-within .collection-hover-actions,.collection-folder.menu-open .collection-hover-actions { opacity:1; pointer-events:auto; }
+.collection-hover-actions button,.collection-folder .collection-hover-actions button { display:grid; place-items:center; flex:none; width:25px; height:25px; padding:0; border:0; border-radius:5px; background:transparent; color:#aab5ba; }
+.collection-hover-actions button:hover,.collection-folder .collection-hover-actions button:hover { background:#4a4741; color:#f2bf75; }
+.collection-hover-actions button:focus-visible { outline:2px solid #eab35b; outline-offset:1px; }
+.collection-row-menu { position:absolute; z-index:20; top:29px; right:5px; display:flex; flex-direction:column; width:185px; padding:5px; border:1px solid #626568; border-radius:7px; background:#303436; box-shadow:0 12px 28px #0009; }
+.collection-folder .collection-row-menu button,.collection-row-menu button { display:flex; justify-content:flex-start; align-items:center; gap:8px; width:100%; height:32px; padding:0 9px; border:0; border-radius:4px; background:transparent; color:#e0e5e7; text-align:left; font-size:11px; }
+.collection-folder .collection-row-menu button:hover,.collection-row-menu button:hover { background:#46433d; color:#ffd18b; }
+.app-shell[data-theme=light] .explorer-collection-row:hover,.app-shell[data-theme=light] .collection-folder:hover,.app-shell[data-theme=light] .collection-folder.menu-open { background:#ecf0f1; }
+.app-shell[data-theme=light] .collection-row-menu { background:#fff; border-color:#b5bec2; box-shadow:0 12px 28px #0003; }
+.app-shell[data-theme=light] .collection-row-menu button { color:#273137; }
+.app-shell[data-theme=light] .collection-row-menu button:hover { background:#f7e9d4; color:#73481a; }
+@media (hover:none) { .collection-hover-actions { opacity:1; pointer-events:auto; } }
+@media (prefers-reduced-motion:reduce) { .collection-hover-actions { transition:none; } }

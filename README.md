@@ -1,6 +1,10 @@
 # Traffic Studio — ý tưởng sản phẩm
 
+**Current development status (2026-09-28, WORKLOG 29):** native source includes HTTP capture/rules/protocols, HAR, tracker/analytics/layout and opt-in integrations. The local Windows release executable builds and starts from this checkout; 25 Rust fixtures pass in release mode. Browser preview remains sample-labelled. Native UI interaction, portable installer and full phase acceptance remain open. See [P06–P10 progress](PHASE_6_10_PROGRESS.md), [engine selection](ENGINE_SELECTION.md), [UI audit](UI_FLOW_AUDIT.md) and [tracker](APP_TASKS.md). Older status paragraphs below describe earlier milestones.
+
 Ứng dụng desktop để bắt, phân tích, chỉnh sửa và kiểm thử lưu lượng HTTP(S), lấy cảm hứng từ workflow của Reqable. Ưu tiên local-first, nhiều phiên/bảng và giao diện tối rõ ràng.
+
+**App local:** React + Rust backend chạy trong Tauri trên máy, không cần production online/account. Điện thoại là companion qua pairing; VPS cá nhân hoặc dịch vụ cloud là tùy chọn về sau. Hướng thiết kế open-source; license cụ thể chưa chọn. Xem [kiến trúc local-first](LOCAL_FIRST_ARCHITECTURE.md). Chạy native dev: `powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1`. Tạo release executable trong checkout: `powershell -ExecutionPolicy Bypass -File scripts/build-local-release.ps1` (cần `scripts/setup-capture.ps1` cho capture; chưa phải installer mang sang máy khác).
 
 **Đích cuối:** đủ mọi tính năng Community + Premium của Reqable theo [checklist](FEATURE_INVENTORY.md), trừ phần chỉ có ở Enterprise, và thêm tracker/analytics/view theo yêu cầu. **App PC là sản phẩm chính và được làm trước; Android/iOS là app phụ trợ ở giai đoạn sau.** Các mốc bên dưới là thứ tự thực hiện, không phải cắt bớt phạm vi cuối.
 
@@ -24,7 +28,7 @@
 
 ## Base giao diện đã tạo
 
-Source trong `src/` và `src-tauri/` là UI shell. `npm run build` đã build frontend; capture và API chưa có engine. Xem [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) để biết trạng thái tương tác hiện tại.
+Source trong `src/` và `src-tauri/` đã có native HTTP client, SQLite/body storage, Digest/OAuth, scripts sandbox, import collection, environment/vault và các điều khiển CA/proxy Windows. Frontend và native debug build qua; test hành vi vẫn hoãn theo yêu cầu. Capture engine chưa chọn, chưa có capture thật. Xem [tiến độ P04/P05](PHASE_4_5_PROGRESS.md) và [worklog](WORKLOG.md) để biết phần đã code và phần chưa nghiệm thu.
 
 ## MVP đề xuất
 

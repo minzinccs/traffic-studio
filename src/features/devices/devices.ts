@@ -20,11 +20,11 @@ export const hostDevice: DeviceRecord = {
   detail: 'Desktop workspace · local only',
 };
 
-// Empty on purpose: no LAN listener or pairing support exists in this preview.
+// Empty on purpose: the metadata gateway does not establish trusted devices.
 export const connectedDevices: DeviceRecord[] = [];
 export const availableDevices: DeviceRecord[] = [];
 
-export const pairingNote = 'Discovery, QR pairing and transfer are planned after the PC capture foundation. No LAN listener is running.';
+export const pairingNote = 'Discovery, QR pairing and transfer are not implemented. The native read-only LAN metadata gateway has separate controls and does not pair devices.';
 
 export function deviceGroups(): { kind: DeviceKind; label: string; devices: DeviceRecord[]; empty: string }[] {
   return [

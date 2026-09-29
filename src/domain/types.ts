@@ -41,6 +41,7 @@ export type FlowDetail = {
   responseHeaders: Pair[];
   requestBody?: string;
   responseBody: string;
+  responseBodyBase64?: string; // Original HAR bytes, retained independently of decoded text.
   note?: string;
 };
 

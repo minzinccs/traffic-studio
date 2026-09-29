@@ -3,10 +3,10 @@
 .env-add{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #424242;border-radius:4px;background:#303030;color:#aeb7bb;padding:8px;font-size:10px}
 .env-add:hover{border-color:#bd9353;color:#f0bf70}
 .env-scroll{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;padding:8px 0 10px}
-.env-row{width:100%;display:flex;align-items:center;gap:8px;padding:9px 11px;border:0;background:transparent;color:#abb3b8;text-align:left}
-.env-row:hover{background:#303030}
-.env-row.selected{background:#303030;color:#edc17e;box-shadow:inset 2px 0 #efb34f}
-.env-row>svg{flex:none;color:#d0a359}
+.env-scroll>.env-row{width:100%;display:flex;align-items:center;gap:8px;padding:9px 11px;border:0;background:transparent;color:#abb3b8;text-align:left}
+.env-scroll>.env-row:hover{background:#303030}
+.env-scroll>.env-row.selected{background:#303030;color:#edc17e;box-shadow:inset 2px 0 #efb34f}
+.env-scroll>.env-row>svg{flex:none;color:#d0a359}
 .env-row-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
 .env-row-copy strong{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .env-row-copy small{font-size:10px;color:#879099}

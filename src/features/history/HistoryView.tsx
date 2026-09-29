@@ -1,4 +1,5 @@
-import { ArrowDownToLine, Clock3, FileArchive, Info, MousePointerClick, Sparkles } from 'lucide-react';
+import { UiText } from '../localization';
+import { ArrowDownToLine, Clock3, FileArchive, Info, MousePointerClick } from 'lucide-react';
 import { findSession, flowsForSession, readSavedRequests, type HistorySelection } from './sessions';
 import './historyView.css';
 
@@ -21,7 +22,7 @@ export function HistoryView({ selection, sidebarVisible, onShowSidebar, onOpenRe
 
   return <div className="workspace-page">
     <div className="page-head">
-      <div><span className="eyebrow">LOCAL LIBRARY</span><h1>History</h1><p>Bundled samples, imported or saved local preview sessions, and browser API drafts.</p></div>
+      <div><span className="eyebrow">LOCAL LIBRARY</span><h1><UiText text={"History"}/></h1><p>Bundled samples, imported or saved local preview sessions, and browser API drafts.</p></div>
       <div className="page-head-action"><button className="outline-button" onClick={onImport}><ArrowDownToLine size={15}/> Import HAR</button></div>
     </div>
 
@@ -44,7 +45,7 @@ export function HistoryView({ selection, sidebarVisible, onShowSidebar, onOpenRe
             <span>{session.capturedAt}</span>
           </div>
         </div>
-        <button className="outline-button" onClick={onShowTraffic}><Sparkles size={15}/> Open in Traffic</button>
+        <button className="outline-button" onClick={onShowTraffic}>Open in Traffic</button>
       </div>
       <div className="demo-note"><Info size={15}/>{session.note}</div>
       {session.requestCount === 0

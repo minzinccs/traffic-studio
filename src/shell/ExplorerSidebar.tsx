@@ -5,7 +5,7 @@ import { CollectionExplorer } from '../features/api/CollectionExplorer';
 import { TrafficExplorer } from '../features/capture/TrafficExplorer';
 import './explorer.css';
 export type ExplorerNode = {id:string;parentId:string|null;kind:'group'|'request'|'setup'|'profile';name:string};
-export type ExplorerProps = {section:View;flows:Flow[];trackedIds:number[];favoriteIds:number[];selectedFlow:number|null;onSelectFlow:(id:number)=>void;onTrack:(id:number)=>void;onFavorite:(id:number)=>void;onOpenNode:(node:ExplorerNode)=>void;onCreateRequest:()=>void;onSetTrafficFilter:(value:string)=>void;trafficFilter:string;onShowCollections:()=>void;source?:string};
+export type ExplorerProps = {section:View;flows:Flow[];trackedIds:number[];favoriteIds:number[];selectedFlow:number|null;onSelectFlow:(id:number)=>void;onTrack:(id:number)=>void;onFavorite:(id:number)=>void;onOpenNode:(node:ExplorerNode)=>void;onCreateRequest:()=>void;onSetTrafficFilter:(value:string)=>void;trafficFilter:string;onShowCollections:(collectionId?:string)=>void;source?:string};
 export function ExplorerSidebar(props:ExplorerProps){if(props.section==='api')return <CollectionExplorer onOpen={props.onOpenNode} onManage={props.onShowCollections} onNew={props.onCreateRequest}/>;if(props.section==='traffic')return <TrafficExplorer {...props}/>;return null;}
 export function SetupFileView({ node }: { node: Pick<ExplorerNode, 'id' | 'name' | 'kind'> }) {
   const key = `traffic-studio-setup-${node.id}`;

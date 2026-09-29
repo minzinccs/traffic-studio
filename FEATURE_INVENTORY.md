@@ -73,6 +73,7 @@ Các khả năng cộng tác cơ bản cho sản phẩm riêng có thể thiết
 - View table/Kanban/timeline/saved query; nhiều bảng không giới hạn, nhiều điều kiện filter, nhiều cột/nhóm.
 - Split panes linh hoạt: traffic list, inspector, diff, API client, analytics và board có thể đặt cạnh nhau; layout lưu theo workspace.
 - Analytics có drill-down: latency, lỗi, status, endpoint, payload, phiên bản và so sánh session.
+- Bắt packet Windows theo interface (opt-in), PCAPNG giới hạn dung lượng, xem metadata riêng với HTTP proxy; TLS key-log có thể dùng để phân tích lại khi có session secrets phù hợp. Decoder payload cục bộ nhận code/key do người dùng cung cấp, lưu profile code theo URL nhưng không lưu key; SHA file theo luồng. Không coi CA hay packet thuần là chìa khóa giải mã TLS.
 
 ## 8. Checklist parity theo toàn bộ mục tài liệu chính thức
 
@@ -102,3 +103,8 @@ Các checklist này không bao gồm tính năng độc quyền Enterprise đã 
 ## Frontend implementation map — 2026-09-26
 
 See [FE_STATUS.md](FE_STATUS.md) for local interactions, mock configuration, verification evidence and remaining limitations. Runtime parity checkboxes above must not be marked complete solely because a mock screen exists.
+
+
+## Full app task crosswalk — 2026-09-27
+
+Every requirement family above, including Charles sessions, HTTP3/QUIC, Python/addons, Report, MCP, platform/mobile and optional cloud decisions, maps to task IDs in APP_TRACKER.json and the Inventory crosswalk in APP_TASKS.md. APP_IMPLEMENTATION_PLAN.md separates Windows runtime acceptance from full required platform/LAN/mobile scope. Enterprise-only items remain excluded; default cloud/login remains absent. Checkboxes above stay unchecked until runtime evidence is recorded; planning/partial/mock code does not fulfill parity.

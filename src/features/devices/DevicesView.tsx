@@ -1,4 +1,6 @@
 import { Globe2, HardDrive, Search, Wifi } from 'lucide-react';
+import {isTauri} from '@tauri-apps/api/core';
+import {NativeLanPanel} from './NativeLanPanel';
 import { PageHead, DemoNote } from '../../shell/PageChrome';
 import { availableDevices, connectedDevices, hostDevice, pairingNote } from './devices';
 import './devicesView.css';
@@ -6,22 +8,22 @@ import './devicesView.css';
 // FE-2 — Devices workspace view.
 //
 // The sidebar tree selects a device; this pane shows the card grid and the
-// detail for the current selection. Nothing here claims a device is paired or
-// reachable, because the LAN/companion core is not built.
+// detail for the current selection. The native read-only LAN gateway has its
+// own explicit state; no device is presented as paired or reachable yet.
 export function DevicesView({ selected, onSelect, onPairing }: {
   flash: (message: string) => void;
   onPairing:()=>void;
   selected: string | null;
   onSelect: (id: string) => void;
 }) {
-  const detail = selected === hostDevice.id ? { title: hostDevice.name, rows: [['Connection', 'Local only'], ['Pairing', 'Unavailable in UI preview'], ['Transfer', 'Not built yet']] } : null;
+  const detail = selected === hostDevice.id ? { title: hostDevice.name, rows: [['Connection', 'Local only'], ['Pairing', 'Not available yet'], ['Transfer', 'Not built yet']] } : null;
 
   return <div className="workspace-page">
     <PageHead
       kicker="LOCAL NETWORK"
       title="Devices"
       description="Prepare a secure connection between this PC and future mobile companions."
-      action={<button className="primary-action" onClick={onPairing} title="Mock pairing configuration; no LAN connection"><Wifi size={16}/> Pairing preview</button>}
+      action={isTauri()?<button className="primary-action" onClick={()=>document.querySelector('.native-lan')?.scrollIntoView({behavior:'smooth'})}><Wifi size={16}/> LAN sharing</button>:<button className="primary-action" onClick={onPairing} title="Pairing draft only; no LAN connection"><Wifi size={16}/> Pairing details</button>}
     />
     <div className="device-grid">
       <button className={`device-card host ${selected === hostDevice.id ? 'selected' : ''}`} onClick={() => onSelect(hostDevice.id)} aria-pressed={selected === hostDevice.id}>
@@ -29,7 +31,7 @@ export function DevicesView({ selected, onSelect, onPairing }: {
         <h2>This Windows PC</h2>
         <p>Current desktop workspace</p>
         <div className="device-spec"><span>Connection</span><strong>Local only</strong></div>
-        <div className="device-spec"><span>Pairing</span><strong>Unavailable in UI preview</strong></div>
+        <div className="device-spec"><span>Pairing</span><strong>Not available yet</strong></div>
       </button>
       <button className="device-card" disabled aria-disabled="true" title={pairingNote}>
         <div className="device-top"><div className="device-glyph"><Wifi size={25}/></div><span className="count-pill">{connectedDevices.length}</span></div>
@@ -45,6 +47,8 @@ export function DevicesView({ selected, onSelect, onPairing }: {
       </button>
     </div>
 
+    {isTauri()&&<NativeLanPanel/>}
+
     {detail
       ? <div className="device-detail">
         <div className="panel-kicker">SELECTED DEVICE</div>
@@ -54,6 +58,6 @@ export function DevicesView({ selected, onSelect, onPairing }: {
       : <div className="device-detail empty"><div className="panel-kicker">SELECTED DEVICE</div><p>Select the host device to see its connection detail.</p></div>}
 
     <div className="device-learn"><button className="outline-button" onClick={onPairing}><Search size={15}/> Learn about pairing</button></div>
-    <DemoNote>{pairingNote}</DemoNote>
+    {!isTauri()&&<DemoNote>{pairingNote}</DemoNote>}
   </div>;
 }

@@ -1,0 +1,34 @@
+import { UiText } from '../localization';
+import { useRef, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+export type EditablePair = { id: number; key: string; value: string; enabled: boolean };
+let nextId = Date.now() * 1000;
+function id() { return ++nextId; }
+export function parsePairs(text: string): EditablePair[] {
+  if (text.length > 1024 * 1024) throw Error('Pasted pairs exceed 1 MB.');
+  const lines = text.replace(/\r/g, '').split('\n').filter(line => line.trim());
+  if (lines.length > 1000) throw Error('A grid supports up to 1,000 rows.');
+  return lines.map(line => {
+    const tab = line.indexOf('\t'); const colon = line.indexOf(':'); const equal = line.indexOf('=');
+    const separators = [colon,equal].filter(index=>index>=0);
+    const index = tab >= 0 ? tab : separators.length ? Math.min(...separators) : -1;
+    return { id: id(), key: (index < 0 ? line : line.slice(0,index)).trim(), value: index < 0 ? '' : line.slice(index+1).trim(), enabled: true };
+  });
+}
+export function KeyValueGrid({ rows, onChange, label }: { rows: EditablePair[]; onChange: (rows: EditablePair[]) => void; label: string }) {
+  const [bulk, setBulk] = useState<string | null>(null); const [error, setError] = useState('');
+  const undo = useRef<EditablePair[][]>([]), redo = useRef<EditablePair[][]>([]);
+  const [,redraw] = useState(0);
+  const root=useRef<HTMLDivElement>(null);
+  function commit(next: EditablePair[]) { if(next.length>1000){setError('Maximum 1,000 rows.');return;} undo.current.push(rows.map(row=>({...row})));undo.current=undo.current.slice(-50);redo.current=[];onChange(next);setError(''); }
+  function history(direction:'undo'|'redo') { const from=direction==='undo'?undo:redo;const to=direction==='undo'?redo:undo;const next=from.current.pop();if(next){to.current.push(rows.map(row=>({...row})));onChange(next);redraw(v=>v+1);} }
+  function add() { commit([...rows,{id:id(),key:'',value:'',enabled:true}]);requestAnimationFrame(()=>root.current?.querySelectorAll<HTMLInputElement>('input[data-cell="key"]').item(rows.length)?.focus()); }
+  function move(index:number,direction:-1|1){const target=index+direction;if(target<0||target>=rows.length)return;const next=[...rows];[next[index],next[target]]=[next[target],next[index]];commit(next);}
+  return <div ref={root} className="key-value-grid" onKeyDown={event=>{if((event.ctrlKey||event.metaKey)&&['z','y'].includes(event.key.toLowerCase())){event.preventDefault();event.stopPropagation();history(event.key.toLowerCase()==='y'||event.shiftKey?'redo':'undo');}}}>
+    <div className="pair-toolbar" role="toolbar" aria-label={`${label} edit actions`}><button type="button" disabled={!undo.current.length} onClick={()=>history('undo')}><UiText text={"Undo"}/></button><button type="button" disabled={!redo.current.length} onClick={()=>history('redo')}><UiText text={"Redo"}/></button><button type="button" onClick={()=>setBulk(rows.map(row=>`${row.key}\t${row.value}`).join('\n'))}><UiText text={"Bulk edit / paste"}/></button></div>
+    {bulk!==null && <div className="pair-bulk-editor"><p>One key/value pair per line, separated by tab, colon or equals. Duplicate keys remain separate rows.</p><textarea aria-label={`Bulk ${label}`} value={bulk} onChange={e=>setBulk(e.target.value)}/><button onClick={()=>{try{commit(parsePairs(bulk));setBulk(null);}catch(e){setError(e instanceof Error?e.message:'Invalid pairs');}}}><UiText text={"Replace rows"}/></button><button onClick={()=>{try{const parsed=parsePairs(bulk);if(rows.length+parsed.length>1000)throw Error('Maximum 1,000 rows.');commit([...rows,...parsed]);setBulk(null);}catch(e){setError(e instanceof Error?e.message:'Invalid pairs');}}}><UiText text={"Append rows"}/></button><button onClick={()=>setBulk(null)}><UiText text={"Cancel bulk edit"}/></button></div>}
+    <div className="pair-head"><span/><span><UiText text={"KEY"}/></span><span><UiText text={"VALUE"}/></span><span><UiText text={"ACTIONS"}/></span></div>
+    {rows.map((row,index)=><div className="pair-row" key={row.id}><input type="checkbox" checked={row.enabled} aria-label={`Enable ${label} row ${index+1}`} onChange={e=>commit(rows.map(r=>r.id===row.id?{...r,enabled:e.target.checked}:r))}/>{(['key','value'] as const).map(cell=><input key={cell} data-cell={cell} aria-label={`${label} ${cell} ${index+1}`} placeholder={cell} value={row[cell]} onChange={e=>commit(rows.map(r=>r.id===row.id?{...r,[cell]:e.target.value}:r))} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();add();}}} onPaste={e=>{const text=e.clipboardData.getData('text');if(text.includes('\n')||text.includes('\t')){e.preventDefault();try{const parsed=parsePairs(text);commit([...rows,...parsed]);}catch(error){setError(error instanceof Error?error.message:'Invalid clipboard pairs');}}}}/>)}<div className="pair-row-actions"><button aria-label={`Move ${label} row ${index+1} up`} disabled={index===0} onClick={()=>move(index,-1)}>↑</button><button aria-label={`Move ${label} row ${index+1} down`} disabled={index===rows.length-1} onClick={()=>move(index,1)}>↓</button><button aria-label={`Duplicate ${label} row ${index+1}`} onClick={()=>commit([...rows.slice(0,index+1),{...row,id:id()},...rows.slice(index+1)])}>⧉</button><button aria-label={`Remove ${label} row ${index+1}`} onClick={()=>commit(rows.filter(r=>r.id!==row.id))}><Trash2 size={13}/></button></div></div>)}
+    <button className="pair-add" onClick={add}><Plus size={14}/> Add {label}</button>{error&&<p role="alert" className="tool-error">{error}</p>}
+  </div>;
+}

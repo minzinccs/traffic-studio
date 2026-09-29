@@ -1,5 +1,8 @@
-export type ApiProfile = { id: string; name: string; method: string; url: string; headers: { key: string; value: string }[]; body: string; notes: string };
-export type ApiCollection = { id: string; name: string; profiles: ApiProfile[]; parentId?: string | null };
+import { sanitizeVariables, type Variable } from '../environments/resolution';
+export type RequestConfig = { params: { id: number; key: string; value: string; enabled: boolean }[]; bodyMode?: string; script?: string; testScript?: string; docs?: string; timeoutMs?: number; followRedirects?: boolean; protocol?: string; proxyUrl?: string; customCaPem?: string; tlsVerify?: boolean; cookiesEnabled?: boolean };
+export type ApiProfile = { id: string; name: string; method: string; url: string; headers: { key: string; value: string }[]; body: string; notes: string; variables?: Variable[]; requestConfig?: RequestConfig };
+export type ApiCollection = { id: string; name: string; profiles: ApiProfile[]; parentId?: string | null; variables?: Variable[] };
+const memoryVariables = new Map<string, Variable[]>();
 export const collectionsKey = 'traffic-studio-api-collections-v1';
 
 export function readCollections(): ApiCollection[] {
@@ -13,12 +16,22 @@ export function readCollections(): ApiCollection[] {
       localStorage.setItem('traffic-studio-explorer-migrated-v1','true');
     }
     const value = JSON.parse(localStorage.getItem(collectionsKey) ?? 'null') as ApiCollection[] | null;
-    return Array.isArray(value) ? value : [];
+    return Array.isArray(value) ? value.map(c => ({ ...c, variables: memoryVariables.get(c.id) ?? c.variables, profiles: c.profiles.map(p => ({ ...p, variables: memoryVariables.get(p.id) ?? p.variables })) })) : [];
   } catch { return []; }
 }
 
 export function writeCollections(collections: ApiCollection[]) {
-  localStorage.setItem(collectionsKey, JSON.stringify(collections.map(c=>({...c,profiles:c.profiles.map(p=>({...p,headers:p.headers.filter(h=>!/^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key)$/i.test(h.key.trim()))}))}))));
+  const liveIds = new Set<string>();
+  for (const c of collections) {
+    liveIds.add(c.id);
+    memoryVariables.set(c.id, c.variables ?? []);
+    for (const p of c.profiles) {
+      liveIds.add(p.id);
+      memoryVariables.set(p.id, p.variables ?? []);
+    }
+  }
+  for (const id of memoryVariables.keys()) if (!liveIds.has(id)) memoryVariables.delete(id);
+  localStorage.setItem(collectionsKey, JSON.stringify(collections.map(c=>({...c,variables:sanitizeVariables(c.variables),profiles:c.profiles.map(p=>({...p,variables:sanitizeVariables(p.variables),headers:p.headers.filter(h=>!/^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key)$/i.test(h.key.trim()))}))}))));
   window.dispatchEvent(new Event('traffic-studio-collections-change'));
 }
 
@@ -31,4 +44,19 @@ export function updateProfile(id: string, changes: Omit<ApiProfile, 'id'>): bool
   if (!collections.some((collection) => collection.profiles.some((profile) => profile.id === id))) return false;
   writeCollections(collections.map((collection) => ({ ...collection, profiles: collection.profiles.map((profile) => profile.id === id ? { id, ...changes } : profile) })));
   return true;
+}
+
+export function profileVariableLayers(profileId?: string): Variable[][] {
+  if (!profileId) return [];
+  const collections = readCollections();
+  let collection = collections.find(c => c.profiles.some(p => p.id === profileId));
+  const profile = collection?.profiles.find(p => p.id === profileId);
+  const layers: Variable[][] = [];
+  const seen = new Set<string>();
+  while (collection && !seen.has(collection.id)) {
+    seen.add(collection.id);
+    layers.unshift(collection.variables ?? []);
+    collection = collections.find(c => c.id === collection?.parentId);
+  }
+  return [...layers, profile?.variables ?? []];
 }

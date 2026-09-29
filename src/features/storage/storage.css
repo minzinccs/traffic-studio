@@ -1,0 +1,10 @@
+ .repository-panel { border-top: 1px solid var(--border,#464646); margin-top:20px; padding-top:12px; }
+.repository-panel .repository-actions { display:flex;gap:6px;flex-wrap:wrap;margin:10px 0; }
+.repository-panel textarea { display:block;width:100%;max-width:100%;height:190px;resize:vertical;font-family:Consolas,monospace; }
+.repository-panel .repository-actions > input { flex:1;min-width:140px; }
+.native-resources { border-top:1px solid var(--border,#464646);margin-top:16px;padding-top:12px; }
+.native-resources fieldset { border:1px solid var(--border,#464646);margin:10px 0;padding:10px;min-width:0; }
+.native-resources fieldset:disabled { opacity:.6; }
+.native-resources pre { max-height:160px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere; }
+.native-resources button { margin-right:6px; }
+.locale-storage-error { position:fixed;bottom:12px;left:12px;z-index:2000;background:var(--panel,#242424);padding:10px;border:1px solid var(--amber,#d69c4c); }

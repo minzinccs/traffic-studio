@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "selected": null,
+  "selectionEvidence": null,
+  "candidates": [
+    { "id": "whistle", "license": "MIT", "source": "https://github.com/avwo/whistle", "docs": "https://wproxy.org/docs/cli", "transport": "packaged stdio adapter pending measured spike", "benchmarks": ["http", "https", "http2", "websocket", "rewrite", "breakpoint", "har", "load", "shutdown"] },
+    { "id": "mitmproxy", "license": "MIT", "source": "https://github.com/mitmproxy/mitmproxy", "docs": "https://docs.mitmproxy.org/stable/concepts/options/", "transport": "packaged Python adapter pending measured spike", "benchmarks": ["http", "https", "http2", "websocket", "rewrite", "breakpoint", "har", "load", "shutdown"] }
+  ],
+  "gapsToMeasure": ["HTTP3 modes/QUIC", "Python addons semantics", "SOCKS/reverse/upstream", "binary streaming", "packaging on clean Windows", "descendant-process cleanup"],
+  "executionDeferredByUser": true
+}

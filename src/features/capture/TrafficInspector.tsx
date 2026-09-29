@@ -1,3 +1,4 @@
+import { UiText } from '../localization';
 import { useEffect, useState } from 'react';
 import { ArrowDownToLine, X } from 'lucide-react';
 import type { Flow, FlowDetail } from '../../domain/types';
@@ -44,14 +45,14 @@ export function TrafficInspector({ flow, onClose, flash, detailOverride, onExpor
     <div className="inspector-title">
       <div><span className="eyebrow">REQUEST #{flow.id}</span><h2>{flow.method} {flow.path}</h2></div>
       <button className="icon-button" aria-label="Inspector options" onClick={()=>setMenu(v=>!v)}>⋯</button>
-      {menu&&<div className="inspector-options" role="group" aria-label="Inspector layout"><button onClick={()=>{setPaneMode('collapsed');setMenu(false);}}>Collapse</button><button onClick={()=>{setPaneMode('normal');setMenu(false);}}>Expand</button><button onClick={()=>{setPaneMode('maximized');setMenu(false);}}>Maximize</button><button disabled title="Requires a native window bridge">Detach window</button><button onClick={()=>{setCustomize(v=>!v);setMenu(false);}}>Customize tabs</button></div>}
+      {menu&&<div className="inspector-options" role="group" aria-label="Inspector layout"><button onClick={()=>{setPaneMode('collapsed');setMenu(false);}}><UiText text={"Collapse"}/></button><button onClick={()=>{setPaneMode('normal');setMenu(false);}}><UiText text={"Expand"}/></button><button onClick={()=>{setPaneMode('maximized');setMenu(false);}}><UiText text={"Maximize"}/></button><button disabled title="Requires a native window bridge"><UiText text={"Detach window"}/></button><button onClick={()=>{setCustomize(v=>!v);setMenu(false);}}><UiText text={"Customize tabs"}/></button></div>}
       <button className="icon-button" aria-label="Close inspector" onClick={onClose} title="Close inspector"><X size={17}/></button>
     </div>
     <div className="inspector-tabs">
       {tabOrder.filter(id=>!hiddenTabs.includes(id)).map(id=>tabs.find(t=>t.id===id)!).map((t) => <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>{t.label}</button>)}
       <span className="inspector-flag">{detailOverride?'LOCAL PREVIEW':'SAMPLE'}</span>
     </div>
-    {customize&&<section className="inspector-tab-customizer" aria-label="Customize inspector tabs"><strong>Inspector tabs</strong><p>Summary remains available. Order and visibility are saved in this workspace.</p>{tabOrder.map((id,i)=><div key={id}><label><input type="checkbox" disabled={id==='overview'} checked={!hiddenTabs.includes(id)} onChange={e=>setHiddenTabs(v=>e.target.checked?v.filter(t=>t!==id):[...v,id])}/>{tabs.find(t=>t.id===id)!.label}</label><button aria-label={`Move ${id} tab up`} disabled={i===0} onClick={()=>setTabOrder(v=>{const n=[...v];[n[i-1],n[i]]=[n[i],n[i-1]];return n;})}>↑</button><button aria-label={`Move ${id} tab down`} disabled={i===tabOrder.length-1} onClick={()=>setTabOrder(v=>{const n=[...v];[n[i+1],n[i]]=[n[i],n[i+1]];return n;})}>↓</button></div>)}<button onClick={()=>{setTabOrder(tabs.map(t=>t.id));setHiddenTabs([]);}}>Reset tabs</button><button onClick={()=>setCustomize(false)}>Done</button></section>}
+    {customize&&<section className="inspector-tab-customizer" aria-label="Customize inspector tabs"><strong><UiText text={"Inspector tabs"}/></strong><p>Summary remains available. Order and visibility are saved in this workspace.</p>{tabOrder.map((id,i)=><div key={id}><label><input type="checkbox" disabled={id==='overview'} checked={!hiddenTabs.includes(id)} onChange={e=>setHiddenTabs(v=>e.target.checked?v.filter(t=>t!==id):[...v,id])}/>{tabs.find(t=>t.id===id)!.label}</label><button aria-label={`Move ${id} tab up`} disabled={i===0} onClick={()=>setTabOrder(v=>{const n=[...v];[n[i-1],n[i]]=[n[i],n[i-1]];return n;})}>↑</button><button aria-label={`Move ${id} tab down`} disabled={i===tabOrder.length-1} onClick={()=>setTabOrder(v=>{const n=[...v];[n[i+1],n[i]]=[n[i],n[i+1]];return n;})}>↓</button></div>)}<button onClick={()=>{setTabOrder(tabs.map(t=>t.id));setHiddenTabs([]);}}><UiText text={"Reset tabs"}/></button><button onClick={()=>setCustomize(false)}><UiText text={"Done"}/></button></section>}
     <div className="inspector-body" hidden={paneMode==='collapsed'} key={`${flow.id}-${tab}`}>
       {!detail && <div className="no-results">No detail available for this sample request.</div>}
       {detail && tab === 'overview' && <>
@@ -74,11 +75,11 @@ export function TrafficInspector({ flow, onClose, flash, detailOverride, onExpor
         {detail.query.map((q) => <div className="kv-row" key={q.key}><span className="kv-key">{q.key}</span><span className="kv-val">{q.value}</span></div>)}
         <FlowAnnotations key={`${source}:${flow.id}`} id={flow.id} source={source}/>
         </div>
-        <MessagePane dataLabel={detailOverride?'LOCAL PREVIEW':'SAMPLE'} label="Response" raw={responseRaw} headers={detail.responseHeaders} body={detail.responseBody ?? ''} initial="raw" flash={flash}/>
+        <MessagePane dataLabel={detailOverride?'LOCAL PREVIEW':'SAMPLE'} label="Response" raw={responseRaw} headers={detail.responseHeaders} body={detail.responseBody ?? ''} bodyBase64={detail.responseBodyBase64} mimeType={flow.type.split(';')[0].trim()} initial="raw" flash={flash}/>
       </>}
       {detail && (tab === 'raw' || tab === 'headers' || tab === 'body') && <>
         <MessagePane dataLabel={detailOverride?'LOCAL PREVIEW':'SAMPLE'} key={`${flow.id}-request`} label="Request" raw={requestRaw} headers={detail.requestHeaders} body={detail.requestBody ?? ''} initial={tab} flash={flash}/>
-        <MessagePane dataLabel={detailOverride?'LOCAL PREVIEW':'SAMPLE'} key={`${flow.id}-response`} label="Response" raw={responseRaw} headers={detail.responseHeaders} body={detail.responseBody ?? ''} initial={tab} flash={flash}/>
+        <MessagePane dataLabel={detailOverride?'LOCAL PREVIEW':'SAMPLE'} key={`${flow.id}-response`} label="Response" raw={responseRaw} headers={detail.responseHeaders} body={detail.responseBody ?? ''} bodyBase64={detail.responseBodyBase64} mimeType={flow.type.split(';')[0].trim()} initial={tab} flash={flash}/>
       </>}
       {detail && tab==='cookies' && <><div className="detail-label">COOKIE HEADERS · PREVIEW</div>{[...detail.requestHeaders,...detail.responseHeaders].filter(h=>/^(cookie|set-cookie)$/i.test(h.key)).length ? [...detail.requestHeaders,...detail.responseHeaders].filter(h=>/^(cookie|set-cookie)$/i.test(h.key)).map((h,i)=><div className="kv-row" key={i}><span className="kv-key">{h.key}</span><span className="kv-val">{h.value}</span></div>):<p className="no-results">No cookie headers recorded. Credential headers are excluded from local HAR/session saves.</p>}</>}
       {tab==='tls'&&<><div className="detail-label">TLS / CERTIFICATE</div><p>Scheme: {flow.scheme??'Unknown'}</p><p className="no-results">TLS version, cipher, certificate chain and fingerprint are unavailable in this fixture. No certificate or trust status is inferred.</p><button className="outline-button" onClick={onCertificate}>Certificate configuration preview</button></>}

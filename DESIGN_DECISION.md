@@ -1,5 +1,7 @@
 # Quyết định thiết kế v0.3 — PC trước
 
+**Current core decision (2026-09-28):** mitmproxy 12.2.3 is selected for the initial local capture adapter after a measured Windows Whistle comparison. `ENGINE_SELECTION.md` gives evidence, gaps and fallback. Local HTTP and H3 reverse capture fixtures pass. Release bundling/license and complete parity acceptance are still open. Earlier “core unselected” text below is historical.
+
 ## Mục tiêu
 
 App **Windows PC là sản phẩm chính**. Đích cuối là bộ tính năng Reqable Community + Premium theo [checklist](FEATURE_INVENTORY.md), bỏ phần chỉ dành cho Enterprise, cộng tracker nhiều bảng, analytics và bố cục view linh hoạt. Android/iOS là app phụ trợ sau khi desktop ổn định. Việc triển khai theo giai đoạn không cắt bớt phạm vi cuối.
@@ -20,6 +22,8 @@ Stack UI đã chốt, **proxy core chưa chốt**. Chuyển nguyên core ProxyPi
 
 API client, tracker, analytics và dockable layout thuộc lớp sản phẩm của mình; có thể tái sử dụng thư viện/component, không ghép nguyên UI app khác.
 
+**P04 source update — 2026-09-27:** HTTP client trực tiếp dùng Rust reqwest/Tokio qua typed Tauri bridge, độc lập core capture; không cần chờ proxy sidecar để viết client. Có native transport/request/run repositories và preview transport tách rõ. Capture core vẫn chưa chọn; không dùng HTTP client build thành evidence capture hay bỏ core-selection gate. Chi tiết: PHASE_4_5_PROGRESS.md.
+
 ## Gate trước khi nối engine
 
 1. Build/run Whistle và mitmproxy trên Windows bằng traffic thử có kiểm soát.
@@ -27,12 +31,21 @@ API client, tracker, analytics và dockable layout thuộc lớp sản phẩm c�
 3. Đo throughput, RAM, độ ổn định, cơ chế API/event, khả năng đóng gói cùng Tauri và license.
 4. Chọn engine rồi xây interface ổn định: `start_capture`, `stop_capture`, `set_proxy_endpoint`, `subscribe_flows`, `get_flow`, `import_har`, `send_request`.
 
-Hiện gate chưa hoàn thành; không được coi UI preview là đã có tính năng capture.
+**Windows spike update 2026-09-28:** hai ứng viên đã chạy cùng fixture HTTP/HTTPS/H2/WebSocket/SSE/rewrite, có startup/throughput/p95/RAM và shutdown measurements. Chọn mitmproxy 12.2.3 cho adapter đầu tiên theo [ENGINE_SELECTION.md](ENGINE_SELECTION.md). Gate parity đầy đủ vẫn chưa hoàn thành; các gaps được giữ trong tracker. Không coi UI preview hay lựa chọn adapter là runtime capture acceptance.
 
 ## Kết nối thiết bị
 
 Desktop local-first. Mobile và QR/IP LAN là giai đoạn sau. Cloud/server riêng không nằm trong luồng chính. Chuyển session, collections, rules và workspace giữa thiết bị là tính năng cần thiết kế/kiểm thử, không suy ra từ khả năng stream traffic hiện có của Reqable hoặc ProxyPin.
 
+**Chốt lại theo user 2026-09-27:** đây là app local, frontend/backend chạy trong máy và liên kết điện thoại. Không cần production online để phát triển/build/chạy. Kiến trúc theo hướng open-source, format/protocol mở; license cụ thể chưa chốt. Cloud chỉ là provider tùy chọn: VPS cá nhân tự host hoặc dịch vụ có thể mở bán về sau, dùng cùng boundary; không bắt buộc account/cloud cho desktop hoặc LAN linking. Xem LOCAL_FIRST_ARCHITECTURE.md. Chưa triển khai hay publish cloud/mobile.
+
 ## Điều kiện build native ở máy hiện tại
 
 Frontend đã build được bằng `npm run build`. `tauri info` hiện báo **chưa có Rust/Cargo và Visual Studio Build Tools với MSVC + Windows SDK**; vì vậy chưa thể biên dịch/chạy cửa sổ Tauri native trên máy này. Source Tauri đã được tạo để nối sau khi cài toolchain.
+
+**Cập nhật 2026-09-27 sau setup:** dòng trên là trạng thái cũ. Toolchain đã xác nhận đủ: Rust/Cargo 1.98.1, MSVC Visual Studio Community 2022, Windows SDK 10.0.26100.0, WebView2 153.0.4234.48. `cargo build --manifest-path src-tauri/Cargo.toml` đã qua và tạo `src-tauri/target/debug/traffic-studio.exe`. Native dev đã khởi chạy cùng Vite loopback; chưa nghiệm thu giao diện/IPC/DPAPI/capture, test suite vẫn hoãn theo yêu cầu.
+
+
+## Execution roadmap — 2026-09-27
+
+Full implementation tracking now lives in APP_IMPLEMENTATION_PLAN.md / APP_ROUTE_MAP.md / APP_TRACKER.json (generated APP_TASKS.md). This adds detailed task dependencies and gates without changing the chosen PC stack or selecting a proxy engine. Windows completion precedes macOS/Linux and Android/iOS/LAN work. Optional cloud inventory gap requires a later explicit scope decision; no cloud/login/listener default is introduced by planning.

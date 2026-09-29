@@ -1,0 +1,18 @@
+.select-field { display:inline-flex; align-items:center; justify-content:space-between; gap:12px; min-width:100px; max-width:100%; min-height:32px; padding:5px 9px; border:1px solid #5a5e61; border-radius:5px; background:#34383a; color:#e9ecee; font:inherit; text-align:left; cursor:pointer; }
+.select-field > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.select-field svg { flex:none; color:#adb6ba; transition:transform .14s ease; }
+.select-field[aria-expanded=true] { border-color:#e0ac60; box-shadow:0 0 0 1px #e0ac6040; }
+.select-field[aria-expanded=true] > svg { transform:rotate(180deg); }
+.select-field:hover:not(:disabled) { border-color:#c49755; background:#3e4244; }
+.select-field:focus-visible, .select-field-menu button:focus-visible { outline:2px solid #eab35b; outline-offset:2px; }
+.select-field:disabled { opacity:.48; cursor:not-allowed; }
+.select-field-menu { position:fixed; z-index:1000; overflow:auto; padding:4px; border:1px solid #656b6e; border-radius:7px; background:#303436; color:#edf0f1; box-shadow:0 16px 38px #0009; }
+.select-field-menu button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:32px; padding:6px 8px; border:0; border-radius:4px; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.select-field-menu button span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.select-field-menu button:hover:not(:disabled), .select-field-menu button:focus-visible { background:#45413a; color:#ffd391; }
+.select-field-menu button[aria-selected=true] { color:#ffd391; background:#514735; }
+.select-field-menu button:disabled { opacity:.4; cursor:not-allowed; }
+.app-shell[data-theme=light] .select-field { background:#f8f9fa; color:#25282a; border-color:#aeb5b9; }
+.select-field-menu.light { background:#fff; color:#25282a; border-color:#adb5b9; box-shadow:0 12px 30px #0003; }
+.select-field-menu.light button:hover:not(:disabled), .select-field-menu.light button[aria-selected=true] { background:#f6e9d2; color:#744916; }
+@media (prefers-reduced-motion:reduce) { .select-field svg { transition:none; } }

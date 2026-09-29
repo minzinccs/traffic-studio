@@ -1,2 +1,2 @@
-export { SettingsCenter, type SettingsPage } from './SettingsCenter';
 export { usePreferences } from './preferences';
+export type { SettingsPage } from './SettingsCenter';

@@ -23,6 +23,7 @@ export const tools: ToolDef[] = [
   { id: 'UUID', label: 'UUID', group: 'Generate', available: true },
   { id: 'JWT', label: 'JWT', group: 'Codec', available: true, hint: 'Decode claims only; signature not verified.' },
   { id: 'Hash / HMAC', label: 'Hash / HMAC', group: 'Codec', available: true, hint: 'Web Crypto runs locally.' },
+  { id: 'Decoder script', label: 'Decoder script', group: 'Codec', available: true, hint: 'Native bounded script with an in-memory key and reusable code-only profiles.' },
   { id: 'AES', label: 'AES', group: 'Codec', available: true, hint: 'Web Crypto runs locally.' },
   { id: 'RSA', label: 'RSA', group: 'Codec', available: true },
   { id: 'Regex', label: 'Regex', group: 'Codec', available: true },

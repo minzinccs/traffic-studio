@@ -1,0 +1,16 @@
+.mcp-setup { min-width:0; margin:12px 0; padding:13px; border:1px solid #565d60; border-radius:7px; background:#303537; }
+.mcp-setup-status { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px; }
+.mcp-setup-status > span:last-child { margin-left:auto; color:#aeb9bd; font-size:11px; overflow-wrap:anywhere; }
+.mcp-state-dot { width:8px; height:8px; flex:none; border-radius:50%; background:#8a9295; box-shadow:0 0 0 3px #8a929522; }
+.mcp-state-dot.online { background:#6bc995; box-shadow:0 0 0 3px #6bc99525; }
+.mcp-state-dot.loading { background:#e8ba62; animation:mcp-pulse 1s ease-in-out infinite alternate; }
+@keyframes mcp-pulse { to { box-shadow:0 0 0 7px #e8ba6208; opacity:.55; } }
+@media (prefers-reduced-motion:reduce) { .mcp-state-dot.loading { animation:none; } }
+.mcp-setup p { margin:10px 0 0; font-size:11px; line-height:1.45; }
+.mcp-setup-endpoint { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.mcp-setup-endpoint code { flex:1 1 230px; min-width:0; padding:8px 10px; border:1px solid #555f63; border-radius:5px; background:#252a2c; color:#d6eef0; overflow-wrap:anywhere; font-size:11px; }
+.mcp-setup-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.mcp-setup-code { min-width:0; margin-top:10px; }
+.mcp-setup-code pre { max-height:240px; overflow:auto; padding:12px; border:1px solid #555f63; border-radius:5px; background:#24292b; color:#e4eff0; font-size:11px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.app-shell[data-theme=light] .mcp-setup { background:#f4f6f7; border-color:#b9c1c4; }
+.app-shell[data-theme=light] .mcp-setup :is(code,pre) { background:#fff; color:#20292d; border-color:#b9c1c4; }
