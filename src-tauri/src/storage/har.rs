@@ -97,8 +97,7 @@ impl Database {
                 }
             }
             let id = uuid::Uuid::new_v4().to_string();
-            let document =
-                serde_json::json!({"source":"har_import","type":"flow","sessionId":session,"url":url,"method":method,"status":status,"durationMs":duration,"protocol":entry["request"]["httpVersion"],"requestHeaders":entry["request"]["headers"],"responseHeaders":entry["response"]["headers"],"requestBody":body_refs.get("requestBody"),"responseBody":body_refs.get("responseBody"),"harEntry":entry});
+            let document = serde_json::json!({"source":"har_import","type":"flow","sessionId":session,"url":url,"method":method,"status":status,"durationMs":duration,"protocol":entry["request"]["httpVersion"],"requestHeaders":entry["request"]["headers"],"responseHeaders":entry["response"]["headers"],"requestBody":body_refs.get("requestBody"),"responseBody":body_refs.get("responseBody"),"harEntry":entry});
             let payload = json_string(&document)?;
             if payload.len() > 1024 * 1024 {
                 return Err(ApiError::new("quota", "HAR entry metadata exceeds 1 MiB."));

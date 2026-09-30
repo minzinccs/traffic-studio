@@ -74,25 +74,6 @@ pub(crate) fn delete_flow_search(
     Ok(())
 }
 
-pub(crate) fn rebuild_workspace_search(
-    tx: &rusqlite::Transaction<'_>,
-    workspace: &str,
-) -> ApiResult<()> {
-    tx.execute("DELETE FROM flow_search WHERE workspace_id=?1", [workspace])?;
-    let mut statement = tx.prepare(
-        "SELECT id,payload FROM entities WHERE workspace_id=?1 AND kind='flow' LIMIT 1000001",
-    )?;
-    let rows = statement.query_map([workspace], |row| {
-        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-    })?;
-    for row in rows {
-        let (id, text) = row?;
-        let payload: Value = serde_json::from_str(&text)?;
-        upsert_flow_search(tx, workspace, &id, &payload)?;
-    }
-    Ok(())
-}
-
 fn fts_match_expression(query: &str) -> Option<String> {
     let mut tokens = Vec::new();
     for raw in query.split_whitespace().take(10) {
@@ -197,7 +178,13 @@ mod search_tests {
             "https://example.invalid/searchable-path",
             200,
         );
-        save_flow(&db, &workspace.id, "POST", "https://other.invalid/unrelated", 500);
+        save_flow(
+            &db,
+            &workspace.id,
+            "POST",
+            "https://other.invalid/unrelated",
+            500,
+        );
         let hits = db
             .flow_search(FlowSearchInput {
                 workspace_id: workspace.id.clone(),
@@ -254,7 +241,11 @@ mod search_tests {
             .is_empty());
         let connection = db.lock().unwrap();
         let indexed: i64 = connection
-            .query_row("SELECT COUNT(*) FROM flow_search WHERE workspace_id=?1", [&workspace.id], |r| r.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM flow_search WHERE workspace_id=?1",
+                [&workspace.id],
+                |r| r.get(0),
+            )
             .unwrap();
         assert_eq!(indexed, 1);
     }

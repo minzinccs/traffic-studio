@@ -272,6 +272,16 @@ async fn handle(
     }
     if let Some(version) = headers.get("mcp-protocol-version") {
         if !["2025-11-25", "2025-03-26"].contains(&version.as_str()) {
+            // Consume the bounded body first so Windows does not reset a
+            // keep-alive connection with unread bytes still in flight.
+            if let Some(size) = headers
+                .get("content-length")
+                .and_then(|s| s.parse::<usize>().ok())
+                .filter(|n| *n <= 65536)
+            {
+                let mut discard = vec![0; size];
+                stream.read_exact(&mut discard).await?;
+            }
             return respond(
                 &mut stream,
                 "400 Bad Request",

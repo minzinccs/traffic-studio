@@ -23,13 +23,19 @@ history below is condensed to product-relevant milestones.
 - Escape now closes the About/Shortcuts modal.
 
 ### Verification status (this checkout)
-- `npm run build`, frontend contract suites and plan-graph check pass.
-- Browser-preview UI driver: 2/2 copy screens pass, 21/26 sweep cases pass;
-  evidence under `.runtime/uitest/` (git-ignored).
-- Rust workspace changes (search index, triggers) are **not compiled or tested
-  on this machine** (no Rust/Cargo toolchain): run `cargo fmt --check`,
-  `cargo test` (incl. the ignored 100k-flow FTS benchmark), and
-  `scripts/build-local-release.ps1` on the build machine before release.
+- `npm run build`, frontend contract suites pass.
+- Rust verified 2026-09-30 (cargo 1.98.1, MSVC 14.44, SDK 26100.0):
+  `cargo fmt --check` clean, `cargo test` 32 passed / 0 failed
+  (100k FTS benchmark ignored by design), FTS 100k benchmark through
+  `Database::open`: 100000 rows in ~28s debug, query 1 row in 0ms.
+  Fixed an MCP keep-alive race (400-version replies now drain the bounded
+  body; flaky 2/3 → stable).
+- `scripts/build-local-release.ps1` produced an embedded-frontend release
+  executable; native CDP driver: 11 rail screens, 0 console problems,
+  0 overflow, 0 zero-size controls; native Settings/History copy verified
+  on screenshots (evidence under `.runtime/uitest/`, git-ignored).
+- Remaining before installer: clean-machine install/upgrade/uninstall, MSI,
+  code signing, 100k-flow soak, full parity audit.
 
 ## [0.1.0] — 2026-09-29 — local-first native foundation (pre-release)
 
