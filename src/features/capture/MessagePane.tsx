@@ -1,4 +1,5 @@
 import { UiText } from '../localization';
+import { SelectField } from '../../shell/SelectField';
 import { ChevronDown, ChevronRight, Copy, Download, Search, WrapText } from 'lucide-react';
 import { useState } from 'react';
 import type { Pair } from '../../domain/types';
@@ -29,7 +30,7 @@ export function MessagePane({ label, raw, headers, body, initial, flash, bodyBas
       {['summary','raw','headers','body'].map(item=><button key={item} aria-pressed={item==='body'?bodyMode:mode===item} onClick={()=>setMode(item)}>{item==='headers'?`Headers (${headers.length})`:item.charAt(0).toUpperCase()+item.slice(1)}</button>)}
     </div>
     <div className="message-toolbar">
-      {bodyMode&&<select aria-label={`${label} body format`} value={mode} onChange={e=>setMode(e.target.value)}><option value="body">Text</option><option value="json">JSON</option><option value="hex">Hex {bodyBase64 !== undefined ? '(original bytes)' : '(UTF-8)'}</option><option value="image">Image</option><option value="protobuf">Protobuf</option></select>}
+      {bodyMode&&<SelectField label={`${label} body format`} value={mode} onChange={setMode} options={[{value:'body',label:'Text'},{value:'json',label:'JSON'},{value:'hex',label:`Hex ${bodyBase64 !== undefined ? '(original bytes)' : '(UTF-8)'}`},{value:'image',label:'Image'},{value:'protobuf',label:'Protobuf'}]}/>}
       {mode==='headers'&&<><button aria-pressed={sorted} onClick={()=>setSorted(v=>!v)}>Sort</button><button aria-pressed={headerJson} onClick={()=>setHeaderJson(v=>!v)}><UiText text={"JSON"}/></button></>}
       {bodyBase64 !== undefined && <button title="Download original body bytes" aria-label={`Download original ${label.toLowerCase()} body`} onClick={() => { const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' })); const a = document.createElement('a'); a.href = url; a.download = `${label.toLowerCase()}-body.bin`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }}><UiText text={"Original body"}/></button>}
       <span className="message-toolbar-spacer"/>

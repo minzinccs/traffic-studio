@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Preferences } from './preferences';
+import { SelectField } from '../../shell/SelectField';
 
 const presets = [
   { name: 'Studio', theme: 'dark', accent: '#dfa73d', density: 'compact', contrast: false },
@@ -28,9 +29,9 @@ export function Personalization({draft,onChange}:{draft:Preferences;onChange:(va
     <p>Personalize this browser workspace. Presets edit the draft; Apply locally activates it.</p>
     <label>Workspace display name<input maxLength={32} value={draft.displayName} onChange={e=>onChange({displayName:e.target.value})}/></label>
     <div className="appearance-presets">{presets.map(p=><button key={p.name} onClick={()=>onChange({theme:p.theme,accent:p.accent,density:p.density,contrast:p.contrast})}><span style={{background:p.accent}}/>{p.name}</button>)}</div>
-    <label>Interface text size<select value={draft.fontSize} onChange={e=>onChange({fontSize:Number(e.target.value)})}>{[12,13,14,15,16].map(v=><option key={v} value={v}>{v}px</option>)}</select></label>
-    <label>Code font<select value={draft.codeFont} onChange={e=>onChange({codeFont:e.target.value as Preferences['codeFont']})}><option value="mono">System monospace</option><option value="consolas">Consolas</option></select></label>
-    <label>Corner style<select value={draft.corners} onChange={e=>onChange({corners:e.target.value as Preferences['corners']})}><option value="soft">Soft</option><option value="square">Square</option></select></label>
+    <label>Interface text size<SelectField label="Interface text size" value={String(draft.fontSize)} options={[{value:'12',label:'12px'},{value:'13',label:'13px'},{value:'14',label:'14px'},{value:'15',label:'15px'},{value:'16',label:'16px'}]} onChange={value=>onChange({fontSize:Number(value)})} /></label>
+    <label>Code font<SelectField label="Code font" value={draft.codeFont} options={[{value:'mono',label:'System monospace'},{value:'consolas',label:'Consolas'}]} onChange={value=>onChange({codeFont:value as Preferences['codeFont']})} /></label>
+    <label>Corner style<SelectField label="Corner style" value={draft.corners} options={[{value:'soft',label:'Soft'},{value:'square',label:'Square'}]} onChange={value=>onChange({corners:value as Preferences['corners']})} /></label>
     <label><input type="checkbox" checked={draft.contrast} onChange={e=>onChange({contrast:e.target.checked})}/> Stronger contrast</label>
     <label><input type="checkbox" checked={draft.sidebarLabels} onChange={e=>onChange({sidebarLabels:e.target.checked})}/> Show navigation labels</label>
     <div className="appearance-preview" style={{borderColor:draft.accent,fontSize:draft.fontSize,borderRadius:draft.corners==='soft'?8:0,background:draft.theme==='light'?'#f8f8f8':'#242424',color:draft.theme==='light'?'#222':'#eee'}}><strong>{draft.displayName || 'My workspace'}</strong><p>Appearance draft preview</p><code style={{color:draft.accent,fontFamily:draft.codeFont==='consolas'?'Consolas, monospace':'monospace'}}>GET /preview · 200 OK</code></div>

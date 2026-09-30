@@ -1,4 +1,5 @@
 import type { Flow } from '../../domain/types';
+import { SelectField } from '../../shell/SelectField';
 import './trafficFilters.css';
 
 export type TrafficFacets = { scheme: string; type: string; method: string; status: string; host: string; app: string };
@@ -22,6 +23,6 @@ export function TrafficFilters({ flows, filter, onFilter, facets, onFacets, adva
   ];
   const hosts = [...new Set(flows.map((flow) => flow.host))];
   const apps = [...new Set(flows.map((flow) => flow.app).filter(Boolean))] as string[];
-  const choose = (label: string, key: keyof TrafficFacets, values: string[]) => <label>{label}<select aria-label={`Filter ${label}`} value={facets[key]} onChange={(event) => onFacets({ ...facets, [key]: event.target.value })}><option value="">Any</option>{values.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>;
+  const choose = (label: string, key: keyof TrafficFacets, values: string[]) => <label>{label}<SelectField label={`Filter ${label}`} value={facets[key]} onChange={(value) => onFacets({ ...facets, [key]: value })} options={[{value:'',label:'Any'},...values.map((value) => ({value,label:value}))]}/></label>;
   return <><div className="traffic-filter-strip traffic-filter-quick">{quick.map((item) => <button key={item.label} className={item.active ? 'active' : ''} onClick={item.click}>{item.label}</button>)}</div>{advancedOpen && <div className="traffic-filter-advanced"><div><strong>FILTER SAMPLE TRAFFIC</strong><span>Filters combine with search and Explorer selection.</span></div>{choose('Method', 'method', [...new Set(flows.map((flow) => flow.method))])}{choose('Host', 'host', hosts)}{choose('Application', 'app', apps)}{choose('Status class', 'status', ['2', '3', '4', '5'])}<button onClick={reset}>Clear all</button></div>}</>;
 }

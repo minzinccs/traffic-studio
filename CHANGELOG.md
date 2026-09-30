@@ -21,6 +21,10 @@ history below is condensed to product-relevant milestones.
 - Native selects rendered tiled chevrons in light theme under
   `appearance: base-select` (background-image specificity fix).
 - Escape now closes the About/Shortcuts modal.
+- Unified all dropdowns on the shared `SelectField` picker (keyboard
+  operable, portal popup, dark/light): settings, API editor, capture,
+  rules, tracker, analytics, protocols, toolbox, workbench. Only the
+  bespoke per-method API select keeps native rendering.
 
 ### Verification status (this checkout)
 - `npm run build`, frontend contract suites pass.

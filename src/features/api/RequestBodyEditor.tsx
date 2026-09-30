@@ -1,4 +1,5 @@
 import { UiText } from '../localization';
+import { SelectField } from '../../shell/SelectField';
 import { useState } from 'react';
 import { KeyValueGrid, type EditablePair } from './KeyValueGrid';
 export const bodyModes = ['None','Text','JSON','XML','Form URL encoded','Multipart draft','Binary file'] as const;
@@ -6,7 +7,7 @@ function readForm(body:string):EditablePair[]{try{const value=JSON.parse(body);i
 export function RequestBodyEditor({body,mode,onChange,file,onFile,native=false}:{body:string;mode:string;onChange:(patch:{body?:string;bodyMode?:string})=>void;file:File|null;onFile:(file:File|null)=>void;native?:boolean}){
   const [error,setError]=useState('');
   const structured=mode==='Form URL encoded'||mode==='Multipart draft';
-  return <div className="api-field-body"><select aria-label="Body type" value={mode} onChange={e=>{onChange({bodyMode:e.target.value});setError('');}}>{bodyModes.map(value=><option key={value}>{value}</option>)}</select>
+  return <div className="api-field-body"><SelectField label="Body type" value={mode} onChange={value=>{onChange({bodyMode:value});setError('');}} options={bodyModes.map(value=>({value,label:value}))}/>
     {structured?<><p>{mode==='Multipart draft'?(native?'Enabled text fields are sent as multipart with a generated boundary. Add file attachments below.':'Multipart fields are local preview drafts.'):(native?'Enabled form fields are URL encoded and sent by the native client.':'Enabled form fields are URL encoded for the mock input.')}</p><KeyValueGrid label="body field" rows={readForm(body)} onChange={rows=>onChange({body:JSON.stringify(rows)})}/>{body&&!readForm(body).length&&<p>Previous raw body is retained. Add a field to replace it with structured form rows.</p>}</>:mode==='Binary file'?<><input type="file" aria-label="Request binary file" onChange={e=>{const next=e.target.files?.[0]??null;if(next&&next.size>1024*1024*1024){setError('File exceeds 1 GiB native body-store limit.');return;}onFile(next);setError('');}}/>{file?<p>{file.name} · {file.size.toLocaleString()} bytes · memory reference only</p>:<p>No file selected. Files are not stored in browser drafts; reselect after reload.</p>}<button disabled={!file} onClick={()=>onFile(null)}><UiText text={"Clear file"}/></button><p>{native?'Send HTTP streams the selected file through the native body store. Reselect files after reload.':'Mock Send does not upload file bytes.'}</p></>:<><textarea disabled={mode==='None'} spellCheck={false} aria-label="Request body" value={body} onChange={e=>onChange({body:e.target.value})} placeholder="Request body"/>{mode==='JSON'&&<button onClick={()=>{try{onChange({body:JSON.stringify(JSON.parse(body),null,2)});setError('');}catch{setError('Request body is not valid JSON.');}}}><UiText text={"Format JSON"}/></button>}</>}{error&&<p role="alert" className="tool-error">{error}</p>}
   </div>;
 }

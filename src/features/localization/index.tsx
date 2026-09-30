@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { vietnamese } from './vi';
+import { SelectField } from '../../shell/SelectField';
 export type Locale = 'en' | 'vi';
 const key='traffic-studio-locale-v1';
 const Context=createContext<{locale:Locale;setLocale:(locale:Locale)=>void}>({locale:'en',setLocale:()=>{}});
@@ -13,4 +14,4 @@ export function LocaleRoot({children}:{children:ReactNode}) {
 }
 export function useUiTranslation(){const {locale}=useContext(Context);const tag=locale==='vi'?'vi-VN':'en-US';return {locale,translate:(text:string)=>locale==='vi'?(vietnamese[text]??text):text,number:(value:number,options?:Intl.NumberFormatOptions)=>new Intl.NumberFormat(tag,options).format(value),date:(value:Date|number,options?:Intl.DateTimeFormatOptions)=>new Intl.DateTimeFormat(tag,options).format(value)};}
 export function UiText({text}:{text:string}){return useUiTranslation().translate(text);}
-export function LocalePicker(){const {locale,setLocale}=useContext(Context);return <label>Language / Ngôn ngữ<select aria-label="Interface language" value={locale} onChange={event=>setLocale(event.target.value as Locale)}><option value="en">English</option><option value="vi">Tiếng Việt</option></select><small>Applies immediately / Áp dụng ngay</small></label>;}
+export function LocalePicker(){const {locale,setLocale}=useContext(Context);return <label>Language / Ngôn ngữ<SelectField label="Interface language" value={locale} options={[{value:'en',label:'English'},{value:'vi',label:'Tiếng Việt'}]} onChange={value=>setLocale(value as Locale)} /><small>Applies immediately / Áp dụng ngay</small></label>;}

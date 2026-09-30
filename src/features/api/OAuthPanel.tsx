@@ -1,6 +1,7 @@
 import { useEffect,useRef,useState } from 'react';
 import { bridge,bridgeError } from '../../bridge';
 import type { OAuthInput,OAuthToken } from '../../domain/oauth';
+import { SelectField } from '../../shell/SelectField';
 const initial:Omit<OAuthInput,'id'>={endpoint:'',grant:'client_credentials',clientId:'',clientSecret:'',clientAuth:'body',scope:'',code:'',redirectUri:'',verifier:'',refreshToken:''};
 type Pkce={verifier:string;state:string;redirect:string;expiresAt:number;used:boolean};
 function base64url(bytes:Uint8Array){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
@@ -20,11 +21,11 @@ export function OAuthPanel({native,onToken}:{native:boolean;onToken:(token:strin
     }catch(e){if(alive.current)setMessage(bridgeError(e).message);}finally{if(active.current===run)active.current=null;if(alive.current)setBusy(false);}}
   function clear(){setToken(null);setExpiry(null);pkce.current=null;setAuthorizeUrl('');setCallback('');setForm({...form,clientSecret:'',code:'',verifier:'',refreshToken:''});onToken('');setMessage('Credentials, tokens and PKCE state cleared.');}
   return <section aria-label="OAuth token acquisition"><h4>OAuth 2</h4><p>Explicit token exchange with verified TLS and no redirects. Credentials/tokens stay in memory. PKCE uses a manual browser round trip; callback listening and discovery are pending.</p>
-    <label>Grant<select disabled={busy} value={form.grant} onChange={e=>update({grant:e.target.value})}><option value="client_credentials">Client credentials</option><option value="authorization_code">Authorization code + PKCE</option><option value="refresh_token">Refresh token</option></select></label>
+    <label>Grant<SelectField label="Grant" disabled={busy} value={form.grant} onChange={value=>update({grant:value})} options={[{value:'client_credentials',label:'Client credentials'},{value:'authorization_code',label:'Authorization code + PKCE'},{value:'refresh_token',label:'Refresh token'}]}/></label>
     <label>Token endpoint<input disabled={busy} value={form.endpoint} onChange={e=>update({endpoint:e.target.value})}/></label>
     <label>Client ID<input disabled={busy} value={form.clientId} onChange={e=>update({clientId:e.target.value})}/></label>
     <label>Client secret<input disabled={busy} type="password" autoComplete="off" value={form.clientSecret} onChange={e=>update({clientSecret:e.target.value})}/></label>
-    <label>Client authentication<select disabled={busy} value={form.clientAuth} onChange={e=>update({clientAuth:e.target.value})}><option value="body">Form body</option><option value="basic">HTTP Basic</option><option value="none">Public client</option></select></label>
+    <label>Client authentication<SelectField label="Client authentication" disabled={busy} value={form.clientAuth} onChange={value=>update({clientAuth:value})} options={[{value:'body',label:'Form body'},{value:'basic',label:'HTTP Basic'},{value:'none',label:'Public client'}]}/></label>
     <label>Scope<input disabled={busy} value={form.scope} onChange={e=>update({scope:e.target.value})}/></label>
     {form.grant==='authorization_code'&&<><label>Authorization endpoint<input disabled={busy} value={authorizeEndpoint} onChange={e=>{setAuthorizeEndpoint(e.target.value);pkce.current=null;setAuthorizeUrl('');}}/></label><label>Registered redirect URI<input disabled={busy} value={form.redirectUri} onChange={e=>update({redirectUri:e.target.value})}/></label><button disabled={!native||busy} onClick={()=>void prepare()}>Prepare PKCE authorization</button>{authorizeUrl&&<><textarea readOnly aria-label="PKCE authorization URL" value={authorizeUrl}/><button disabled={busy} onClick={()=>void navigator.clipboard.writeText(authorizeUrl).then(()=>setMessage('Authorization URL copied.')).catch(()=>setMessage('Select and copy the URL manually.'))}>Copy authorization URL</button><textarea disabled={busy} aria-label="OAuth callback URL" value={callback} onChange={e=>setCallback(e.target.value)}/></>}</>}
     {form.grant==='refresh_token'&&<label>Refresh token<input type="password" autoComplete="off" disabled={busy} value={form.refreshToken} onChange={e=>update({refreshToken:e.target.value})} placeholder={token?.refreshToken?'A refresh token is held in memory':''}/></label>}

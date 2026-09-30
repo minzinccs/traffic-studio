@@ -3,6 +3,7 @@ import {bridge,bridgeError} from '../../bridge';
 import type {LanStatus} from '../../bridge/contracts';
 import {useNativeWorkspace} from '../storage/useNativeWorkspace';
 import './nativeLanPanel.css';
+import { SelectField } from '../../shell/SelectField';
 
 export function NativeLanPanel(){
  const {workspaces,workspaceId,setWorkspaceId,error:workspaceError}=useNativeWorkspace();
@@ -27,7 +28,7 @@ export function NativeLanPanel(){
    {token?<div><span>One-time displayed bearer token</span><code className="lan-token">{token}</code></div>:<p className="lan-token-warning">Token is no longer displayed. Stop and restart sharing to issue a new token.</p>}
    <button className="outline-button" type="button" disabled={busy} onClick={()=>void stop()}>{busy?'Stopping…':'Stop sharing'}</button>
   </div>:<div className="lan-form">
-   <label>Workspace<select value={workspaceId} onChange={e=>setWorkspaceId(e.target.value)} disabled={busy}>{workspaces.map(w=><option value={w.id} key={w.id}>{w.name}</option>)}</select></label>
+   <label>Workspace<SelectField label="Workspace" value={workspaceId} options={workspaces.map(w=>({value:w.id,label:w.name}))} disabled={busy} onChange={value=>setWorkspaceId(value)} /></label>
    <label>This PC’s private Wi-Fi IPv4<input value={host} onChange={e=>setHost(e.target.value)} placeholder="192.168.1.20" inputMode="decimal" disabled={busy}/></label>
    <label>Port<input type="number" min="1" max="65535" value={port} onChange={e=>setPort(Number(e.target.value))} disabled={busy}/></label>
    <label className="lan-confirm"><input type="checkbox" checked={acknowledged} onChange={e=>setAcknowledged(e.target.checked)} disabled={busy}/> I understand other devices with the bearer token can read this workspace’s limited metadata while sharing is on.</label>

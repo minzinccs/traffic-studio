@@ -1,5 +1,6 @@
 import {useCallback,useEffect,useState} from 'react';
 import {bridge,bridgeError} from '../../bridge';
+import { SelectField } from '../../shell/SelectField';
 import type {PacketRow,PacketStatus} from '../../bridge/contracts';
 import './packetCapture.css';
 
@@ -22,7 +23,7 @@ export function PacketCapturePanel(){
   <div className="packet-heading"><div><span className="panel-kicker">OPTIONAL · LOCAL</span><h2>Packets and TLS key log</h2></div><span className={status?.running?'packet-live':'packet-off'}>{status?.running?'Recording':'Off'}</span></div>
   <p>Packet capture sees network frames from the selected interface, including traffic that bypasses the HTTP proxy. It never claims encrypted payloads are readable without matching session secrets. Requires a separately installed Wireshark dumpcap/Npcap; tshark is needed for analysis. No driver is installed by this app.</p>
   <p role="status">{status?.message??'Checking packet tools…'} {status&&`· ${Math.round(status.totalBytes/1024/1024)} MiB stored · ${status.keylogEntries} key-log entries in memory`}</p>
-  <div className="packet-controls"><label>Interface<select value={selected} disabled={busy||status?.running||!interfaces.length} onChange={e=>setSelected(Number(e.target.value))}>{interfaces.length?interfaces.map(value=><option value={value.index} key={value.index}>{value.index}. {value.label}</option>):<option value={0}>No capture interface available</option>}</select></label>
+  <div className="packet-controls"><label>Interface<SelectField label="Interface" value={String(selected)} disabled={busy||status?.running||!interfaces.length} onChange={value=>setSelected(Number(value))} options={interfaces.length?interfaces.map(value=>({value:String(value.index),label:`${value.index}. ${value.label}`})):[{value:'0',label:'No capture interface available'}]}/></label>
    <label className="packet-confirm"><input type="checkbox" checked={ack} disabled={busy||status?.running} onChange={e=>setAck(e.target.checked)}/> I understand packets may contain private data and will be stored locally (up to 200 MiB total).</label>
    <button className="primary-action" disabled={busy||!status?.captureAvailable||status.running||!selected||!ack} onClick={()=>void action(()=>bridge.command('packet_start',{interface:selected,acknowledged:ack}))}>{busy?'Working…':'Start packet capture'}</button>
    <button className="outline-button" disabled={busy||!status?.running} onClick={()=>void action(()=>bridge.command('packet_stop',undefined))}>Stop</button>
