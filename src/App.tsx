@@ -48,7 +48,7 @@ import {
   Activity, BarChart3, Bell, Check,
   ChevronDown, CircleAlert, CircleHelp, Code2,
   Filter, FolderOpen, Globe2, History, Info, KanbanSquare, Keyboard,
-  Maximize2, PanelLeftClose,
+  Layers, Maximize2, PanelLeftClose,
   Pause, Play, Plus, Radio, Search, Settings2, ShieldCheck, SlidersHorizontal, KeyRound,
   Trash2, Wifi, Wrench,
 } from 'lucide-react';
@@ -389,6 +389,7 @@ function App() {
           <RailButton icon={<Wrench/>} label="Toolbox" active={section === 'tools'} onClick={() => openTab('tools')} hint={`Sidebar ${binding(prefs.keybindings, 'toolbox')}`}/>
         </div>
         <div className="rail-group rail-bottom">
+          {isTauri()&&<RailButton icon={<Layers/>} label="Mixed workspace" hint="Native panes in one window" onClick={() => { setWorkbenchVisited(true); setWorkbench(true); }}/>}
           <RailButton icon={<PanelLeftClose/>} label="Toggle sidebar" onClick={() => setShowSidebar((v) => !v)}/>
           <RailButton icon={<Settings2/>} label="Settings" onClick={() => setSettingsPage('General')}/>
         </div>
@@ -443,7 +444,7 @@ function App() {
       </main>
     </div>
 
-    {isTauri()&&<button className="outline-button" onClick={()=>{setWorkbenchVisited(true);setWorkbench(true);}}>Open mixed native workspace</button>}{workbenchVisited&&<div hidden={!workbench}><Suspense fallback={<div className="route-loading" role="status">Loading workbench…</div>}><NativeWorkbench onClose={()=>setWorkbench(false)}/></Suspense></div>}
+    {workbenchVisited&&<div hidden={!workbench}><Suspense fallback={<div className="route-loading" role="status">Loading workbench…</div>}><NativeWorkbench onClose={()=>setWorkbench(false)}/></Suspense></div>}
     <footer className="status-bar"><div className="status-left"><span className={`footer-led ${recording ? 'live' : ''}`}/><span>{isTauri()?'DESKTOP APP':capturePhase==='Error'?'SAMPLE ERROR':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase.toUpperCase()} SAMPLE`:recording ? 'SAMPLE RUNNING' : 'LOCAL WORKSPACE'}</span><span className="status-divider"/><span>{endpoint}</span></div><div className="status-center">{isTauri()?'Local desktop app · Capture status in the toolbar':'Browser mode · Sample data only'}</div><div className="status-right"><DiagnosticsStatus native={isTauri()}/><button title="Expand view" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={14}/></button></div></footer>
 
     {editingEndpoint && <div className="modal-backdrop" onClick={() => setEditingEndpoint(false)}><div className="modal" onClick={(event) => event.stopPropagation()}><div className="modal-icon"><Globe2 size={20}/></div><h2>Proxy address</h2><p>Choose the local interface and port used by the desktop capture engine.</p><label htmlFor="endpoint-input">LISTEN ADDRESS</label><input id="endpoint-input" autoFocus value={endpointDraft} onChange={(event) => setEndpointDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && /^.+:\d+$/.test(endpointDraft)) { saveEndpoint(); } }}/><div className="modal-actions"><button className="secondary-action" onClick={() => setEditingEndpoint(false)}><UiText text={"Cancel"}/></button><button className="primary-action" disabled={!/^.+:\d+$/.test(endpointDraft)} onClick={() => { saveEndpoint(); }}>Save address</button></div><div className="modal-note">Workspace default only. Configure and start the native listener in Capture.</div></div></div>}

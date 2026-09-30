@@ -1,48 +1,307 @@
 use super::*;
-use base64::{engine::general_purpose::STANDARD,Engine};
-use std::io::{Read,Write};
-use sha2::{Digest,Sha256};
+use base64::{engine::general_purpose::STANDARD, Engine};
+use sha2::{Digest, Sha256};
+use std::io::{Read, Write};
 impl Database {
- pub fn import_har_bytes(&self,workspace:&str,bytes:&[u8],name:&str)->ApiResult<String>{
-  if bytes.len()>32*1024*1024{return Err(ApiError::new("quota","HAR import is limited to 32 MiB."));}valid_name(name)?;let mut document:Value=serde_json::from_slice(bytes)?;
-  if document["log"]["version"]!="1.2"{return Err(ApiError::new("unsupported","Expected HAR version 1.2."));}let entries=document["log"].as_object_mut().and_then(|v|v.remove("entries")).and_then(|v|v.as_array().cloned()).ok_or_else(||ApiError::new("validation","HAR entries must be an array."))?;if entries.len()>10000{return Err(ApiError::new("quota","HAR exceeds 10000 entries."));}
-  let _content=crate::platform::content_lock::ContentLock::enter(&self.root)?;let mut connection=self.lock()?;Self::require_workspace(&connection,workspace)?;let tx=connection.transaction_with_behavior(TransactionBehavior::Immediate)?;let session=uuid::Uuid::new_v4().to_string();
-  let metadata=json_string(&serde_json::json!({"source":"har_import","state":"imported","createdAt":now(),"harLog":document["log"],"privacy":"Original headers, URLs and bodies are stored locally; standard HAR export removes credential headers"}))?;
-  tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,'session',?3,1,1,?4,?5)",params![workspace,session,name,metadata,now()])?;
-  for mut entry in entries{
-   let url=entry["request"]["url"].as_str().ok_or_else(||ApiError::new("validation","HAR request URL missing."))?.to_string();let parsed=reqwest::Url::parse(&url).map_err(|_|ApiError::new("validation","Invalid HAR request URL."))?;if !["http","https"].contains(&parsed.scheme())||!parsed.username().is_empty()||parsed.password().is_some(){return Err(ApiError::new("validation","HAR URL scheme or embedded credentials unsupported."));}
-   let method=entry["request"]["method"].as_str().ok_or_else(||ApiError::new("validation","HAR method missing."))?.to_string();let status=entry["response"]["status"].as_u64().filter(|s|*s<=599).ok_or_else(||ApiError::new("validation","HAR response status invalid."))?;let duration=entry["time"].as_f64().filter(|d|d.is_finite()&&*d>=0.0);
-   let mut body_refs=serde_json::Map::new();for (side,path) in [("responseBody","/response/content"),("requestBody","/request/postData")]{if let Some(content)=entry.pointer_mut(path).and_then(Value::as_object_mut){if let Some(Value::String(text))=content.remove("text"){let data=if content.get("encoding").and_then(Value::as_str)==Some("base64"){STANDARD.decode(text).map_err(|_|ApiError::new("validation","Malformed HAR Base64 body."))?}else{text.into_bytes()};if data.len()>16*1024*1024{return Err(ApiError::new("quota","HAR body exceeds 16 MiB."));}let hash=format!("{:x}",Sha256::digest(&data));let id=uuid::Uuid::new_v4().to_string();let mime=content.get("mimeType").and_then(Value::as_str).unwrap_or("application/octet-stream").to_string();let directory=self.root.join("bodies").join(workspace);std::fs::create_dir_all(&directory)?;let target=directory.join(&hash);if !target.exists(){let mut temp=tempfile::NamedTempFile::new_in(&directory)?;temp.write_all(&data)?;temp.as_file().sync_all()?;temp.persist_noclobber(&target).map_err(|_|ApiError::new("storage","HAR body commit failed."))?;}tx.execute("INSERT INTO blobs(workspace_id,id,sha256,size,mime_type,created_at) VALUES(?1,?2,?3,?4,?5,?6)",params![workspace,id,hash,data.len() as i64,mime,now()])?;body_refs.insert(side.into(),serde_json::json!({"workspaceId":workspace,"id":id,"sha256":hash,"size":data.len(),"mimeType":mime}));}}
-   }
-   let id=uuid::Uuid::new_v4().to_string();let payload=json_string(&serde_json::json!({"source":"har_import","type":"flow","sessionId":session,"url":url,"method":method,"status":status,"durationMs":duration,"protocol":entry["request"]["httpVersion"],"requestHeaders":entry["request"]["headers"],"responseHeaders":entry["response"]["headers"],"requestBody":body_refs.get("requestBody"),"responseBody":body_refs.get("responseBody"),"harEntry":entry}))?;
-   if payload.len()>1024*1024{return Err(ApiError::new("quota","HAR entry metadata exceeds 1 MiB."));}tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,'flow','Imported HAR request',1,1,?3,?4)",params![workspace,id,payload,now()])?;tx.execute("INSERT INTO entity_links(workspace_id,from_id,to_id,relation) VALUES(?1,?2,?3,'session')",params![workspace,id,session])?;
-  }
-  tx.commit()?;Ok(session)
- }
- pub fn export_har_value(&self,workspace:&str,session:&str,bodies:bool,include_sensitive_headers:bool)->ApiResult<Value>{
-  let record=self.get(workspace,session)?;if record.kind!="session"{return Err(ApiError::new("validation","Choose a session document."));}let connection=self.lock()?;let mut query=connection.prepare("SELECT payload FROM entities WHERE workspace_id=?1 AND kind='flow' AND json_extract(payload,'$.sessionId')=?2 ORDER BY updated_at,id LIMIT 10001")?;let rows=query.query_map(params![workspace,session],|r|r.get::<_,String>(0))?.collect::<Result<Vec<_>,_>>()?;drop(query);drop(connection);if rows.len()>10000{return Err(ApiError::new("quota","HAR export exceeds 10000 entries."));}let mut entries=Vec::new();let mut total=0;
-  for text in rows{let payload:Value=serde_json::from_str(&text)?;if payload["type"]!="flow"{continue;}let mut entry=if payload["source"]=="har_import"{payload["harEntry"].clone()}else{serde_json::json!({"startedDateTime":time::OffsetDateTime::from_unix_timestamp_nanos(payload["startedAt"].as_i64().unwrap_or(0) as i128*1_000_000).ok().and_then(|d|d.format(&time::format_description::well_known::Rfc3339).ok()).unwrap_or_else(||"1970-01-01T00:00:00Z".into()),"time":payload["durationMs"],"request":{"method":payload["method"],"url":payload["url"],"httpVersion":payload["protocol"],"headers":har_headers(&payload["requestHeaders"]),"queryString":[],"cookies":[],"headersSize":-1,"bodySize":payload["requestBody"]["size"]},"response":{"status":payload["status"].as_u64().unwrap_or(0),"statusText":"","httpVersion":payload["protocol"],"headers":har_headers(&payload["responseHeaders"]),"cookies":[],"content":{"size":payload["responseBody"]["size"].as_u64().unwrap_or(0),"mimeType":"application/octet-stream"},"redirectURL":"","headersSize":-1,"bodySize":payload["responseBody"]["size"].as_u64().unwrap_or(0)},"cache":{},"timings":{"send":-1,"wait":-1,"receive":-1},"_trafficStudio":{"tlsVersion":payload["tlsVersion"],"cipher":payload["cipher"],"trace":payload["trace"],"timingUnavailable":true}})};
-   for (side,path) in [("responseBody","/response/content"),("requestBody","/request/postData")]{if let Some(id)=payload[side]["id"].as_str(){if bodies{let decoded=self.original_body(workspace,id,16*1024*1024)?;total+=decoded.len();if total>64*1024*1024{return Err(ApiError::new("quota","HAR bodies exceed 64 MiB; export individual bodies."));}if path=="/request/postData"&&entry.pointer(path).is_none(){entry["request"]["postData"]=serde_json::json!({"mimeType":"application/octet-stream"});}if let Some(content)=entry.pointer_mut(path).and_then(Value::as_object_mut){let use_base64=content.get("encoding").and_then(Value::as_str)==Some("base64")||payload["source"]!="har_import";if use_base64{content.insert("text".into(),serde_json::json!(STANDARD.encode(&decoded)));content.insert("encoding".into(),serde_json::json!("base64"));}else{content.insert("text".into(),serde_json::json!(String::from_utf8(decoded).map_err(|_|ApiError::new("validation","Original HAR text is not UTF8."))?));}}}else{entry["_trafficStudioBodyOmitted"]=serde_json::json!(true);}}}
-   if !include_sensitive_headers{sanitize(&mut entry);}entries.push(entry);
-  }
-  let mut log=record.payload.get("harLog").filter(|v|v.is_object()).cloned().unwrap_or_else(||serde_json::json!({"version":"1.2","creator":{"name":"Traffic Studio","version":"0.1.0"}}));log["entries"]=serde_json::json!(entries);Ok(serde_json::json!({"log":log}))
- }
- pub fn original_body(&self,workspace:&str,id:&str,max:u64)->ApiResult<Vec<u8>>{valid_id(id)?;let connection=self.lock()?;Self::require_workspace(&connection,workspace)?;let (hash,size):(String,i64)=connection.query_row("SELECT sha256,size FROM blobs WHERE workspace_id=?1 AND id=?2",params![workspace,id],|r|Ok((r.get(0)?,r.get(1)?)))?;drop(connection);if size<0||size as u64>max||hash.len()!=64||!hash.bytes().all(|b|b.is_ascii_hexdigit()){return Err(ApiError::new("quota","Body exceeds export limits."));}let mut data=Vec::new();std::fs::File::open(self.root.join("bodies").join(workspace).join(&hash))?.take(max+1).read_to_end(&mut data)?;if data.len()!=size as usize||format!("{:x}",Sha256::digest(&data))!=hash{return Err(ApiError::new("storage","Body checksum mismatch."));}Ok(data)}
+    pub fn import_har_bytes(&self, workspace: &str, bytes: &[u8], name: &str) -> ApiResult<String> {
+        if bytes.len() > 32 * 1024 * 1024 {
+            return Err(ApiError::new("quota", "HAR import is limited to 32 MiB."));
+        }
+        valid_name(name)?;
+        let mut document: Value = serde_json::from_slice(bytes)?;
+        if document["log"]["version"] != "1.2" {
+            return Err(ApiError::new("unsupported", "Expected HAR version 1.2."));
+        }
+        let entries = document["log"]
+            .as_object_mut()
+            .and_then(|v| v.remove("entries"))
+            .and_then(|v| v.as_array().cloned())
+            .ok_or_else(|| ApiError::new("validation", "HAR entries must be an array."))?;
+        if entries.len() > 10000 {
+            return Err(ApiError::new("quota", "HAR exceeds 10000 entries."));
+        }
+        let _content = crate::platform::content_lock::ContentLock::enter(&self.root)?;
+        let mut connection = self.lock()?;
+        Self::require_workspace(&connection, workspace)?;
+        let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let session = uuid::Uuid::new_v4().to_string();
+        let metadata = json_string(
+            &serde_json::json!({"source":"har_import","state":"imported","createdAt":now(),"harLog":document["log"],"privacy":"Original headers, URLs and bodies are stored locally; standard HAR export removes credential headers"}),
+        )?;
+        tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,'session',?3,1,1,?4,?5)",params![workspace,session,name,metadata,now()])?;
+        for mut entry in entries {
+            let url = entry["request"]["url"]
+                .as_str()
+                .ok_or_else(|| ApiError::new("validation", "HAR request URL missing."))?
+                .to_string();
+            let parsed = reqwest::Url::parse(&url)
+                .map_err(|_| ApiError::new("validation", "Invalid HAR request URL."))?;
+            if !["http", "https"].contains(&parsed.scheme())
+                || !parsed.username().is_empty()
+                || parsed.password().is_some()
+            {
+                return Err(ApiError::new(
+                    "validation",
+                    "HAR URL scheme or embedded credentials unsupported.",
+                ));
+            }
+            let method = entry["request"]["method"]
+                .as_str()
+                .ok_or_else(|| ApiError::new("validation", "HAR method missing."))?
+                .to_string();
+            let status = entry["response"]["status"]
+                .as_u64()
+                .filter(|s| *s <= 599)
+                .ok_or_else(|| ApiError::new("validation", "HAR response status invalid."))?;
+            let duration = entry["time"]
+                .as_f64()
+                .filter(|d| d.is_finite() && *d >= 0.0);
+            let mut body_refs = serde_json::Map::new();
+            for (side, path) in [
+                ("responseBody", "/response/content"),
+                ("requestBody", "/request/postData"),
+            ] {
+                if let Some(content) = entry.pointer_mut(path).and_then(Value::as_object_mut) {
+                    if let Some(Value::String(text)) = content.remove("text") {
+                        let data =
+                            if content.get("encoding").and_then(Value::as_str) == Some("base64") {
+                                STANDARD.decode(text).map_err(|_| {
+                                    ApiError::new("validation", "Malformed HAR Base64 body.")
+                                })?
+                            } else {
+                                text.into_bytes()
+                            };
+                        if data.len() > 16 * 1024 * 1024 {
+                            return Err(ApiError::new("quota", "HAR body exceeds 16 MiB."));
+                        }
+                        let hash = format!("{:x}", Sha256::digest(&data));
+                        let id = uuid::Uuid::new_v4().to_string();
+                        let mime = content
+                            .get("mimeType")
+                            .and_then(Value::as_str)
+                            .unwrap_or("application/octet-stream")
+                            .to_string();
+                        let directory = self.root.join("bodies").join(workspace);
+                        std::fs::create_dir_all(&directory)?;
+                        let target = directory.join(&hash);
+                        if !target.exists() {
+                            let mut temp = tempfile::NamedTempFile::new_in(&directory)?;
+                            temp.write_all(&data)?;
+                            temp.as_file().sync_all()?;
+                            temp.persist_noclobber(&target)
+                                .map_err(|_| ApiError::new("storage", "HAR body commit failed."))?;
+                        }
+                        tx.execute("INSERT INTO blobs(workspace_id,id,sha256,size,mime_type,created_at) VALUES(?1,?2,?3,?4,?5,?6)",params![workspace,id,hash,data.len() as i64,mime,now()])?;
+                        body_refs.insert(side.into(),serde_json::json!({"workspaceId":workspace,"id":id,"sha256":hash,"size":data.len(),"mimeType":mime}));
+                    }
+                }
+            }
+            let id = uuid::Uuid::new_v4().to_string();
+            let payload = json_string(
+                &serde_json::json!({"source":"har_import","type":"flow","sessionId":session,"url":url,"method":method,"status":status,"durationMs":duration,"protocol":entry["request"]["httpVersion"],"requestHeaders":entry["request"]["headers"],"responseHeaders":entry["response"]["headers"],"requestBody":body_refs.get("requestBody"),"responseBody":body_refs.get("responseBody"),"harEntry":entry}),
+            )?;
+            if payload.len() > 1024 * 1024 {
+                return Err(ApiError::new("quota", "HAR entry metadata exceeds 1 MiB."));
+            }
+            tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,'flow','Imported HAR request',1,1,?3,?4)",params![workspace,id,payload,now()])?;
+            tx.execute("INSERT INTO entity_links(workspace_id,from_id,to_id,relation) VALUES(?1,?2,?3,'session')",params![workspace,id,session])?;
+        }
+        tx.commit()?;
+        Ok(session)
+    }
+    pub fn export_har_value(
+        &self,
+        workspace: &str,
+        session: &str,
+        bodies: bool,
+        include_sensitive_headers: bool,
+    ) -> ApiResult<Value> {
+        let record = self.get(workspace, session)?;
+        if record.kind != "session" {
+            return Err(ApiError::new("validation", "Choose a session document."));
+        }
+        let connection = self.lock()?;
+        let mut query=connection.prepare("SELECT payload FROM entities WHERE workspace_id=?1 AND kind='flow' AND json_extract(payload,'$.sessionId')=?2 ORDER BY updated_at,id LIMIT 10001")?;
+        let rows = query
+            .query_map(params![workspace, session], |r| r.get::<_, String>(0))?
+            .collect::<Result<Vec<_>, _>>()?;
+        drop(query);
+        drop(connection);
+        if rows.len() > 10000 {
+            return Err(ApiError::new("quota", "HAR export exceeds 10000 entries."));
+        }
+        let mut entries = Vec::new();
+        let mut total = 0;
+        for text in rows {
+            let payload: Value = serde_json::from_str(&text)?;
+            if payload["type"] != "flow" {
+                continue;
+            }
+            let mut entry = if payload["source"] == "har_import" {
+                payload["harEntry"].clone()
+            } else {
+                serde_json::json!({"startedDateTime":time::OffsetDateTime::from_unix_timestamp_nanos(payload["startedAt"].as_i64().unwrap_or(0) as i128*1_000_000).ok().and_then(|d|d.format(&time::format_description::well_known::Rfc3339).ok()).unwrap_or_else(||"1970-01-01T00:00:00Z".into()),"time":payload["durationMs"],"request":{"method":payload["method"],"url":payload["url"],"httpVersion":payload["protocol"],"headers":har_headers(&payload["requestHeaders"]),"queryString":[],"cookies":[],"headersSize":-1,"bodySize":payload["requestBody"]["size"]},"response":{"status":payload["status"].as_u64().unwrap_or(0),"statusText":"","httpVersion":payload["protocol"],"headers":har_headers(&payload["responseHeaders"]),"cookies":[],"content":{"size":payload["responseBody"]["size"].as_u64().unwrap_or(0),"mimeType":"application/octet-stream"},"redirectURL":"","headersSize":-1,"bodySize":payload["responseBody"]["size"].as_u64().unwrap_or(0)},"cache":{},"timings":{"send":-1,"wait":-1,"receive":-1},"_trafficStudio":{"tlsVersion":payload["tlsVersion"],"cipher":payload["cipher"],"trace":payload["trace"],"timingUnavailable":true}})
+            };
+            for (side, path) in [
+                ("responseBody", "/response/content"),
+                ("requestBody", "/request/postData"),
+            ] {
+                if let Some(id) = payload[side]["id"].as_str() {
+                    if bodies {
+                        let decoded = self.original_body(workspace, id, 16 * 1024 * 1024)?;
+                        total += decoded.len();
+                        if total > 64 * 1024 * 1024 {
+                            return Err(ApiError::new(
+                                "quota",
+                                "HAR bodies exceed 64 MiB; export individual bodies.",
+                            ));
+                        }
+                        if path == "/request/postData" && entry.pointer(path).is_none() {
+                            entry["request"]["postData"] =
+                                serde_json::json!({"mimeType":"application/octet-stream"});
+                        }
+                        if let Some(content) =
+                            entry.pointer_mut(path).and_then(Value::as_object_mut)
+                        {
+                            let use_base64 = content.get("encoding").and_then(Value::as_str)
+                                == Some("base64")
+                                || payload["source"] != "har_import";
+                            if use_base64 {
+                                content.insert(
+                                    "text".into(),
+                                    serde_json::json!(STANDARD.encode(&decoded)),
+                                );
+                                content.insert("encoding".into(), serde_json::json!("base64"));
+                            } else {
+                                content.insert(
+                                    "text".into(),
+                                    serde_json::json!(String::from_utf8(decoded).map_err(
+                                        |_| ApiError::new(
+                                            "validation",
+                                            "Original HAR text is not UTF8."
+                                        )
+                                    )?),
+                                );
+                            }
+                        }
+                    } else {
+                        entry["_trafficStudioBodyOmitted"] = serde_json::json!(true);
+                    }
+                }
+            }
+            if !include_sensitive_headers {
+                sanitize(&mut entry);
+            }
+            entries.push(entry);
+        }
+        let mut log=record.payload.get("harLog").filter(|v|v.is_object()).cloned().unwrap_or_else(||serde_json::json!({"version":"1.2","creator":{"name":"Traffic Studio","version":"0.1.0"}}));
+        log["entries"] = serde_json::json!(entries);
+        Ok(serde_json::json!({"log":log}))
+    }
+    pub fn original_body(&self, workspace: &str, id: &str, max: u64) -> ApiResult<Vec<u8>> {
+        valid_id(id)?;
+        let connection = self.lock()?;
+        Self::require_workspace(&connection, workspace)?;
+        let (hash, size): (String, i64) = connection.query_row(
+            "SELECT sha256,size FROM blobs WHERE workspace_id=?1 AND id=?2",
+            params![workspace, id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )?;
+        drop(connection);
+        if size < 0
+            || size as u64 > max
+            || hash.len() != 64
+            || !hash.bytes().all(|b| b.is_ascii_hexdigit())
+        {
+            return Err(ApiError::new("quota", "Body exceeds export limits."));
+        }
+        let mut data = Vec::new();
+        std::fs::File::open(self.root.join("bodies").join(workspace).join(&hash))?
+            .take(max + 1)
+            .read_to_end(&mut data)?;
+        if data.len() != size as usize || format!("{:x}", Sha256::digest(&data)) != hash {
+            return Err(ApiError::new("storage", "Body checksum mismatch."));
+        }
+        Ok(data)
+    }
 }
-fn json_string(value:&Value)->ApiResult<String>{serde_json::to_string(value).map_err(Into::into)}
-fn har_headers(value:&Value)->Value{serde_json::json!(value.as_array().map(|rows|rows.iter().map(|row|serde_json::json!({"name":row["key"],"value":row["value"]})).collect::<Vec<_>>()).unwrap_or_default())}
+fn json_string(value: &Value) -> ApiResult<String> {
+    serde_json::to_string(value).map_err(Into::into)
+}
+fn har_headers(value: &Value) -> Value {
+    serde_json::json!(value
+        .as_array()
+        .map(|rows| rows
+            .iter()
+            .map(|row| serde_json::json!({"name":row["key"],"value":row["value"]}))
+            .collect::<Vec<_>>())
+        .unwrap_or_default())
+}
 #[cfg(test)]
 mod privacy_tests {
- use super::*;
- #[test] fn imported_credentials_stay_local_and_export_requires_opt_in(){
-  let temp=tempfile::tempdir().unwrap();let db=Database::open(temp.path()).unwrap();let workspace=db.create_workspace("HAR credentials").unwrap();
-  let input=serde_json::json!({"log":{"version":"1.2","entries":[{"request":{"url":"https://example.invalid/path","method":"GET","headers":[{"name":"Authorization","value":"Bearer private"},{"name":"X-Other","value":"visible"}]},"response":{"status":200,"headers":[],"content":{}},"time":1}]}});
-  let session=db.import_har_bytes(&workspace.id,&serde_json::to_vec(&input).unwrap(),"Imported").unwrap();let stored=db.query(&workspace.id,"flow",10,0).unwrap();assert_eq!(stored[0].payload["requestHeaders"][0]["value"],"Bearer private");
-  let redacted=db.export_har_value(&workspace.id,&session,false,false).unwrap();assert_eq!(redacted["log"]["entries"][0]["request"]["headers"].as_array().unwrap().len(),1);
-  let complete=db.export_har_value(&workspace.id,&session,false,true).unwrap();assert_eq!(complete["log"]["entries"][0]["request"]["headers"],input["log"]["entries"][0]["request"]["headers"]);
- }
+    use super::*;
+    #[test]
+    fn imported_credentials_stay_local_and_export_requires_opt_in() {
+        let temp = tempfile::tempdir().unwrap();
+        let db = Database::open(temp.path()).unwrap();
+        let workspace = db.create_workspace("HAR credentials").unwrap();
+        let input = serde_json::json!({"log":{"version":"1.2","entries":[{"request":{"url":"https://example.invalid/path","method":"GET","headers":[{"name":"Authorization","value":"Bearer private"},{"name":"X-Other","value":"visible"}]},"response":{"status":200,"headers":[],"content":{}},"time":1}]}});
+        let session = db
+            .import_har_bytes(
+                &workspace.id,
+                &serde_json::to_vec(&input).unwrap(),
+                "Imported",
+            )
+            .unwrap();
+        let stored = db.query(&workspace.id, "flow", 10, 0).unwrap();
+        assert_eq!(
+            stored[0].payload["requestHeaders"][0]["value"],
+            "Bearer private"
+        );
+        let redacted = db
+            .export_har_value(&workspace.id, &session, false, false)
+            .unwrap();
+        assert_eq!(
+            redacted["log"]["entries"][0]["request"]["headers"]
+                .as_array()
+                .unwrap()
+                .len(),
+            1
+        );
+        let complete = db
+            .export_har_value(&workspace.id, &session, false, true)
+            .unwrap();
+        assert_eq!(
+            complete["log"]["entries"][0]["request"]["headers"],
+            input["log"]["entries"][0]["request"]["headers"]
+        );
+    }
 }
-#[cfg(test)]mod tests{
- use super::*;
- #[test]fn native_har_binary_extensions_roundtrip(){let temp=tempfile::tempdir().unwrap();let db=Database::open(temp.path()).unwrap();let w=db.create_workspace("HAR").unwrap();let document=serde_json::json!({"log":{"version":"1.2","creator":{"name":"fixture","version":"1"},"_custom":"preserved","entries":[{"request":{"url":"http://localhost/a?a=1&a=2","method":"GET","headers":[{"name":"Authorization","value":"secret"}]},"response":{"status":200,"content":{"text":"AP9h","encoding":"base64","mimeType":"application/octet-stream"}},"time":7,"_extension":{"key":"custom"}}]}});let session=db.import_har_bytes(&w.id,&serde_json::to_vec(&document).unwrap(),"Imported").unwrap();let output=db.export_har_value(&w.id,&session,true,false).unwrap();assert_eq!(output["log"]["_custom"],"preserved");assert_eq!(output["log"]["entries"][0]["response"]["content"]["text"],"AP9h");assert_eq!(output["log"]["entries"][0]["_extension"],document["log"]["entries"][0]["_extension"]);assert_eq!(output["log"]["entries"][0]["request"]["headers"],serde_json::json!([]));}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn native_har_binary_extensions_roundtrip() {
+        let temp = tempfile::tempdir().unwrap();
+        let db = Database::open(temp.path()).unwrap();
+        let w = db.create_workspace("HAR").unwrap();
+        let document = serde_json::json!({"log":{"version":"1.2","creator":{"name":"fixture","version":"1"},"_custom":"preserved","entries":[{"request":{"url":"http://localhost/a?a=1&a=2","method":"GET","headers":[{"name":"Authorization","value":"secret"}]},"response":{"status":200,"content":{"text":"AP9h","encoding":"base64","mimeType":"application/octet-stream"}},"time":7,"_extension":{"key":"custom"}}]}});
+        let session = db
+            .import_har_bytes(&w.id, &serde_json::to_vec(&document).unwrap(), "Imported")
+            .unwrap();
+        let output = db.export_har_value(&w.id, &session, true, false).unwrap();
+        assert_eq!(output["log"]["_custom"], "preserved");
+        assert_eq!(
+            output["log"]["entries"][0]["response"]["content"]["text"],
+            "AP9h"
+        );
+        assert_eq!(
+            output["log"]["entries"][0]["_extension"],
+            document["log"]["entries"][0]["_extension"]
+        );
+        assert_eq!(
+            output["log"]["entries"][0]["request"]["headers"],
+            serde_json::json!([])
+        );
+    }
 }

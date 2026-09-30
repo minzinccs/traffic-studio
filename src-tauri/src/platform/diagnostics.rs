@@ -18,7 +18,10 @@ pub fn snapshot() -> RuntimeDiagnostics {
 
 #[cfg(windows)]
 fn host_working_set() -> Option<u64> {
-    use windows_sys::Win32::System::{ProcessStatus::{K32GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS}, Threading::GetCurrentProcess};
+    use windows_sys::Win32::System::{
+        ProcessStatus::{K32GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS},
+        Threading::GetCurrentProcess,
+    };
     let mut counters = PROCESS_MEMORY_COUNTERS::default();
     counters.cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
     let ok = unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut counters, counters.cb) };
@@ -26,7 +29,9 @@ fn host_working_set() -> Option<u64> {
 }
 
 #[cfg(not(windows))]
-fn host_working_set() -> Option<u64> { None }
+fn host_working_set() -> Option<u64> {
+    None
+}
 
 #[cfg(all(test, windows))]
 mod tests {

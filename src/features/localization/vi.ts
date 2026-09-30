@@ -160,6 +160,8 @@ export const vietnamese: Readonly<Record<string,string>> = {
   "Save profile": "Lưu profile",
   "Close workspaces": "Đóng quản lý workspace",
   "New workspace name": "Tên workspace mới",
+  "Mixed workspace": "Không gian hỗn hợp",
+  "Native panes in one window": "Nhiều pane native trong một cửa sổ",
   "Request URL": "URL yêu cầu",
   "Request name": "Tên yêu cầu",
   "HTTP method": "Phương thức HTTP",

@@ -13,7 +13,9 @@ export function PacketCapturePanel(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const refresh=useCallback(async()=>{try{setStatus(await bridge.command('packet_status',undefined));}catch(e){setError(bridgeError(e).message);}},[]);
- useEffect(()=>{let alive=true;void Promise.all([bridge.command('packet_status',undefined),bridge.command('packet_interfaces',undefined).catch(()=>[])]).then(([state,found])=>{if(alive){setStatus(state);setInterfaces(found);setSelected(found[0]?.index??0);}}).catch(e=>{if(alive)setError(bridgeError(e).message);});const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void refresh();},5000);return()=>{alive=false;window.clearInterval(timer);};},[refresh]);
+// Requesting interfaces on a machine without dumpcap/Npcap only yields an expected "unsupported"
+// diagnostic entry, so interfaces are asked for only when packet capture is actually available.
+ useEffect(()=>{let alive=true;void (async()=>{try{const state=await bridge.command('packet_status',undefined);if(!alive)return;setStatus(state);if(!state.captureAvailable){setInterfaces([]);setSelected(0);return;}const found=await bridge.command('packet_interfaces',undefined);if(alive){setInterfaces(found);setSelected(found[0]?.index??0);}}catch(e){if(alive)setError(bridgeError(e).message);}})();const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void refresh();},5000);return()=>{alive=false;window.clearInterval(timer);};},[refresh]);
  async function action(fn:()=>Promise<PacketStatus>){setBusy(true);setError('');try{const next=await fn();setStatus(next);setAck(false);if(!next.files.some(item=>item.name===file)){setFile('');setRows([]);}}catch(e){setError(bridgeError(e).message);}finally{setBusy(false);}}
  async function inspect(name:string){setBusy(true);setError('');setFile(name);try{setRows(await bridge.command('packet_inspect',{name}));}catch(e){setRows([]);setError(bridgeError(e).message);}finally{setBusy(false);}}
  return <section className="packet-panel" aria-label="Packet capture and TLS key log">

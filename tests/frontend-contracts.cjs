@@ -7,6 +7,36 @@ const ts = require('typescript');
 const cache = new Map();
 const storage = new Map();
 const localStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
+// Inert, self-returning stub for packages this contracts suite does not exercise.
+const packageStubs = new Map();
+function packageStub(name) {
+  if (!packageStubs.has(name)) {
+    const stub = new Proxy(function stub() {}, {
+      get: (_target, property) => property === Symbol.toPrimitive ? () => '' : packageStub(name),
+      apply: () => packageStub(name),
+      construct: () => ({}),
+      has: () => true,
+    });
+    packageStubs.set(name, stub);
+  }
+  return packageStubs.get(name);
+}
+// Minimal DOM surface: modules register listeners and read a few properties at load time, but this
+// suite never renders or dispatches real browser events.
+function noop() {}
+const browserDocument = {
+  documentElement: { style: {}, dataset: {}, classList: { add: noop, remove: noop, toggle: noop }, lang: 'en' },
+  body: { appendChild: noop, classList: { add: noop, remove: noop } },
+  addEventListener: noop, removeEventListener: noop, dispatchEvent: () => true,
+  querySelector: () => null, querySelectorAll: () => [], createElement: () => ({ style: {}, dataset: {}, setAttribute: noop, appendChild: noop, classList: { add: noop, remove: noop } }),
+  visibilityState: 'visible', hidden: false,
+};
+const browserWindow = {
+  addEventListener: noop, removeEventListener: noop, dispatchEvent: () => true,
+  matchMedia: () => ({ matches: false, addEventListener: noop, removeEventListener: noop }),
+  localStorage, document: browserDocument, location: { href: 'https://localhost/', search: '' },
+  setInterval: () => 0, clearInterval: noop, setTimeout: () => 0, clearTimeout: noop,
+};
 function load(relative) {
   const file = path.resolve(relative);
   if (cache.has(file)) return cache.get(file);
@@ -14,11 +44,26 @@ function load(relative) {
   cache.set(file, exports);
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React } }).outputText;
   vm.runInNewContext(source, { exports, require: name => {
-    if (name === 'react') return {};
+    // Only the module-load surface of React is stubbed: this suite asserts data contracts, never render.
+    if (name === 'react') return {
+      createContext: defaultValue => ({ Provider: null, Consumer: null, defaultValue }),
+      createElement: () => null,
+      useState: value => [typeof value === 'function' ? value() : value, () => {}],
+      useContext: () => ({ locale: 'en', translate: text => text }),
+    };
     if (name.endsWith('.css')) return {};
+    if (name === '@tauri-apps/api/core') return { isTauri: () => false, invoke: async () => { throw new Error('native bridge is not part of this suite'); } };
+    if (name === '@tauri-apps/api/event') return { listen: async () => () => {}, emit: async () => {} };
+    // Other bare specifiers (lucide-react, qrcode, react-dom, …) are not under test here. An inert
+    // callable stub keeps the module graph loading while the suite asserts data contracts only.
+    if (!name.startsWith('.')) return packageStub(name);
     const target = path.resolve(path.dirname(file), name);
-    return load(fs.existsSync(target + '.ts') ? target + '.ts' : target + '.tsx');
-  }, URL, Blob, atob, btoa, TextEncoder, TextDecoder, crypto: require('node:crypto').webcrypto, localStorage, window: { dispatchEvent() {} }, Event: class {} }, { filename: file });
+    // Directory modules resolve through index.ts/index.tsx; localization moved into a folder.
+    for (const candidate of [`${target}.ts`, `${target}.tsx`, path.join(target, 'index.ts'), path.join(target, 'index.tsx')]) {
+      if (fs.existsSync(candidate)) return load(candidate);
+    }
+    throw new Error(`Cannot resolve ${name} from ${path.relative(process.cwd(), file)}`);
+  }, URL, Blob, atob, btoa, TextEncoder, TextDecoder, EventTarget, structuredClone, crypto: require('node:crypto').webcrypto, localStorage, window: browserWindow, document: browserDocument, navigator: { userAgent: 'contracts-suite', language: 'en-US' }, Event: class {} }, { filename: file });
   return exports;
 }
 const { createVariableResolver, sanitizeVariables } = load('src/features/environments/resolution.ts');
