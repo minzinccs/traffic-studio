@@ -31,7 +31,8 @@ history below is condensed to product-relevant milestones.
 - Rust verified 2026-09-30 (cargo 1.98.1, MSVC 14.44, SDK 26100.0):
   `cargo fmt --check` clean, `cargo test` 32 passed / 0 failed
   (100k FTS benchmark ignored by design), FTS 100k benchmark through
-  `Database::open`: 100000 rows in ~28s debug, query 1 row in 0ms.
+  `Database::open`: 100000 rows in ~28s debug / ~7.8s release, query
+  1 row in 0ms both profiles.
   Fixed an MCP keep-alive race (400-version replies now drain the bounded
   body; flaky 2/3 → stable).
 - `scripts/build-local-release.ps1` produced an embedded-frontend release
