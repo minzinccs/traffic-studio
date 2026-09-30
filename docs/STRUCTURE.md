@@ -1,19 +1,18 @@
 # Traffic Studio — structure and module map
 
-**Superseding code map, 2026-09-28:** `src-tauri/src/capture/` owns authenticated mitmproxy listener/event ingestion; `rules/`, `protocols/`, `analytics/`, `integrations/` and `storage/{har,backup,retention,decode,batch}.rs` hold native behavior. Matching UI is under `src/features/{capture,rules,protocols,tracker,analytics,layout,integrations,storage}/` and calls `src/bridge/`. `engine-sidecar/` contains the Python adapter and controlled benchmarks/fixtures; `scripts/setup-capture.ps1` prepares local development dependencies. `PHASE_6_10_PROGRESS.md` lists open acceptance work. Historical descriptions below are not the current runtime status.
+**Superseding code map, 2026-09-28:** `src-tauri/src/capture/` owns authenticated mitmproxy listener/event ingestion; `rules/`, `protocols/`, `analytics/`, `integrations/` and `storage/{har,backup,retention,decode,batch}.rs` hold native behavior. Matching UI is under `src/features/{capture,rules,protocols,tracker,analytics,layout,integrations,storage}/` and calls `src/bridge/`. `engine-sidecar/` contains the Python adapter and controlled benchmarks/fixtures; `scripts/setup-capture.ps1` prepares local development dependencies. Open acceptance work is listed in CHANGELOG.md. Historical descriptions below are not the current runtime status.
 
 ## Current state
 
 The repo contains a **working frontend build and visual preview**, plus a Tauri shell scaffold. It is not yet a traffic-capture app. `npm run build` succeeds; the browser preview has been checked for traffic/inspector, column menu, API split, Collections, History and Analytics. No native Tauri executable has been built on this machine.
 
-**Current 2026-09-28 update — WORKLOG25:** the preceding paragraph records the old baseline. Native executable now builds. `src-tauri/src/http` provides direct HTTP transport; `src/bridge` has typed native/browser adapters; API native request/history components and storage resources call them. `src-tauri/src/http/oauth.rs` provides token exchange, `src-tauri/src/scripts/` contains bounded QuickJS execution, and `src/features/api/adapters/` contains Postman/OpenAPI JSON conversion. `src/features/environments/` edits native environment documents backed by `src-tauri/src/storage/environments.rs` and DPAPI secrets. Storage import/export modules provide atomic document imports and native body Save As. `src-tauri/src/platform/proxy.rs` reads WinINet settings; `proxy_control.rs` supplies explicit manual apply/restore with a durable recovery ledger and frontend recovery notice. Behavioral acceptance of these new modules is pending; capture engine remains unselected. See PHASE_4_5_PROGRESS.md.
+**Current 2026-09-28 update — WORKLOG25:** the preceding paragraph records the old baseline. Native executable now builds. `src-tauri/src/http` provides direct HTTP transport; `src/bridge` has typed native/browser adapters; API native request/history components and storage resources call them. `src-tauri/src/http/oauth.rs` provides token exchange, `src-tauri/src/scripts/` contains bounded QuickJS execution, and `src/features/api/adapters/` contains Postman/OpenAPI JSON conversion. `src/features/environments/` edits native environment documents backed by `src-tauri/src/storage/environments.rs` and DPAPI secrets. Storage import/export modules provide atomic document imports and native body Save As. `src-tauri/src/platform/proxy.rs` reads WinINet settings; `proxy_control.rs` supplies explicit manual apply/restore with a durable recovery ledger and frontend recovery notice. Behavioral acceptance of these new modules is pending; capture engine remains unselected. See CHANGELOG.md for current limits.
 
 ```text
 traffic-studio/
 ├─ AGENTS.md                 Agent rules and constraints
-├─ AI_HANDOFF.md             Copy/paste brief for another AI
+├─ CHANGELOG.md                Release history and known limits
 ├─ INTERACTION_PLAN.md       Desktop interaction spec and phased plan
-├─ WORKLOG.md                Completed UI work, verification and remaining gaps
 ├─ DESIGN_DECISION.md        Product scope, stack and core gate
 ├─ DESIGN_SYSTEM.md          Theme, layout, typography and tokens
 ├─ FEATURE_INVENTORY.md      Reqable feature-parity checklist
@@ -133,7 +132,7 @@ npm run tauri -- dev  # only after Rust + MSVC/Windows SDK are installed
 
 ## Current feature map — 2026-09-26
 
-New feature boundaries: settings (preferences/config/CA/integrations), notifications, layout, tools (local codecs/crypto/QR), protocols (WebSocket/SSE previews), rules, tracker, analytics, data-transfer (validated modal), environments. Capture owns MessagePane/annotations/Explorer/sessionFiles/session manager/comparison. API owns cURL/collection transfer/CollectionExplorer/multi-pane workspace. WorkspacePages now reexports feature views; shell/useDialogFocus owns shared modal focus behavior. See FE_STATUS.md for behavioral limits.
+New feature boundaries: settings (preferences/config/CA/integrations), notifications, layout, tools (local codecs/crypto/QR), protocols (WebSocket/SSE previews), rules, tracker, analytics, data-transfer (validated modal), environments. Capture owns MessagePane/annotations/Explorer/sessionFiles/session manager/comparison. API owns cURL/collection transfer/CollectionExplorer/multi-pane workspace. WorkspacePages now reexports feature views; shell/useDialogFocus owns shared modal focus behavior. Behavioral limits are recorded in CHANGELOG.md.
 
 features/workspaces exports WorkspaceRoot (main.tsx entry wrapper) and owns local snapshot switching/management. File menu and Settings dispatch the workspace manager event. Inspector owns persistent tab order/visibility. useDialogFocus now supports an optional enabled flag for conditionally mounted overlays.
 
@@ -141,6 +140,6 @@ features/workspaces exports WorkspaceRoot (main.tsx entry wrapper) and owns loca
 Follow-up (19): environment `resolution.ts`/`VariableEditor.tsx` own scope interpolation and overrides; settings `shortcuts.tsx` owns configurable shell commands; `BackupRecovery.tsx` validates document recovery into new workspaces. `FlowDetail.responseBodyBase64` carries original imported HAR bytes alongside UTF-8 preview text. `tests/frontend-contracts.cjs` exercises these boundaries using the existing TypeScript dependency.
 
 
-## Full app planning map — 2026-09-27
+## Release history
 
-`APP_IMPLEMENTATION_PLAN.md` defines P00–P14 and completion gates; `APP_ROUTE_MAP.md` defines 26 proposed logical routes, module ownership, entities and bridge command/event boundaries. `APP_TRACKER.json` is the status/dependency/evidence source for 105 tasks and 36 inventory groups; `APP_TASKS.md` is generated with `node scripts/check-plan.mjs --render`. Planned directories/routes/commands are not implemented simply because they appear in these documents.
+CHANGELOG.md (repo root) is the current status source. Planned directories/routes/commands are not implemented simply because they appear in planning documents.

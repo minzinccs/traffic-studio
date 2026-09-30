@@ -519,6 +519,21 @@ pub fn analytics_query(
     db.analytics(input)
 }
 #[tauri::command(async)]
+pub fn flow_search(
+    db: State<'_, Database>,
+    workspace_id: String,
+    query: String,
+    session_id: Option<String>,
+    limit: u32,
+) -> ApiResult<Vec<Entity>> {
+    db.flow_search(crate::storage::search::FlowSearchInput {
+        workspace_id,
+        query,
+        session_id,
+        limit,
+    })
+}
+#[tauri::command(async)]
 pub fn active_rules(
     db: State<'_, Database>,
     workspace_id: String,

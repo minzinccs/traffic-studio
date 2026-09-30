@@ -45,6 +45,7 @@ export type CommandMap = {
   stream_stop:{args:{workspaceId:string;id:string};result:void};
   stream_send:{args:{workspaceId:string;id:string;kind:'text'|'binary'|'ping';data:string};result:void};
   analytics_query:{args:{input:{workspaceId:string;sessionId:string|null;since:number;until:number;host:string|null}};result:{requests:number;errors:number;payloadBytes:number;measuredDurations:number;averageMs:number|null;p95Ms:number|null;hosts:Record<string,number>;statuses:Record<string,number>;protocols:Record<string,number>;endpoints:Record<string,number>}};
+  flow_search:{args:{workspaceId:string;query:string;sessionId?:string|null;limit:number};result:StoredEntity[]};
   breakpoint_decide:{args:{workspaceId:string;flowId:string;decision:'resume'|'drop';url:string|null;body:string|null;status:number|null};result:void};
   entity_batch:{args:{input:{workspaceId:string;documents:SaveEntityInput[]}};result:StoredEntity[]};
   rules_apply:{args:{workspaceId:string;id:string;expectedRevision:number};result:void};

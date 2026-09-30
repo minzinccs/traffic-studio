@@ -1,12 +1,12 @@
 # Traffic Studio — ý tưởng sản phẩm
 
-**Current development status (2026-09-28, WORKLOG 29):** native source includes HTTP capture/rules/protocols, HAR, tracker/analytics/layout and opt-in integrations. The local Windows release executable builds and starts from this checkout; 25 Rust fixtures pass in release mode. Browser preview remains sample-labelled. Native UI interaction, portable installer and full phase acceptance remain open. See [P06–P10 progress](PHASE_6_10_PROGRESS.md), [engine selection](ENGINE_SELECTION.md), [UI audit](UI_FLOW_AUDIT.md) and [tracker](APP_TASKS.md). Older status paragraphs below describe earlier milestones.
+**Current development status (2026-09-30):** see [CHANGELOG.md](CHANGELOG.md) — native HTTP/capture/rules/protocols, HAR, tracker/analytics/layout and opt-in integrations in source; FTS5 flow search, native Explorer and mode-honest copy added (Rust parts unverified on machines without a toolchain). Browser preview remains sample-labelled. Native UI interaction, portable installer and full acceptance remain open.
 
 Ứng dụng desktop để bắt, phân tích, chỉnh sửa và kiểm thử lưu lượng HTTP(S), lấy cảm hứng từ workflow của Reqable. Ưu tiên local-first, nhiều phiên/bảng và giao diện tối rõ ràng.
 
-**App local:** React + Rust backend chạy trong Tauri trên máy, không cần production online/account. Điện thoại là companion qua pairing; VPS cá nhân hoặc dịch vụ cloud là tùy chọn về sau. Hướng thiết kế open-source; license cụ thể chưa chọn. Xem [kiến trúc local-first](LOCAL_FIRST_ARCHITECTURE.md). Chạy native dev: `powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1`. Tạo release executable trong checkout: `powershell -ExecutionPolicy Bypass -File scripts/build-local-release.ps1` (cần `scripts/setup-capture.ps1` cho capture; chưa phải installer mang sang máy khác). Script này bắt buộc đi qua Tauri CLI (`npm run tauri -- build`): `cargo build --release` trần tạo binary dev-mode (tải `devUrl` `http://127.0.0.1:1420`, không nhúng `dist`) nên chỉ chạy khi Vite dev server đang mở; script tự kiểm tra và báo lỗi nếu exe thiếu frontend. Test UI native có bằng chứng: `node tests/native-ui-drive.mjs` khi app mở với `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`.
+**App local:** React + Rust backend chạy trong Tauri trên máy, không cần production online/account. Điện thoại là companion qua pairing; VPS cá nhân hoặc dịch vụ cloud là tùy chọn về sau. Hướng thiết kế open-source; license cụ thể chưa chọn. Xem [kiến trúc local-first](docs/LOCAL_FIRST_ARCHITECTURE.md). Chạy native dev: `powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1`. Tạo release executable trong checkout: `powershell -ExecutionPolicy Bypass -File scripts/build-local-release.ps1` (cần `scripts/setup-capture.ps1` cho capture; chưa phải installer mang sang máy khác). Script này bắt buộc đi qua Tauri CLI (`npm run tauri -- build`): `cargo build --release` trần tạo binary dev-mode (tải `devUrl` `http://127.0.0.1:1420`, không nhúng `dist`) nên chỉ chạy khi Vite dev server đang mở; script tự kiểm tra và báo lỗi nếu exe thiếu frontend. Test UI native có bằng chứng: `node tests/native-ui-drive.mjs` khi app mở với `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`.
 
-**Đích cuối:** đủ mọi tính năng Community + Premium của Reqable theo [checklist](FEATURE_INVENTORY.md), trừ phần chỉ có ở Enterprise, và thêm tracker/analytics/view theo yêu cầu. **App PC là sản phẩm chính và được làm trước; Android/iOS là app phụ trợ ở giai đoạn sau.** Các mốc bên dưới là thứ tự thực hiện, không phải cắt bớt phạm vi cuối.
+**Đích cuối:** đủ mọi tính năng Community + Premium của Reqable theo [checklist](docs/FEATURE_INVENTORY.md), trừ phần chỉ có ở Enterprise, và thêm tracker/analytics/view theo yêu cầu. **App PC là sản phẩm chính và được làm trước; Android/iOS là app phụ trợ ở giai đoạn sau.** Các mốc bên dưới là thứ tự thực hiện, không phải cắt bớt phạm vi cuối.
 
 ## Vấn đề cần giải quyết
 
@@ -28,7 +28,7 @@
 
 ## Base giao diện đã tạo
 
-Source trong `src/` và `src-tauri/` đã có native HTTP client, SQLite/body storage, Digest/OAuth, scripts sandbox, import collection, environment/vault và các điều khiển CA/proxy Windows. Frontend và native debug build qua; test hành vi vẫn hoãn theo yêu cầu. Capture engine chưa chọn, chưa có capture thật. Xem [tiến độ P04/P05](PHASE_4_5_PROGRESS.md) và [worklog](WORKLOG.md) để biết phần đã code và phần chưa nghiệm thu.
+Source trong `src/` và `src-tauri/` đã có native HTTP client, SQLite/body storage, Digest/OAuth, scripts sandbox, import collection, environment/vault và các điều khiển CA/proxy Windows. Frontend build qua; nghiệm thu tương tác native và Rust trên máy build xem [CHANGELOG.md](CHANGELOG.md). Capture engine: mitmproxy qua adapter localhost, xem [engine selection](docs/ENGINE_SELECTION.md).
 
 ## MVP đề xuất
 
@@ -36,7 +36,7 @@ Windows desktop trước: capture HTTP(S) qua explicit/system proxy, danh sách 
 
 ## Hướng kỹ thuật cần thử nghiệm
 
-- Giao diện PC: Tauri 2 + React/TypeScript, theme và layout riêng theo [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Không dùng Flutter.
+- Giao diện PC: Tauri 2 + React/TypeScript, theme và layout riêng theo [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md). Không dùng Flutter.
 - Proxy core chưa chốt: kiểm thử Whistle và mitmproxy như sidecar trước khi cân nhắc viết engine Rust. ProxyPin/Dart chỉ là tài liệu tham khảo cho app PC.
 - SQLite + FTS cho metadata/tìm kiếm; payload file riêng, có quota và redaction.
 - Mô hình dữ liệu: `request` ↔ `board_item` (many-to-many), `view` chứa filter/sort/columns/layout, `event` lưu audit.
@@ -47,16 +47,13 @@ Có thể dùng bảng màu charcoal + amber và mật độ thông tin giống 
 
 ## Tài liệu chi tiết
 
-- [Kiểm kê tính năng Reqable](FEATURE_INVENTORY.md)
-- [Phương án self-host](SELF_HOSTING.md)
-- [Repo/core nên tái sử dụng](CORE_REUSE.md)
-- [Quyết định thiết kế và gate chọn core](DESIGN_DECISION.md)
-- [Design system giao diện PC](DESIGN_SYSTEM.md)
+- [Kiểm kê tính năng Reqable](docs/FEATURE_INVENTORY.md)
+- [Phương án self-host](docs/SELF_HOSTING.md)
+- [Repo/core nên tái sử dụng](docs/CORE_REUSE.md)
+- [Quyết định thiết kế và gate chọn core](docs/DESIGN_DECISION.md)
+- [Design system giao diện PC](docs/DESIGN_SYSTEM.md)
 - [Quy tắc cho AI/code agents](AGENTS.md)
-- [Cấu trúc và ranh giới module](STRUCTURE.md)
-- [Prompt bàn giao cho AI khác](AI_HANDOFF.md)
-- [Việc cần làm tiếp theo](NEXT_STEPS.md)
-- [Worklog và giới hạn hiện tại](WORKLOG.md)
-- [Repo mã nguồn mở để tham khảo](research.md)
+- [Cấu trúc và ranh giới module](docs/STRUCTURE.md)
+- [Nhật ký thay đổi](CHANGELOG.md)
 
 Đây là đề xuất ban đầu; các giới hạn không được ghi rõ trong tài liệu Reqable cần đối chiếu trực tiếp trong app trước khi coi là yêu cầu đã xác minh.

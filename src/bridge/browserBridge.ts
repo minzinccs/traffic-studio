@@ -100,6 +100,25 @@ async function execute(name: keyof CommandMap, args: unknown): Promise<unknown> 
       if (!read.result || read.result.revision !== input.expectedRevision) { fail(new BridgeError('conflict', 'Document changed or was deleted.')); return; } store.delete([input.workspaceId, input.id]); done();
     }; }); emit(input.workspaceId,input.id,'deleted',input.expectedRevision+1); return;
   }
+  if (name === 'flow_search') {
+    const input = args as CommandMap['flow_search']['args'];
+    const text = input.query.trim().toLowerCase();
+    if (!text || text.length > 256) throw new BridgeError('validation', 'Search text must contain 1-256 characters.');
+    const limit = Math.min(200, Math.max(1, input.limit));
+    return transaction<StoredEntity[]>(['entities'], 'readonly', (tx, done) => {
+      const rows: StoredEntity[] = [];
+      const range = IDBKeyRange.bound([input.workspaceId, 'flow', 0], [input.workspaceId, 'flow', Number.MAX_SAFE_INTEGER]);
+      const read = tx.objectStore('entities').index('workspace_kind_updated').openCursor(range, 'prev');
+      read.onsuccess = () => {
+        const cursor = read.result;
+        if (!cursor || rows.length >= limit) { done(rows); return; }
+        const row = cursor.value as StoredEntity;
+        const session = typeof row.payload?.sessionId === 'string' ? row.payload.sessionId : '';
+        if ((!input.sessionId || session === input.sessionId) && `${row.payload?.method ?? ''} ${row.payload?.url ?? ''} ${row.payload?.status ?? ''}`.toLowerCase().includes(text)) rows.push(row);
+        cursor.continue();
+      };
+    });
+  }
   throw new BridgeError('unsupported', 'This operation requires the native backend. Browser preview has no plaintext secret or network fallback.');
 }
 export const browserBridge: Bridge = {

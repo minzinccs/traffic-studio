@@ -27,7 +27,8 @@
 /* WebView2/Chromium supports a styled native picker. Keep the ordinary select
    fallback for older runtimes so keyboard and form semantics stay intact. */
 @supports (appearance: base-select) {
-  .app-shell select:not([multiple]):not([size]) { appearance: base-select; background-image:none; }
+  .app-shell select:not([multiple]):not([size]),
+  .app-shell[data-theme=light] select:not(.method-select):not([multiple]):not([size]) { appearance: base-select; background-image:none; }
   .app-shell select:not([multiple]):not([size])::picker-icon { color:#c8d0d4; transition:transform .14s; }
   .app-shell select:not([multiple]):not([size]):open::picker-icon { transform:rotate(180deg); }
   .app-shell select:not([multiple]):not([size])::picker(select) {

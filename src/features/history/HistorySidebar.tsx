@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isTauri } from '@tauri-apps/api/core';
 import { ChevronDown, ChevronRight, Code2, FileArchive, Search, SearchX } from 'lucide-react';
 import { matchesSavedRequest, matchesSession, readSavedRequests, listHistorySessions, type HistorySelection } from './sessions';
 import './historySidebar.css';
@@ -62,7 +63,7 @@ export function HistorySidebar({ selected, onSelect }: { selected: HistorySelect
       </>}
 
       {!hasAnything && <div className="history-foot">No history is stored yet. Sample sessions appear once the fixture is loaded.</div>}
-      {hasAnything && <div className="history-foot">Sessions above are bundled samples, not captured traffic. Saved requests are browser drafts.</div>}
+      {hasAnything && <div className="history-foot">{isTauri() ? 'Preview list only — native capture sessions live under Traffic. Saved requests here are browser drafts.' : 'Sessions above are bundled samples, not captured traffic. Saved requests are browser drafts.'}</div>}
     </div>
   </aside>;
 }

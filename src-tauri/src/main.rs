@@ -85,6 +85,7 @@ fn main() {
             commands::stream_stop,
             commands::stream_send,
             commands::analytics_query,
+            commands::flow_search,
             commands::breakpoint_decide,
             commands::entity_batch,
             commands::rules_apply,

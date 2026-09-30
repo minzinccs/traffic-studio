@@ -19,6 +19,7 @@ pub mod export;
 pub mod har;
 pub mod import;
 pub mod retention;
+pub mod search;
 #[derive(Clone)]
 pub struct Database {
     pub connection: std::sync::Arc<Mutex<Connection>>,
@@ -36,7 +37,7 @@ impl Database {
         connection.pragma_update(None, "synchronous", "FULL")?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
         // Database migration version is separate from the versioned domain DTOs.
-        if version > 7 {
+        if version > 8 {
             return Err(ApiError::new(
                 "unsupported",
                 "Database belongs to a newer app. Open it with that version.",
@@ -75,6 +76,11 @@ impl Database {
         if version < 7 {
             let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
             tx.execute_batch(include_str!("active_rules.sql"))?;
+            tx.commit()?;
+        }
+        if version < 8 {
+            let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            tx.execute_batch(include_str!("flow_search.sql"))?;
             tx.commit()?;
         }
         let pending = {
@@ -193,7 +199,7 @@ impl Database {
             },
         )?)
     }
-    fn parse_entity(row: &rusqlite::Row<'_>) -> rusqlite::Result<Entity> {
+    pub(crate) fn parse_entity(row: &rusqlite::Row<'_>) -> rusqlite::Result<Entity> {
         let payload: String = row.get(6)?;
         let value = serde_json::from_str(&payload).map_err(|e| {
             rusqlite::Error::FromSqlConversionFailure(6, rusqlite::types::Type::Text, Box::new(e))
@@ -275,6 +281,9 @@ impl Database {
         let revision = input.expected_revision + 1;
         let updated_at = now();
         tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8) ON CONFLICT(workspace_id,id) DO UPDATE SET name=excluded.name,revision=excluded.revision,payload=excluded.payload,updated_at=excluded.updated_at",params![input.workspace_id,input.id,input.kind,input.name.trim(),SCHEMA_VERSION,revision,payload,updated_at])?;
+        if input.kind == "flow" {
+            search::upsert_flow_search(&tx, &input.workspace_id, &input.id, &input.payload)?;
+        }
         tx.commit()?;
         Ok(Entity {
             workspace_id: input.workspace_id,
@@ -289,9 +298,10 @@ impl Database {
     }
     pub fn remove(&self, workspace_id: &str, id: &str, revision: i64) -> ApiResult<()> {
         valid_id(id)?;
-        let connection = self.lock()?;
+        let mut connection = self.lock()?;
         Self::require_workspace(&connection, workspace_id)?;
-        if connection.execute(
+        let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        if tx.execute(
             "DELETE FROM entities WHERE workspace_id=?1 AND id=?2 AND revision=?3",
             params![workspace_id, id, revision],
         )? == 0
@@ -301,6 +311,8 @@ impl Database {
                 "Document was changed or deleted. Reload before deleting.",
             ));
         }
+        search::delete_flow_search(&tx, workspace_id, id)?;
+        tx.commit()?;
         Ok(())
     }
     pub fn import_snapshot(&self, input: ImportSnapshot) -> ApiResult<ImportResult> {

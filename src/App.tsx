@@ -1,4 +1,4 @@
-import {bridge as nativeBridge} from './bridge';
+﻿import {bridge as nativeBridge} from './bridge';
 import { isTauri } from '@tauri-apps/api/core';
 import { RuntimeSummary } from './features/storage';
 import { DiagnosticsStatus, recordDiagnostic } from './features/diagnostics';
@@ -145,7 +145,7 @@ function App() {
   const [selectedFlow, setSelectedFlow] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   const trafficSearchRef = useRef<HTMLInputElement>(null);
-  const [infoPanel, setInfoPanel] = useState<'about' | 'shortcuts' | null>(null);
+  const [infoPanel, setInfoPanel] = useState<'about' | 'shortcuts' | null>(null);useEffect(()=>{if(!infoPanel)return;const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setInfoPanel(null);};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[infoPanel]);
   const [trackedIds, setTrackedIds] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('traffic-studio-tracked-flows') ?? '[]') as number[]; } catch { return []; } });
   const [favoriteIds, setFavoriteIds] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('traffic-studio-favorite-flows') ?? '[]') as number[]; } catch { return []; } });
   const [trafficFilter, setTrafficFilter] = useState('all');
@@ -190,9 +190,9 @@ function App() {
     const flow=allFlows.find(f=>f.id===id);if(!flow)return;
     const detail=details[id]??getFlowDetail(id);const newId=nextTabId.current;
     sessionStorage.setItem(`traffic-studio-api-draft-${newId}`,JSON.stringify({name:`From flow #${id}`,method:flow.method,url:detail?.url??`${flow.scheme??'https'}://${flow.host}${flow.path}`,params:[],headers:(detail?.requestHeaders??[]).filter(h=>!/^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key)$/i.test(h.key)).map((h,i)=>({...h,id:i+1,enabled:true})),body:detail?.requestBody??'',auth:''}));
-    openTab('api',`From flow #${id} · ${newId}`);
+    openTab('api',`From flow #${id} Â· ${newId}`);
   }
-  function saveEndpoint(){const match=/^(.+):(\d+)$/.exec(endpointDraft);if(!match||Number(match[2])<1||Number(match[2])>65535){flash('Invalid port: use 1–65535.');return;}savePreferences({...prefs,proxy:{...prefs.proxy,host:match[1],port:Number(match[2])}});setEndpoint(endpointDraft);setEditingEndpoint(false);}
+  function saveEndpoint(){const match=/^(.+):(\d+)$/.exec(endpointDraft);if(!match||Number(match[2])<1||Number(match[2])>65535){flash('Invalid port: use 1â€“65535.');return;}savePreferences({...prefs,proxy:{...prefs.proxy,host:match[1],port:Number(match[2])}});setEndpoint(endpointDraft);setEditingEndpoint(false);}
   function toggleCapturePreview(){
     if(isTauri()){setSection('traffic');flash('Use the native capture controls to select workspace, port and signing CA.');return;}
     if(capturePhase==='Starting'||capturePhase==='Stopping')return;
@@ -207,7 +207,7 @@ function App() {
   function toggleTracked(id: number) { setTrackedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
   function toggleFavorite(id: number) { setFavoriteIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
 
-  // FE-2 — which contextual sidebar the shell renders. Derived from the section
+  // FE-2 â€” which contextual sidebar the shell renders. Derived from the section
   // so the panel can never disagree with the visible workspace.
   const sidebarKind = showSidebar ? sidebarKindFor(section, sidebarMode) : null;
 
@@ -333,7 +333,7 @@ function App() {
       openTab('tools');
       setToolboxTool(tool);
       setToolboxMode(mode==='Decode'?'Decode':'Encode');if(mode?.startsWith('SHA-')||mode==='HMAC')setToolboxAlgorithm(mode);
-      flash(`${tool}${mode ? ` · ${mode}` : ''} — runs locally in the Toolbox.`);
+      flash(`${tool}${mode ? ` Â· ${mode}` : ''} â€” runs locally in the Toolbox.`);
     },
     sidebarVisible: showSidebar,
     toggleSidebar: () => setShowSidebar((value) => !value),
@@ -366,7 +366,7 @@ function App() {
     openShortcuts: () => setInfoPanel('shortcuts'),
   });
 
-  return <div className="app-shell" data-theme={prefs.theme} data-contrast={prefs.contrast} data-corners={prefs.corners} data-rail-labels={prefs.sidebarLabels} data-density={prefs.density} data-toolbar={prefs.toolbar} data-statusbar={prefs.statusbar} data-zen={zen} data-motion={motionEnabled ? 'on' : 'off'} style={{ '--explorer-width': `${sidebarWidth}px`, '--user-accent': prefs.accent, zoom: prefs.zoom / 100, height: `${10000/prefs.zoom}%`, width: `${10000/prefs.zoom}%`, '--ui-zoom':prefs.zoom/100,'--amber':prefs.accent, '--personal-font-size':`${prefs.fontSize}px`, '--personal-code-font':prefs.codeFont==='consolas'?'Consolas, monospace':'ui-monospace, SFMono-Regular, monospace' } as CSSProperties}>
+  return <div className="app-shell" data-theme={prefs.theme} data-contrast={prefs.contrast} data-corners={prefs.corners} data-rail-labels={prefs.sidebarLabels} data-density={prefs.density} data-toolbar={prefs.toolbar} data-statusbar={prefs.statusbar} data-zen={zen} data-motion={motionEnabled ? 'on' : 'off'} style={{ '--explorer-width': `${sidebarWidth}px`, '--user-accent': prefs.accent, zoom: prefs.zoom / 100, '--ui-zoom':prefs.zoom/100,'--amber':prefs.accent, '--personal-font-size':`${prefs.fontSize}px`, '--personal-code-font':prefs.codeFont==='consolas'?'Consolas, monospace':'ui-monospace, SFMono-Regular, monospace' } as CSSProperties}>
     <ProxyRecoveryNotice onOpen={()=>setSettingsPage('Proxy')}/>
     <header className="app-menu">
       <div className="brand" title="Traffic Studio"><div className="brand-mark"><Activity size={18} strokeWidth={2.3}/></div><span>TRAFFIC<span className="brand-accent">STUDIO</span></span></div>
@@ -414,7 +414,7 @@ function App() {
           </div>
           <button className={`record-button ${recording ? 'is-recording' : ''}`} disabled={capturePhase==='Starting'||capturePhase==='Stopping'} onClick={() => { toggleCapturePreview(); }}>
             {recording ? <Pause size={17} fill="currentColor"/> : <Play size={17} fill="currentColor"/>}
-            <span>{isTauri()?'Open capture':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase} sample…`:recording ? 'Pause sample' : 'Run sample capture'}</span>
+            <span>{isTauri()?'Open capture':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase} sampleâ€¦`:recording ? 'Pause sample' : 'Run sample capture'}</span>
             <kbd>{binding(prefs.keybindings, 'capture')}</kbd>
           </button>
           <button className="clear-button" title="Clear traffic" onClick={() => { setShowDemo(false); setSelectedFlow(null); }}><Trash2 size={18}/></button>
@@ -423,9 +423,9 @@ function App() {
         {(section === 'traffic' || section === 'api') && <WorkspaceTabs tabs={tabs} activeId={activeTab} section={section} closedCount={closedTabs.length} iconFor={(tab) => iconFor(tab.view)} onSelect={selectTab} onNew={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onClose={(id) => closeTabs([id])} onCloseMany={closeTabs} onReorder={reorderTab} onPin={pinTab} onRename={(id, name) => setTabs((current) => current.map((tab) => tab.id === id ? { ...tab, label: name } : tab))} onReopen={reopenClosedTab} onLayout={toggleSplit}/>}
 
         <div className="content-area">
-          <Suspense fallback={<div className="route-loading" role="status">Loading workspace…</div>}>
+          <Suspense fallback={<div className="route-loading" role="status">Loading workspaceâ€¦</div>}>
           {section === 'traffic' && (isTauri() ? <NativeCaptureWorkspace/> : showDemo ? <div className="traffic-view">
-            <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>{sessionName} · SAMPLE</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input ref={trafficSearchRef} aria-label="Search traffic" placeholder="Search host, path, status…" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>{binding(prefs.keybindings, 'search')}</kbd></div><button className="outline-button" aria-expanded={advancedFiltersOpen} onClick={() => setAdvancedFiltersOpen((value) => !value)}><Filter size={15}/> <UiText text={"Filters"}/> <ChevronDown size={13}/></button></div></div>
+            <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>{sessionName} Â· SAMPLE</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input ref={trafficSearchRef} aria-label="Search traffic" placeholder="Search host, path, statusâ€¦" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>{binding(prefs.keybindings, 'search')}</kbd></div><button className="outline-button" aria-expanded={advancedFiltersOpen} onClick={() => setAdvancedFiltersOpen((value) => !value)}><Filter size={15}/> <UiText text={"Filters"}/> <ChevronDown size={13}/></button></div></div>
             <TrafficFilters flows={allFlows} filter={trafficFilter} onFilter={setTrafficFilter} facets={trafficFacets} onFacets={setTrafficFacets} advancedOpen={advancedFiltersOpen}/>
             <div className="traffic-layout"><TrafficTable onFeedback={flash} onCompose={composeFlow} onCompare={()=>setCompareOpen(true)} density={prefs.density} onClearFilters={() => { setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); }} flows={flows} selectedFlow={selectedFlow} favoriteIds={favoriteIds} trackedIds={trackedIds} onSelectFlow={setSelectedFlow} onFavorite={toggleFavorite} onTrack={toggleTracked}/>
             <TrafficInspector onProtocols={()=>setProtocolOpen(true)} onCertificate={()=>setSettingsPage('Certificate')} source={sessionSource} detailOverride={selected ? details[selected.id] : undefined} onExport={() => setSessionOpen(true)} flow={selected} onClose={() => setSelectedFlow(null)} flash={flash}/>
@@ -444,8 +444,8 @@ function App() {
       </main>
     </div>
 
-    {workbenchVisited&&<div hidden={!workbench}><Suspense fallback={<div className="route-loading" role="status">Loading workbench…</div>}><NativeWorkbench onClose={()=>setWorkbench(false)}/></Suspense></div>}
-    <footer className="status-bar"><div className="status-left"><span className={`footer-led ${recording ? 'live' : ''}`}/><span>{isTauri()?'DESKTOP APP':capturePhase==='Error'?'SAMPLE ERROR':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase.toUpperCase()} SAMPLE`:recording ? 'SAMPLE RUNNING' : 'LOCAL WORKSPACE'}</span><span className="status-divider"/><span>{endpoint}</span></div><div className="status-center">{isTauri()?'Local desktop app · Capture status in the toolbar':'Browser mode · Sample data only'}</div><div className="status-right"><DiagnosticsStatus native={isTauri()}/><button title="Expand view" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={14}/></button></div></footer>
+    {workbenchVisited&&<div hidden={!workbench}><Suspense fallback={<div className="route-loading" role="status">Loading workbenchâ€¦</div>}><NativeWorkbench onClose={()=>setWorkbench(false)}/></Suspense></div>}
+    <footer className="status-bar"><div className="status-left"><span className={`footer-led ${recording ? 'live' : ''}`}/><span>{isTauri()?'DESKTOP APP':capturePhase==='Error'?'SAMPLE ERROR':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase.toUpperCase()} SAMPLE`:recording ? 'SAMPLE RUNNING' : 'LOCAL WORKSPACE'}</span><span className="status-divider"/><span>{endpoint}</span></div><div className="status-center">{isTauri()?'Local desktop app Â· Capture status in the toolbar':'Browser mode Â· Sample data only'}</div><div className="status-right"><DiagnosticsStatus native={isTauri()}/><button title="Expand view" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={14}/></button></div></footer>
 
     {editingEndpoint && <div className="modal-backdrop" onClick={() => setEditingEndpoint(false)}><div className="modal" onClick={(event) => event.stopPropagation()}><div className="modal-icon"><Globe2 size={20}/></div><h2>Proxy address</h2><p>Choose the local interface and port used by the desktop capture engine.</p><label htmlFor="endpoint-input">LISTEN ADDRESS</label><input id="endpoint-input" autoFocus value={endpointDraft} onChange={(event) => setEndpointDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && /^.+:\d+$/.test(endpointDraft)) { saveEndpoint(); } }}/><div className="modal-actions"><button className="secondary-action" onClick={() => setEditingEndpoint(false)}><UiText text={"Cancel"}/></button><button className="primary-action" disabled={!/^.+:\d+$/.test(endpointDraft)} onClick={() => { saveEndpoint(); }}>Save address</button></div><div className="modal-note">Workspace default only. Configure and start the native listener in Capture.</div></div></div>}
     {infoPanel && <div className="modal-backdrop" onClick={() => setInfoPanel(null)}><div className="modal" onClick={(event) => event.stopPropagation()}>
@@ -455,11 +455,11 @@ function App() {
         ? <><p>Traffic Studio is a local Windows desktop workspace. Browser mode uses sample data; the native app provides local storage, HTTP sending and an optional local capture runtime. Capture availability depends on local setup and certificate trust.</p><RuntimeSummary/></>
         : <ul className="shortcut-list">{shortcutList.map(([keys, label]) => <li key={keys}><kbd>{keys}</kbd><span>{label}</span></li>)}</ul>}
       <div className="modal-actions"><button className="primary-action" onClick={() => setInfoPanel(null)}><UiText text={"Close"}/></button></div>
-      {infoPanel === 'about' && <div className="modal-note">Version 0.1.0 · Browser mode shows sample traffic. Open the native app for local capture.</div>}
+      {infoPanel === 'about' && <div className="modal-note">Version 0.1.0 Â· Browser mode shows sample traffic. Open the native app for local capture.</div>}
     </div></div>}
     {zen && <button className="zen-exit" onClick={() => setZen(false)}>Exit Zen</button>}
     {clipboardCurl!==null && <CurlImport initialText={clipboardCurl} applyLabel="Create API draft" onApply={importClipboardDraft} onClose={()=>setClipboardCurl(null)}/>}
-    <Suspense fallback={<div className="settings-backdrop"><div className="dialog-loading" role="status">Loading dialog…</div></div>}>
+    <Suspense fallback={<div className="settings-backdrop"><div className="dialog-loading" role="status">Loading dialogâ€¦</div></div>}>
     {sessionOpen && <SessionManager flows={allFlows} details={details} onLoad={loadSession} onClose={() => setSessionOpen(false)}/>}
     {compareOpen && <FlowCompare flows={allFlows} details={details} onClose={() => setCompareOpen(false)}/>}
     {protocolOpen && <ProtocolPreview onClose={() => setProtocolOpen(false)}/>}
@@ -473,6 +473,6 @@ function App() {
 
 function titleFor(view: View) { return ({ traffic: 'Traffic', api: 'API', rules: 'Rules', history: 'History', devices: 'Devices', tools: 'Toolbox', tracker: 'Tracker', analytics: 'Analytics', environments: 'Environments' })[view]; }
 function iconFor(view: View) { return ({ traffic: <Radio size={15}/>, api: <Code2 size={15}/>, rules: <SlidersHorizontal size={15}/>, history: <History size={15}/>, devices: <Wifi size={15}/>, tools: <Wrench size={15}/>, tracker: <KanbanSquare size={15}/>, analytics: <BarChart3 size={15}/>, environments: <KeyRound size={15}/> })[view]; }
-function RailButton({icon,label,active,onClick,hint}:{icon:ReactNode;label:string;active?:boolean;onClick:()=>void;hint?:string}) { const ui = useUiTranslation(); return <button className={`rail-button ${active ? 'active' : ''}`} title={hint ? `${ui.translate(label)} · ${ui.translate(hint)}` : ui.translate(label)} aria-label={ui.translate(label)} onClick={onClick}>{icon}<span className="rail-label"><UiText text={label}/></span></button>; }
+function RailButton({icon,label,active,onClick,hint}:{icon:ReactNode;label:string;active?:boolean;onClick:()=>void;hint?:string}) { const ui = useUiTranslation(); return <button className={`rail-button ${active ? 'active' : ''}`} title={hint ? `${ui.translate(label)} Â· ${ui.translate(hint)}` : ui.translate(label)} aria-label={ui.translate(label)} onClick={onClick}>{icon}<span className="rail-label"><UiText text={label}/></span></button>; }
 
 export default App;

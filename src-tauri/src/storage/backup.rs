@@ -321,6 +321,9 @@ impl Database {
         )?;
         for entity in manifest.entities {
             tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,?3,?4,1,1,?5,?6)",params![workspace,entity.id,entity.kind,entity.name,serde_json::to_string(&entity.payload)?,now()])?;
+            if entity.kind == "flow" {
+                search::upsert_flow_search(&tx, &workspace, &entity.id, &entity.payload)?;
+            }
         }
         for body in manifest.blobs {
             tx.execute("INSERT INTO blobs(workspace_id,id,sha256,size,mime_type,created_at) VALUES(?1,?2,?3,?4,?5,?6)",params![workspace,body.id,body.sha256,body.size as i64,body.mime_type,now()])?;

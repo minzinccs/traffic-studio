@@ -22,7 +22,7 @@ Stack UI đã chốt, **proxy core chưa chốt**. Chuyển nguyên core ProxyPi
 
 API client, tracker, analytics và dockable layout thuộc lớp sản phẩm của mình; có thể tái sử dụng thư viện/component, không ghép nguyên UI app khác.
 
-**P04 source update — 2026-09-27:** HTTP client trực tiếp dùng Rust reqwest/Tokio qua typed Tauri bridge, độc lập core capture; không cần chờ proxy sidecar để viết client. Có native transport/request/run repositories và preview transport tách rõ. Capture core vẫn chưa chọn; không dùng HTTP client build thành evidence capture hay bỏ core-selection gate. Chi tiết: PHASE_4_5_PROGRESS.md.
+**P04 source update — 2026-09-27:** HTTP client trực tiếp dùng Rust reqwest/Tokio qua typed Tauri bridge, độc lập core capture; không cần chờ proxy sidecar để viết client. Có native transport/request/run repositories và preview transport tách rõ. Capture core vẫn chưa chọn; không dùng HTTP client build thành evidence capture hay bỏ core-selection gate. Chi tiết xem CHANGELOG.md.
 
 ## Gate trước khi nối engine
 
@@ -48,4 +48,4 @@ Frontend đã build được bằng `npm run build`. `tauri info` hiện báo **
 
 ## Execution roadmap — 2026-09-27
 
-Full implementation tracking now lives in APP_IMPLEMENTATION_PLAN.md / APP_ROUTE_MAP.md / APP_TRACKER.json (generated APP_TASKS.md). This adds detailed task dependencies and gates without changing the chosen PC stack or selecting a proxy engine. Windows completion precedes macOS/Linux and Android/iOS/LAN work. Optional cloud inventory gap requires a later explicit scope decision; no cloud/login/listener default is introduced by planning.
+Detailed phase/task tracking docs were removed during release prep; see CHANGELOG.md for history and known limits. This adds no change to the chosen PC stack or proxy engine. Windows completion precedes macOS/Linux and Android/iOS/LAN work. Optional cloud inventory gap requires a later explicit scope decision; no cloud/login/listener default is introduced by planning.

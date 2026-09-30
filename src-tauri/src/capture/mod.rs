@@ -588,6 +588,7 @@ impl Database {
             tx.execute("INSERT INTO blobs(workspace_id,id,sha256,size,mime_type,created_at) VALUES(?1,?2,?3,?4,'application/octet-stream',?5)",params![workspace,body_id,hash,size as i64,now()])?;
         }
         tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,'flow',?3,1,1,?4,?5) ON CONFLICT(workspace_id,id) DO UPDATE SET revision=entities.revision+1,payload=excluded.payload,updated_at=excluded.updated_at",params![workspace,id,if event["type"]=="frame"{"WebSocket frame"}else{"Captured request"},payload,now()])?;
+        crate::storage::search::upsert_flow_search(&tx, workspace, &id, event)?;
         let revision = tx.query_row(
             "SELECT revision FROM entities WHERE workspace_id=?1 AND id=?2",
             params![workspace, id],

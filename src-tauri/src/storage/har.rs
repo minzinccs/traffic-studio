@@ -97,13 +97,14 @@ impl Database {
                 }
             }
             let id = uuid::Uuid::new_v4().to_string();
-            let payload = json_string(
-                &serde_json::json!({"source":"har_import","type":"flow","sessionId":session,"url":url,"method":method,"status":status,"durationMs":duration,"protocol":entry["request"]["httpVersion"],"requestHeaders":entry["request"]["headers"],"responseHeaders":entry["response"]["headers"],"requestBody":body_refs.get("requestBody"),"responseBody":body_refs.get("responseBody"),"harEntry":entry}),
-            )?;
+            let document =
+                serde_json::json!({"source":"har_import","type":"flow","sessionId":session,"url":url,"method":method,"status":status,"durationMs":duration,"protocol":entry["request"]["httpVersion"],"requestHeaders":entry["request"]["headers"],"responseHeaders":entry["response"]["headers"],"requestBody":body_refs.get("requestBody"),"responseBody":body_refs.get("responseBody"),"harEntry":entry});
+            let payload = json_string(&document)?;
             if payload.len() > 1024 * 1024 {
                 return Err(ApiError::new("quota", "HAR entry metadata exceeds 1 MiB."));
             }
             tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,'flow','Imported HAR request',1,1,?3,?4)",params![workspace,id,payload,now()])?;
+            crate::storage::search::upsert_flow_search(&tx, workspace, &id, &document)?;
             tx.execute("INSERT INTO entity_links(workspace_id,from_id,to_id,relation) VALUES(?1,?2,?3,'session')",params![workspace,id,session])?;
         }
         tx.commit()?;

@@ -64,6 +64,9 @@ impl Database {
             let timestamp = now();
             let payload = serde_json::to_string(&item.payload)?;
             tx.execute("INSERT INTO entities(workspace_id,id,kind,name,schema_version,revision,payload,updated_at) VALUES(?1,?2,?3,?4,1,?5,?6,?7) ON CONFLICT(workspace_id,id) DO UPDATE SET name=excluded.name,revision=excluded.revision,payload=excluded.payload,updated_at=excluded.updated_at",params![input.workspace_id,item.id,item.kind,item.name,revision,payload,timestamp])?;
+            if item.kind == "flow" {
+                search::upsert_flow_search(&tx, &input.workspace_id, &item.id, &item.payload)?;
+            }
             if item.kind == "tracker_item" {
                 tx.execute("DELETE FROM entity_links WHERE workspace_id=?1 AND from_id=?2 AND relation='tracker_flow'",params![input.workspace_id,item.id])?;
                 if let Some(links) = item.payload.get("flowIds") {
