@@ -1,18 +1,53 @@
-.select-field { display:inline-flex; align-items:center; justify-content:space-between; gap:12px; min-width:100px; max-width:100%; min-height:32px; padding:5px 9px; border:1px solid #5a5e61; border-radius:5px; background:#34383a; color:#e9ecee; font:inherit; text-align:left; cursor:pointer; }
-.select-field > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.select-field svg { flex:none; color:#adb6ba; transition:transform .14s ease; }
-.select-field[aria-expanded=true] { border-color:#e0ac60; box-shadow:0 0 0 1px #e0ac6040; }
-.select-field[aria-expanded=true] > svg { transform:rotate(180deg); }
-.select-field:hover:not(:disabled) { border-color:#c49755; background:#3e4244; }
-.select-field:focus-visible, .select-field-menu button:focus-visible { outline:2px solid #eab35b; outline-offset:2px; }
+/* Listbox-style shared picker: rounded trigger with ChevronsUpDown, popup with left check + active highlight. */
+/* Dark tokens default to Mine Shaft palette vars; light overrides below. No demo orange introduced. */
+.select-field { display:inline-flex; align-items:center; justify-content:space-between; gap:6px; min-width:90px; max-width:100%; min-height:28px; padding:4px 8px; border:1px solid var(--border, #464646); border-radius:8px; background:var(--surface-2, #363636); color:var(--text, #e9e9e9); font-size:12px; text-align:left; cursor:pointer; transition:border-color .16s ease, background-color .16s ease, box-shadow .16s ease; }
+.select-field-value { min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
+.select-field-chevrons { flex:none; color:var(--muted, #aaa); }
+.select-field[aria-expanded=true] { border-color:var(--amber, #dfa73d); box-shadow:0 0 0 1px color-mix(in srgb, var(--amber, #dfa73d) 35%, transparent); }
+.select-field[aria-expanded=true] .select-field-chevrons { color:var(--amber, #dfa73d); }
+.select-field:hover:not(:disabled) { border-color:var(--amber, #dfa73d); background:var(--surface-3, #3d3d3d); }
+.select-field:focus-visible { outline:2px solid var(--amber, #dfa73d); outline-offset:2px; }
 .select-field:disabled { opacity:.48; cursor:not-allowed; }
-.select-field-menu { position:fixed; z-index:1000; overflow:auto; padding:4px; border:1px solid #656b6e; border-radius:7px; background:#303436; color:#edf0f1; box-shadow:0 16px 38px #0009; }
-.select-field-menu button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:32px; padding:6px 8px; border:0; border-radius:4px; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
-.select-field-menu button span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.select-field-menu button:hover:not(:disabled), .select-field-menu button:focus-visible { background:#45413a; color:#ffd391; }
-.select-field-menu button[aria-selected=true] { color:#ffd391; background:#514735; }
+.select-field-menu { position:fixed; z-index:1000; overflow:auto; padding:4px; border:1px solid var(--border, #464646); border-radius:8px; background:var(--surface, #303030); color:var(--text, #e9e9e9); box-shadow:0 16px 38px #0009; }
+.select-field-menu button { display:flex; align-items:center; gap:8px; width:100%; min-height:30px; padding:5px 8px; border:0; border-radius:6px; background:transparent; color:inherit; font-size:12px; text-align:left; cursor:pointer; }
+.select-field-check { flex:none; display:grid; place-items:center; width:16px; height:16px; color:var(--amber, #dfa73d); }
+.select-field-check svg { display:block; }
+.select-field-label { min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.select-field-menu button.is-active:not([aria-selected=true]):not(:disabled), .select-field-menu button:hover:not(:disabled):not([aria-selected=true]), .select-field-menu button:focus-visible:not([aria-selected=true]) { background:var(--surface-3, #3d3d3d); color:#fff; outline:none; }
+.select-field-menu button:focus-visible { outline:2px solid var(--amber, #dfa73d); outline-offset:-2px; }
+.select-field-menu button[aria-selected=true] { background:#4a4030; color:#f0cb82; font-weight:600; }
+.select-field-menu button[aria-selected=true].is-active, .select-field-menu button[aria-selected=true]:hover:not(:disabled), .select-field-menu button[aria-selected=true]:focus-visible { background:#514735; color:#ffd391; outline:none; }
+.select-field-menu button[aria-selected=true]:focus-visible { outline:none; }
 .select-field-menu button:disabled { opacity:.4; cursor:not-allowed; }
+/* Method picker variant used inside the API request bar: borderless Listbox trigger filling bar height. */
+.select-field.method-select { min-width:0; width:112px; flex:none; align-self:stretch; min-height:44px; border:0; border-right:1px solid var(--border, #464646); border-radius:0; background:transparent; color:#9cccdf; font-family:'JetBrains Mono', Consolas, monospace; font-size:11px; font-weight:700; letter-spacing:.04em; }
+.select-field.method-select:hover:not(:disabled) { background:var(--surface-3, #3d3d3d); border-color:var(--border, #464646); }
+/* HTTP method colors: trigger text + popup options (selected row keeps its own highlight). */
+.select-field.method-select.method-get { color:#6fbf8f; }
+.select-field.method-select.method-post { color:#dfa73d; }
+.select-field.method-select.method-put { color:#5aa9e6; }
+.select-field.method-select.method-patch { color:#b085f5; }
+.select-field.method-select.method-delete { color:#e57373; }
+.select-field.method-select.method-head, .select-field.method-select.method-options { color:#9aa0a6; }
+.select-field-menu button.method-get:not([aria-selected=true]) .select-field-label { color:#6fbf8f; }
+.select-field-menu button.method-post:not([aria-selected=true]) .select-field-label { color:#dfa73d; }
+.select-field-menu button.method-put:not([aria-selected=true]) .select-field-label { color:#5aa9e6; }
+.select-field-menu button.method-patch:not([aria-selected=true]) .select-field-label { color:#b085f5; }
+.select-field-menu button.method-delete:not([aria-selected=true]) .select-field-label { color:#e57373; }
+.select-field-menu button.method-head:not([aria-selected=true]) .select-field-label, .select-field-menu button.method-options:not([aria-selected=true]) .select-field-label { color:#9aa0a6; }
 .app-shell[data-theme=light] .select-field { background:#f8f9fa; color:#25282a; border-color:#aeb5b9; }
+.app-shell[data-theme=light] .select-field:hover:not(:disabled) { background:#eef0f1; border-color:#9b6e2c; }
+.app-shell[data-theme=light] .select-field-chevrons { color:#647178; }
+.app-shell[data-theme=light] .select-field[aria-expanded=true] .select-field-chevrons { color:#9b6e2c; }
 .select-field-menu.light { background:#fff; color:#25282a; border-color:#adb5b9; box-shadow:0 12px 30px #0003; }
-.select-field-menu.light button:hover:not(:disabled), .select-field-menu.light button[aria-selected=true] { background:#f6e9d2; color:#744916; }
-@media (prefers-reduced-motion:reduce) { .select-field svg { transition:none; } }
+.select-field-menu.light button.is-active:not([aria-selected=true]):not(:disabled), .select-field-menu.light button:hover:not(:disabled):not([aria-selected=true]) { background:#ececec; color:#222; }
+.select-field-menu.light button[aria-selected=true] { background:#f6e9d2; color:#744916; }
+.select-field-menu.light button[aria-selected=true].is-active, .select-field-menu.light button[aria-selected=true]:hover:not(:disabled) { background:#f0dcbb; color:#744916; }
+.app-shell[data-theme=light] .select-field.method-select { border-color:#ccc; background:transparent; }
+.app-shell[data-theme=light] .select-field.method-select.method-get, .select-field-menu.light button.method-get:not([aria-selected=true]) .select-field-label { color:#2e7d4f; }
+.app-shell[data-theme=light] .select-field.method-select.method-post, .select-field-menu.light button.method-post:not([aria-selected=true]) .select-field-label { color:#9b6e2c; }
+.app-shell[data-theme=light] .select-field.method-select.method-put, .select-field-menu.light button.method-put:not([aria-selected=true]) .select-field-label { color:#1f6fb5; }
+.app-shell[data-theme=light] .select-field.method-select.method-patch, .select-field-menu.light button.method-patch:not([aria-selected=true]) .select-field-label { color:#7a4fc4; }
+.app-shell[data-theme=light] .select-field.method-select.method-delete, .select-field-menu.light button.method-delete:not([aria-selected=true]) .select-field-label { color:#c0392b; }
+.app-shell[data-theme=light] .select-field.method-select.method-head, .app-shell[data-theme=light] .select-field.method-select.method-options, .select-field-menu.light button.method-head:not([aria-selected=true]) .select-field-label, .select-field-menu.light button.method-options:not([aria-selected=true]) .select-field-label { color:#5f6b72; }
+@media (prefers-reduced-motion:reduce) { .select-field { transition:none; } }
