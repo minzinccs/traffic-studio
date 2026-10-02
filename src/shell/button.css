@@ -1,0 +1,34 @@
+/* Shared shadcn-style outline button adapted to the Mine Shaft dark theme. */
+/* Dark tokens default to palette vars; light overrides below. No demo orange introduced. */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:28px; padding:4px 12px; border:1px solid var(--border, #464646); border-radius:8px; background:transparent; color:var(--text, #e9e9e9); font-size:12px; font-weight:500; line-height:1.4; white-space:nowrap; cursor:pointer; transition:border-color .16s ease, background-color .16s ease, box-shadow .16s ease, color .16s ease; }
+.btn svg { flex:none; }
+.btn:hover:not(:disabled) { border-color:var(--amber, #dfa73d); background:var(--surface-2, #363636); }
+.btn:focus-visible { outline:2px solid var(--amber, #dfa73d); outline-offset:2px; }
+.btn:disabled { opacity:.48; cursor:not-allowed; }
+.btn kbd { padding:1px 5px; border:1px solid var(--border, #464646); border-radius:4px; background:var(--surface, #303030); color:var(--muted, #aaa); font-family:'JetBrains Mono', Consolas, monospace; font-size:10px; }
+/* Filled accent action (replaces legacy .primary-action / .record-button / .session-primary). */
+.btn-default { background:var(--surface-3, #3d3d3d); border-color:#69614f; color:#f0cb82; }
+.btn-default:hover:not(:disabled) { background:#45413a; border-color:var(--amber, #dfa73d); color:#ffe0a3; }
+.btn-default kbd { color:#c7b58f; background:var(--surface, #303030); border-color:#69614f; }
+/* Recording state (capture toolbar): dark idle surface with amber text while running. */
+.btn-default.is-recording { background:#303030; border-color:#69614f; color:#efba65; }
+/* Quiet action without a border (replaces text-only buttons). */
+.btn-ghost { border-color:transparent; background:transparent; color:var(--muted, #aaa); }
+.btn-ghost:hover:not(:disabled) { border-color:transparent; background:var(--surface-3, #3d3d3d); color:var(--text, #e9e9e9); }
+/* Destructive action. */
+.btn-danger { border-color:#6e4a4a; color:#e8a0a0; }
+.btn-danger:hover:not(:disabled) { border-color:#e57373; background:#463333; color:#ffc9c9; }
+/* Sizes. */
+.btn-sm { min-height:24px; padding:2px 8px; font-size:11px; border-radius:6px; }
+.btn-icon { min-width:28px; width:28px; height:28px; min-height:28px; padding:0; }
+.app-shell[data-theme=light] .btn { background:#f8f9fa; color:#25282a; border-color:#aeb5b9; }
+.app-shell[data-theme=light] .btn:hover:not(:disabled) { background:#eef0f1; border-color:#9b6e2c; }
+.app-shell[data-theme=light] .btn kbd { background:#ececec; color:#647178; border-color:#aeb5b9; }
+.app-shell[data-theme=light] .btn-default { background:#f6e9d2; border-color:#c9a45c; color:#744916; }
+.app-shell[data-theme=light] .btn-default:hover:not(:disabled) { background:#f0dcbb; border-color:#9b6e2c; color:#744916; }
+.app-shell[data-theme=light] .btn-default.is-recording { background:#e8e2d4; border-color:#c9a45c; color:#744916; }
+.app-shell[data-theme=light] .btn-ghost { background:transparent; border-color:transparent; color:#5f6b72; }
+.app-shell[data-theme=light] .btn-ghost:hover:not(:disabled) { background:#ececec; border-color:transparent; color:#222; }
+.app-shell[data-theme=light] .btn-danger { background:#f8f9fa; border-color:#c98a8a; color:#a93226; }
+.app-shell[data-theme=light] .btn-danger:hover:not(:disabled) { background:#f7e3e1; border-color:#c0392b; color:#a93226; }
+@media (prefers-reduced-motion:reduce) { .btn { transition:none; } }
