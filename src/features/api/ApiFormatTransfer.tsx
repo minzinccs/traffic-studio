@@ -4,6 +4,7 @@ import { bridge,bridgeError } from '../../bridge';
 import type { WorkspaceRecord } from '../../domain/workspace';
 import { collectionDocuments } from './nativeDocuments';
 import { SelectField } from '../../shell/SelectField';
+import { Button } from '../../shell/Button';
 import { importPostman,importOpenApi,exportPostman,type ImportPreview } from './adapters';
 import { readCollections,writeCollections } from './collections';
 export function ApiFormatTransfer(){
@@ -21,10 +22,10 @@ export function ApiFormatTransfer(){
   return <details className="api-format-transfer" aria-label="API format adapters"><summary>Postman / OpenAPI import and export</summary><p>JSON import is a reviewed conversion into request drafts. No URL is fetched and imported scripts never execute. Credentials/file paths are excluded; review bodies and URLs for private data.</p>
     <SelectField label="API import format" value={format} disabled={busy} onChange={value=>{setFormat(value);setPreview(null);}} options={['Postman v2.1 JSON','OpenAPI 3.0/3.1 JSON'].map(v=>({value:v,label:v}))}/>
     <textarea aria-label="API format JSON" disabled={busy} value={text} onChange={e=>{setText(e.target.value);setPreview(null);}}/>
-    <button disabled={busy||!text} onClick={validate}>Preview conversion</button><button disabled={busy} onClick={()=>{try{setText(JSON.stringify(exportPostman(readCollections()),null,2));setFormat('Postman v2.1 JSON');setPreview(null);setError('Postman export prepared from browser Collections; auth/scripts/native-only options excluded.');}catch(e){setError(bridgeError(e).message);}}}>Prepare Postman export</button>
+    <Button size="sm" disabled={busy||!text} onClick={validate}>Preview conversion</Button><Button size="sm" disabled={busy} onClick={()=>{try{setText(JSON.stringify(exportPostman(readCollections()),null,2));setFormat('Postman v2.1 JSON');setPreview(null);setError('Postman export prepared from browser Collections; auth/scripts/native-only options excluded.');}catch(e){setError(bridgeError(e).message);}}}>Prepare Postman export</Button>
     <SelectField label="Import storage target" disabled={busy} value={target} onChange={value=>setTarget(value as 'browser'|'native')} options={[{value:'browser',label:'Browser Collections'},{value:'native',label:'Native SQLite repository',disabled:!isTauri()}]}/>
     {target==='native'&&<SelectField label="API import native workspace" disabled={busy} value={workspaceId} onChange={setWorkspaceId} options={[{value:'',label:'Select workspace'},...workspaces.map(row=>({value:row.id,label:row.name}))]}/>}
-    {preview&&<><p>{preview.format}: {preview.collections.length} folders · {preview.collections.reduce((sum,c)=>sum+c.profiles.length,0)} requests</p><ul>{preview.warnings.map((message,index)=><li key={index}>{message}</li>)}</ul><details><summary>Converted folders and requests</summary><ul>{preview.collections.map(c=><li key={c.id}>{c.name}<ul>{c.profiles.map(p=><li key={p.id}>{p.method} {p.name} · {p.url}</li>)}</ul></li>)}</ul></details><button disabled={busy||(target==='native'&&!workspaceId)} onClick={()=>void apply()}>Import reviewed drafts</button></>}
+    {preview&&<><p>{preview.format}: {preview.collections.length} folders · {preview.collections.reduce((sum,c)=>sum+c.profiles.length,0)} requests</p><ul>{preview.warnings.map((message,index)=><li key={index}>{message}</li>)}</ul><details><summary>Converted folders and requests</summary><ul>{preview.collections.map(c=><li key={c.id}>{c.name}<ul>{c.profiles.map(p=><li key={p.id}>{p.method} {p.name} · {p.url}</li>)}</ul></li>)}</ul></details><Button size="sm" disabled={busy||(target==='native'&&!workspaceId)} onClick={()=>void apply()}>Import reviewed drafts</Button></>}
     {error&&<p role="status">{error}</p>}
   </details>;
 }
