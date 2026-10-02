@@ -2,6 +2,7 @@ import { Globe2, HardDrive, Search, Wifi } from 'lucide-react';
 import {isTauri} from '@tauri-apps/api/core';
 import {NativeLanPanel} from './NativeLanPanel';
 import { PageHead, DemoNote } from '../../shell/PageChrome';
+import { Button } from '../../shell/Button';
 import { availableDevices, connectedDevices, hostDevice, pairingNote } from './devices';
 import './devicesView.css';
 
@@ -23,7 +24,7 @@ export function DevicesView({ selected, onSelect, onPairing }: {
       kicker="LOCAL NETWORK"
       title="Devices"
       description="Prepare a secure connection between this PC and future mobile companions."
-      action={isTauri()?<button className="primary-action" onClick={()=>document.querySelector('.native-lan')?.scrollIntoView({behavior:'smooth'})}><Wifi size={16}/> LAN sharing</button>:<button className="primary-action" onClick={onPairing} title="Pairing draft only; no LAN connection"><Wifi size={16}/> Pairing details</button>}
+      action={isTauri()?<Button variant="default" onClick={()=>document.querySelector('.native-lan')?.scrollIntoView({behavior:'smooth'})}><Wifi size={16}/> LAN sharing</Button>:<Button variant="default" onClick={onPairing} title="Pairing draft only; no LAN connection"><Wifi size={16}/> Pairing details</Button>}
     />
     <div className="device-grid">
       <button className={`device-card host ${selected === hostDevice.id ? 'selected' : ''}`} onClick={() => onSelect(hostDevice.id)} aria-pressed={selected === hostDevice.id}>
@@ -57,7 +58,7 @@ export function DevicesView({ selected, onSelect, onPairing }: {
       </div>
       : <div className="device-detail empty"><div className="panel-kicker">SELECTED DEVICE</div><p>Select the host device to see its connection detail.</p></div>}
 
-    <div className="device-learn"><button className="outline-button" onClick={onPairing}><Search size={15}/> Learn about pairing</button></div>
+    <div className="device-learn"><Button onClick={onPairing}><Search size={15}/> Learn about pairing</Button></div>
     {!isTauri()&&<DemoNote>{pairingNote}</DemoNote>}
   </div>;
 }

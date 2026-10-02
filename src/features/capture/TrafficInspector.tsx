@@ -1,4 +1,5 @@
 import { UiText } from '../localization';
+import { Button } from '../../shell/Button';
 import { useEffect, useState } from 'react';
 import { ArrowDownToLine, X } from 'lucide-react';
 import type { Flow, FlowDetail } from '../../domain/types';
@@ -82,8 +83,8 @@ export function TrafficInspector({ flow, onClose, flash, detailOverride, onExpor
         <MessagePane dataLabel={detailOverride?'LOCAL PREVIEW':'SAMPLE'} key={`${flow.id}-response`} label="Response" raw={responseRaw} headers={detail.responseHeaders} body={detail.responseBody ?? ''} bodyBase64={detail.responseBodyBase64} mimeType={flow.type.split(';')[0].trim()} initial={tab} flash={flash}/>
       </>}
       {detail && tab==='cookies' && <><div className="detail-label">COOKIE HEADERS · PREVIEW</div>{[...detail.requestHeaders,...detail.responseHeaders].filter(h=>/^(cookie|set-cookie)$/i.test(h.key)).length ? [...detail.requestHeaders,...detail.responseHeaders].filter(h=>/^(cookie|set-cookie)$/i.test(h.key)).map((h,i)=><div className="kv-row" key={i}><span className="kv-key">{h.key}</span><span className="kv-val">{h.value}</span></div>):<p className="no-results">No cookie headers recorded. Credential headers are excluded from local HAR/session saves.</p>}</>}
-      {tab==='tls'&&<><div className="detail-label">TLS / CERTIFICATE</div><p>Scheme: {flow.scheme??'Unknown'}</p><p className="no-results">TLS version, cipher, certificate chain and fingerprint are unavailable in this fixture. No certificate or trust status is inferred.</p><button className="outline-button" onClick={onCertificate}>Certificate configuration preview</button></>}
-      {(tab==='frames'||tab==='events')&&<><p className="no-results">No {tab==='frames'?'WebSocket frames':'SSE events'} recorded for this preview flow.</p><button className="outline-button" onClick={onProtocols}>Open WebSocket / SSE mock</button></>}
+      {tab==='tls'&&<><div className="detail-label">TLS / CERTIFICATE</div><p>Scheme: {flow.scheme??'Unknown'}</p><p className="no-results">TLS version, cipher, certificate chain and fingerprint are unavailable in this fixture. No certificate or trust status is inferred.</p><Button onClick={onCertificate}>Certificate configuration preview</Button></>}
+      {(tab==='frames'||tab==='events')&&<><p className="no-results">No {tab==='frames'?'WebSocket frames':'SSE events'} recorded for this preview flow.</p><Button onClick={onProtocols}>Open WebSocket / SSE mock</Button></>}
       {tab==='trace'&&<><div className="detail-label">INTERCEPTOR TRACE / CONSOLE / TRAILERS</div><p className="no-results">No execution trace, script logs, early hints or trailers in this fixture. Rule scripts are drafts and are never executed.</p></>}
       {detail && tab === 'timeline'  && <>
         <div className="detail-label">WATERFALL</div>
@@ -97,7 +98,7 @@ export function TrafficInspector({ flow, onClose, flash, detailOverride, onExpor
         <div className="detail-label section-gap">TOTAL</div>
         <div className="timeline-total">{total} ms</div>
         <div className="detail-label section-gap">EXPORT</div>
-        <button className="outline-button" onClick={onExport} disabled={!onExport} title="Export local preview data"><ArrowDownToLine size={15}/> Export as HAR</button>
+        <Button onClick={onExport} disabled={!onExport} title="Export local preview data"><ArrowDownToLine size={15}/> Export as HAR</Button>
       </>}
     </div>
   </aside></div>;
