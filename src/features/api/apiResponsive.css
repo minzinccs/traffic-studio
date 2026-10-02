@@ -39,9 +39,10 @@
 
 @container api-view (max-width: 480px) {
   .api-view .request-compose { flex-wrap: wrap; height: auto; overflow: visible; border: 0; background: transparent; gap: 6px; }
-  .api-view .request-compose .method-select { flex: 0 0 96px; height: 38px; border: 1px solid #4a4a4a; border-radius: 5px; }
+  .api-view .request-send-row { flex-wrap: wrap; }
+  .api-view .request-send-row .request-compose { flex: 1 1 100%; }
+  .api-view .request-send { flex: 1 1 100%; min-height: 38px; }
   .api-view .request-compose > input { flex: 1 1 calc(100% - 102px); height: 38px; border: 1px solid #4a4a4a; border-radius: 5px; background: #303030; }
-  .api-view .request-compose > .primary-action { flex: 1 1 100%; height: 38px; border-radius: 5px; }
   .api-view .request-tabs { gap: 12px; }
   .api-view .api-preview-controls > span { flex-basis: 100%; }
 }

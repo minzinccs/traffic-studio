@@ -25,7 +25,7 @@ Windows desktop app first. The current code is a **UI shell** and does not captu
 | Amber | `#dfa73d` | Focus and small accents |
 | Mint | `#6ec78c` | Live/healthy status |
 
-Base grid uses 4 px units. Menu height 44 px, navigation rail 58 px, capture toolbar 79 px, tab strip 47 px, status bar 29 px. Corners: 5–9 px for controls; 11 px for dialogs.
+Base grid uses 4 px units. Menu height 44 px, navigation rail 58 px, capture toolbar 79 px, tab strip 33 px, status bar 29 px. Corners: 5–9 px for controls; 11 px for dialogs.
 
 ## Layout hierarchy
 

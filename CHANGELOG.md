@@ -6,6 +6,13 @@ history below is condensed to product-relevant milestones.
 
 ## [Unreleased]
 
+### Changed
+- API workspace slide timing: workspace-tab slide 0.68s (680ms),
+  request-tab slide 0.64s (640ms); the two levels animate independently.
+- Workspace tab strip 47px → 33px; pane preset moved into the `...` panel menu.
+- Request tabs use a square underline hugging the label; Fast Refresh
+  no longer invalidates on `KeyValueGrid` / `RequestBodyEditor` edits.
+
 ### Added
 - Native flow full-text search: SQLite FTS5 `flow_search` index maintained by
   triggers, `flow_search` IPC command + typed bridge contract, native capture

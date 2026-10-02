@@ -83,6 +83,7 @@ export const vietnamese: Readonly<Record<string,string>> = {
   "New environment": "Môi trường mới",
   "Add variable": "Thêm biến",
   "No response yet": "Chưa có phản hồi",
+  "Request has not been sent yet": "Chưa gửi yêu cầu",
   "No body": "Không có nội dung",
   "Import cURL": "Nhập cURL",
   "Format JSON": "Định dạng JSON",

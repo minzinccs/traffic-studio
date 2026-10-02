@@ -5,9 +5,7 @@
 .rules-toolbar .search-field { flex:0 1 360px; }
 .rules-toolbar .rules-type-filter { flex:0 1 220px; height:38px; }
 .rules-toolbar > .outline-button { margin-left:auto; }
-.rules-layout .detail-panel > label > .select-field { width:100%; min-height:38px; }
 .rules-layout .detail-panel > label.rule-enabled { flex-direction:row; align-items:center; gap:9px; margin:17px 0; color:#c4cbd0; }
 .rules-layout .rule-enabled input[type=checkbox] { flex:none; width:16px; height:16px; margin:0; accent-color:#eab35b; }
-.rule-test .select-field { min-width:120px; min-height:36px; }
 @media(max-width:700px){.rules-toolbar .search-field{flex:1 1 240px}.rules-toolbar .rules-type-filter{flex:1 1 120px}.rules-toolbar>.outline-button{margin-left:0}}
 @media(max-width:700px){.rules-layout .detail-panel{min-width:0;padding:14px}.rules-layout .detail-panel :is(input:not([type=checkbox]),select,textarea){min-width:0;max-width:100%;width:100%}.rule-action-fields label{flex-wrap:wrap}.rule-action-fields input{max-width:100%}.rules-layout .item-panel{max-height:190px;overflow:auto}}

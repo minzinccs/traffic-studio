@@ -2,8 +2,9 @@ import { UiText } from '../localization';
 import { Button } from '../../shell/Button';
 import { SelectField } from '../../shell/SelectField';
 import { useState } from 'react';
-import { KeyValueGrid, type EditablePair } from './KeyValueGrid';
-export const bodyModes = ['None','Text','JSON','XML','Form URL encoded','Multipart draft','Binary file'] as const;
+import { KeyValueGrid } from './KeyValueGrid';
+import type { EditablePair } from './pairs';
+import { bodyModes } from './bodyModes';
 function readForm(body:string):EditablePair[]{try{const value=JSON.parse(body);if(Array.isArray(value)&&value.every(row=>row&&typeof row.key==='string'&&typeof row.value==='string'&&typeof row.enabled==='boolean'))return value.map((row,i)=>({...row,id:row.id??i+1}));}catch{/* Preserve original body when switching modes. */}return[];}
 export function RequestBodyEditor({body,mode,onChange,file,onFile,native=false}:{body:string;mode:string;onChange:(patch:{body?:string;bodyMode?:string})=>void;file:File|null;onFile:(file:File|null)=>void;native?:boolean}){
   const [error,setError]=useState('');

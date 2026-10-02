@@ -18,7 +18,7 @@
 .inspector-shell, .collection-editor, .menu-popover, .traffic-column-menu, .traffic-row-menu {
   animation: detail-enter 160ms ease-out both;
 }
-.inspector-body, .pair-editor, .mock-resp, .tool-main {
+.inspector-body, .mock-resp, .tool-main {
   animation: detail-enter 170ms ease-out both;
 }
 .traffic-grid-row:nth-child(-n+13) { animation: detail-enter 160ms ease-out both; }
