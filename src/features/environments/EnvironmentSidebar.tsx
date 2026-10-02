@@ -1,4 +1,5 @@
 import { UiText } from '../localization';
+import { Button } from '../../shell/Button';
 import { Globe2, Info, KeyRound, Plus } from 'lucide-react';
 import { useEnvironments } from './environments';
 import './environmentSidebar.css';
@@ -18,7 +19,7 @@ export function EnvironmentSidebar({ active, onActive }: { active: string; onAct
 
   return <aside className="explorer-sidebar" aria-label="Environment sidebar">
     <div className="explorer-title"><span>ENVIRONMENT · LOCAL</span><Globe2 size={15}/></div>
-    <div className="env-sidebar-actions"><button className="env-add" onClick={add}><Plus size={14}/> <UiText text={"New environment"}/></button></div>
+    <div className="env-sidebar-actions"><Button className="env-add" onClick={add}><Plus size={14}/> <UiText text={"New environment"}/></Button></div>
     <div className="env-scroll">
       {names.map((name) => <button
         key={name}

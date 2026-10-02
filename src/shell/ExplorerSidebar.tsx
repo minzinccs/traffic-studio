@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileJson2 } from 'lucide-react';
+import { Button } from './Button';
 import type { Flow, View } from '../domain/types';
 import { CollectionExplorer } from '../features/api/CollectionExplorer';
 import { TrafficExplorer } from '../features/capture/TrafficExplorer';
@@ -12,5 +13,5 @@ export function SetupFileView({ node }: { node: Pick<ExplorerNode, 'id' | 'name'
   const [content, setContent] = useState(() => localStorage.getItem(key) ?? '{\n  "baseUrl": "https://api.example.com"\n}');
   const [message, setMessage] = useState('Local draft');
   const save = () => { try { JSON.parse(content); localStorage.setItem(key, content); setMessage('Saved locally'); } catch { setMessage('Invalid JSON — fix it before saving'); } };
-  return <div className="setup-view"><div className="setup-header"><div><span className="eyebrow">WORKSPACE SETUP FILE</span><h1><FileJson2 size={21}/>{node.name}</h1><p>Editable JSON file stored in this browser profile. This is a UI draft, not a filesystem file.</p></div><button className="primary-action" onClick={save}>Save file</button></div><div className="setup-editor-head"><span>JSON EDITOR</span><span>{message}</span></div><textarea spellCheck={false} aria-label="Setup file content" value={content} onChange={(event) => { setContent(event.target.value); setMessage('Unsaved changes'); }}/></div>;
+  return <div className="setup-view"><div className="setup-header"><div><span className="eyebrow">WORKSPACE SETUP FILE</span><h1><FileJson2 size={21}/>{node.name}</h1><p>Editable JSON file stored in this browser profile. This is a UI draft, not a filesystem file.</p></div><Button variant="default" onClick={save}>Save file</Button></div><div className="setup-editor-head"><span>JSON EDITOR</span><span>{message}</span></div><textarea spellCheck={false} aria-label="Setup file content" value={content} onChange={(event) => { setContent(event.target.value); setMessage('Unsaved changes'); }}/></div>;
 }
