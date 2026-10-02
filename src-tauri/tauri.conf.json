@@ -22,5 +22,12 @@
     ],
     "security": { "csp": null }
   },
-  "bundle": { "active": false }
+  "bundle": {
+    "active": true,
+    "targets": ["msi"],
+    "category": "DeveloperTool",
+    "publisher": "Traffic Studio",
+    "icon": ["icons/icon.ico"],
+    "shortDescription": "Local-first HTTP(S) traffic capture and analysis for Windows"
+  }
 }

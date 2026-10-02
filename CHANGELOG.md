@@ -39,8 +39,11 @@ history below is condensed to product-relevant milestones.
   executable; native CDP driver: 11 rail screens, 0 console problems,
   0 overflow, 0 zero-size controls; native Settings/History copy verified
   on screenshots (evidence under `.runtime/uitest/`, git-ignored).
-- Remaining before installer: clean-machine install/upgrade/uninstall, MSI,
-  code signing, 100k-flow soak, full parity audit.
+- Remaining before installer: clean-machine install/upgrade/uninstall test,
+  code signing, 100k-flow soak, full parity audit. MSI now builds locally
+  (`tauri build --bundles msi`, WiX 3.14, bundle enabled in
+  `src-tauri/tauri.conf.json` 2026-10-01: `Traffic Studio_0.1.0_x64_en-US.msi`
+  ~7 MB, unsigned); NSIS target and signed installer remain open.
 
 ## [0.1.0] — 2026-09-29 — local-first native foundation (pre-release)
 
