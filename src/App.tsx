@@ -48,9 +48,9 @@ import './shell/splitPane.css';
 import {
   Activity, BarChart3, Bell, Check,
   ChevronDown, CircleAlert, CircleHelp, Code2,
-  Filter, FolderOpen, Globe2, History, Info, KanbanSquare, Keyboard,
+  Filter, Globe2, History, Info, KanbanSquare, Keyboard,
   Layers, Maximize2, PanelLeftClose,
-  Pause, Play, Plus, Radio, Search, Settings2, ShieldCheck, SlidersHorizontal, KeyRound,
+  Pause, Pencil, Play, Radio, RotateCw, Search, Settings2, ShieldCheck, SlidersHorizontal, KeyRound,
   Trash2, Wifi, Wrench,
 } from 'lucide-react';
 
@@ -59,7 +59,8 @@ const NativeWorkbench = lazy(() => import('./features/layout/NativeWorkbench').t
 const NativeTrackerView = lazy(() => import('./features/tracker/NativeTrackerView').then(module => ({ default: module.NativeTrackerView })));
 const NativeAnalyticsView = lazy(() => import('./features/analytics/NativeAnalyticsView').then(module => ({ default: module.NativeAnalyticsView })));
 const NativeRulesView = lazy(() => import('./features/rules/NativeRulesView').then(module => ({ default: module.NativeRulesView })));
-const NativeCaptureWorkspace = lazy(() => import('./features/capture/NativeCaptureWorkspace').then(module => ({ default: module.NativeCaptureWorkspace })));
+const NativeTrafficView = lazy(() => import('./features/capture/NativeTrafficView').then(module => ({ default: module.NativeTrafficView })));
+const CaptureSetupDialog = lazy(() => import('./features/capture/CaptureSetupDialog').then(module => ({ default: module.CaptureSetupDialog })));
 const HistoryView = lazy(() => import('./features/history/HistoryView').then(module => ({ default: module.HistoryView })));
 const ToolboxView = lazy(() => import('./features/tools/ToolboxView').then(module => ({ default: module.ToolboxView })));
 const RulesView = lazy(() => import('./features/rules').then(module => ({ default: module.RulesView })));
@@ -97,6 +98,8 @@ function App() {
   const [layoutOpen, setLayoutOpen] = useState(false);
   const [direction, setDirection] = useState<'horizontal' | 'vertical'>(() => localStorage.getItem('traffic-studio-layout-direction') === 'vertical' ? 'vertical' : 'horizontal');
   useEffect(() => { localStorage.setItem('traffic-studio-layout-direction', direction); }, [direction]);
+  const [trafficDirection, setTrafficDirection] = useState<'horizontal' | 'vertical'>(() => localStorage.getItem('traffic-studio-traffic-direction') === 'vertical' ? 'vertical' : 'horizontal');
+  useEffect(() => { localStorage.setItem('traffic-studio-traffic-direction', trafficDirection); }, [trafficDirection]);
   const apiWorkspaceRef = useRef<HTMLDivElement>(null);
   const [compactApi, setCompactApi] = useState(false);
   const [annotationRevision,setAnnotationRevision]=useState(0);
@@ -107,6 +110,11 @@ function App() {
   const [sessionName, setSessionName] = useState('Sample traffic');
   const [sessionOpen, setSessionOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
+  useEffect(() => {
+    const openSessions = () => setSessionOpen(true);
+    window.addEventListener('traffic-studio-open-sessions', openSessions);
+    return () => window.removeEventListener('traffic-studio-open-sessions', openSessions);
+  }, []);
   const savedSession = readSession();
   const [tabs, setTabs] = useState<Tab[]>(savedSession?.tabs ?? [{ id: 1, label: 'Traffic', view: 'traffic' }]);
   const nextTabId = useRef(Math.max(...(savedSession?.tabs ?? [{ id: 1 }]).map((tab) => tab.id)) + 1);
@@ -138,10 +146,17 @@ function App() {
   const captureTimer=useRef<number|undefined>(undefined);
   useEffect(()=>()=>window.clearTimeout(captureTimer.current),[]);
   const [recording, setRecording] = useState(false);
+  const [statusTick, setStatusTick] = useState(0);
   const [endpoint, setEndpoint] = useState(`${prefs.proxy.host}:${prefs.proxy.port}`);
-  useEffect(()=>{if(!isTauri())return;let alive=true;const update=()=>void nativeBridge.command('capture_status',undefined).then(status=>{if(alive){lastNativeCaptureState.current=status.state;setRecording(status.state==='recording');setCapturePhase(status.state==='recording'?'Recording':status.state==='error'?'Error':'Stopped');setEndpoint(status.port?`127.0.0.1:${status.port}`:'No native listener');}}).catch(()=>{if(alive){if(lastNativeCaptureState.current!=='error')recordDiagnostic('native','capture_status','unavailable');lastNativeCaptureState.current='error';setRecording(false);setCapturePhase('Error');setEndpoint('Native state unavailable');}});update();const timer=setInterval(update,1500);return()=>{alive=false;clearInterval(timer);};},[]);
+  useEffect(()=>{if(!isTauri())return;let alive=true;const update=()=>void nativeBridge.command('capture_status',undefined).then(status=>{if(alive){lastNativeCaptureState.current=status.state;setRecording(status.state==='recording');setCapturePhase(status.state==='recording'?'Recording':status.state==='error'?'Error':'Stopped');setEndpoint(status.port?`127.0.0.1:${status.port}`:'No native listener');}}).catch(()=>{if(alive){if(lastNativeCaptureState.current!=='error')recordDiagnostic('native','capture_status','unavailable');lastNativeCaptureState.current='error';setRecording(false);setCapturePhase('Error');setEndpoint('Native state unavailable');}});update();const timer=setInterval(update,1500);return()=>{alive=false;clearInterval(timer);};},[statusTick]);
   const [editingEndpoint, setEditingEndpoint] = useState(false);
   const [endpointDraft, setEndpointDraft] = useState(endpoint);
+  const [captureSetupOpen, setCaptureSetupOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setCaptureSetupOpen(true);
+    window.addEventListener('traffic-studio-capture-setup', open);
+    return () => window.removeEventListener('traffic-studio-capture-setup', open);
+  }, []);
   const [showDemo, setShowDemo] = useState(false);
   const [selectedFlow, setSelectedFlow] = useState<number | null>(null);
   const [query, setQuery] = useState('');
@@ -195,11 +210,16 @@ function App() {
   }
   function saveEndpoint(){const match=/^(.+):(\d+)$/.exec(endpointDraft);if(!match||Number(match[2])<1||Number(match[2])>65535){flash('Invalid port: use 1–65535.');return;}savePreferences({...prefs,proxy:{...prefs.proxy,host:match[1],port:Number(match[2])}});setEndpoint(endpointDraft);setEditingEndpoint(false);}
   function toggleCapturePreview(){
-    if(isTauri()){setSection('traffic');flash('Use the native capture controls to select workspace, port and signing CA.');return;}
+    if(isTauri()){setSection('traffic');setCaptureSetupOpen(true);return;}
     if(capturePhase==='Starting'||capturePhase==='Stopping')return;
     const stopping=recording;setCapturePhase(stopping?'Stopping':'Starting');
     captureTimer.current=window.setTimeout(()=>{if(!stopping&&prefs.captureScenario==='Failure'){setRecording(false);setCapturePhase('Error');flash('Simulated capture error: the sample listener failed. No network service was started.');}else{setRecording(!stopping);setCapturePhase(stopping?'Stopped':'Recording');flash('Capture state is simulated; no proxy listener is running.');}},250);
   }
+  async function stopNativeCapture(){
+    try{await nativeBridge.command('capture_stop',undefined);setStatusTick(t=>t+1);flash('Capture stopped.');}
+    catch{flash('Could not stop capture. Use Capture setup.');}
+  }
+  const proxyText = isTauri() ? (recording ? `Proxying on ${endpoint}` : endpoint) : `Proxying on ${endpoint}`;
   function loadSession(session: PreviewSession) {
     setSessionSource(session.id);setTrackedIds(readFlowMarks('tracked',session.id));setFavoriteIds(readFlowMarks('favorite',session.id));setAllFlows(session.flows); setDetails(session.details); setSessionName(session.name); setSelectedFlow(null); setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); setShowDemo(true); openTab('traffic');
   }
@@ -372,7 +392,7 @@ function App() {
     <header className="app-menu">
       <div className="brand" title="Traffic Studio"><div className="brand-mark"><Activity size={18} strokeWidth={2.3}/></div><span>TRAFFIC<span className="brand-accent">STUDIO</span></span></div>
       <MenuBar menus={menus}/>
-      <div className="menu-right"><button className="header-icon" aria-label={`Notifications (${notifications.filter(n => !n.read).length} unread)`} title="Notifications" onClick={() => setNotificationOpen(v => !v)}><Bell size={16}/><small>{notifications.filter(n => !n.read).length || ""}</small></button><span className="workspace-badge"><span className="badge-dot"/> {prefs.displayName || 'My workspace'}</span><button className="header-icon" title="About & shortcuts" aria-label="About and keyboard shortcuts" onClick={() => setInfoPanel('about')}><CircleHelp size={16}/></button></div>
+      <div className="menu-right"><button className="header-icon" aria-label={`Notifications (${notifications.filter(n => !n.read).length} unread)`} title="Notifications" onClick={() => setNotificationOpen(v => !v)}><Bell size={16}/><small>{notifications.filter(n => !n.read).length || ""}</small></button><button className="header-icon" title="About & shortcuts" aria-label="About and keyboard shortcuts" onClick={() => setInfoPanel('about')}><CircleHelp size={16}/></button></div>
     </header>
 
     <div className="app-body">
@@ -405,33 +425,39 @@ function App() {
       {sidebarKind && <div className="sidebar-resizer" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuenow={sidebarWidth} aria-valuemin={190} aria-valuemax={480} tabIndex={0} onPointerDown={startSidebarResize} onDoubleClick={() => setSidebarWidth(272)} onKeyDown={(event) => { if (event.key === 'ArrowLeft') setSidebarWidth((value) => Math.max(190, value - 16)); if (event.key === 'ArrowRight') setSidebarWidth((value) => Math.min(480, value + 16)); }}/>}
 
       <main className="main-area">
-        <div className="capture-toolbar">
-          <div className="proxy-card">
-            <div className={`proxy-led ${recording ? 'live' : ''}`}/>
-            <div className="proxy-info"><span className="proxy-eyebrow">PROXY ENDPOINT</span><span className="proxy-address">{isTauri()?'Workspace default':'Planned listener'} <strong>{endpoint}</strong></span></div>
-            <button className="icon-button subtle" title="Edit proxy address" onClick={() => { setEndpointDraft(endpoint); setEditingEndpoint(true); }}><Settings2 size={17}/></button>
-            <span className="toolbar-separator"/>
-            <span className="proxy-status"><ShieldCheck size={17}/><span>{isTauri()?'Configure in Capture':'Browser sample mode'}</span></span>
+        <div className="capture-toolbar slim">
+          <div className="proxy-bar">
+            <span className={`proxy-led ${recording ? 'live' : ''}`}/>
+            <span className="proxy-text">{proxyText}</span>
+            <button className="icon-button subtle" title={isTauri() ? 'Refresh listener status' : 'Reload sample traffic'} aria-label={isTauri() ? 'Refresh listener status' : 'Reload sample traffic'} onClick={() => { if (isTauri()) setStatusTick(t => t+1); else loadSamples(); }}><RotateCw size={15}/></button>
+            {isTauri()
+              ? <button className="icon-button subtle" title="Capture setup (port, workspace, CA)" aria-label="Capture setup" onClick={() => { setSection('traffic'); setCaptureSetupOpen(true); }}><Pencil size={15}/></button>
+              : <button className="icon-button subtle" title="Edit planned listener" aria-label="Edit planned listener" onClick={() => { setEndpointDraft(endpoint); setEditingEndpoint(true); }}><Pencil size={15}/></button>}
+            <span className="proxy-right">
+              <button className="icon-button subtle" title="Proxy settings" aria-label="Proxy settings" onClick={() => setSettingsPage('Proxy')}><Globe2 size={16}/></button>
+              {isTauri()
+                ? <button className="icon-button subtle proxy-shield" title="Capture setup (port, workspace, CA)" aria-label="Capture setup" onClick={() => { setSection('traffic'); setCaptureSetupOpen(true); }}><ShieldCheck size={16}/></button>
+                : <button className="icon-button subtle" title="Certificate settings" aria-label="Certificate settings" onClick={() => { setCertificateTarget('overview'); setSettingsPage('Certificate'); }}><ShieldCheck size={16}/></button>}
+            </span>
           </div>
-          <Button variant="default" className={recording ? 'is-recording' : ''} disabled={capturePhase==='Starting'||capturePhase==='Stopping'} onClick={() => { toggleCapturePreview(); }}>
+          <Button variant="default" className={recording ? 'is-recording' : ''} disabled={capturePhase==='Starting'||capturePhase==='Stopping'} onClick={() => { if (isTauri()) { if (recording) void stopNativeCapture(); else { setSection('traffic'); setCaptureSetupOpen(true); } return; } toggleCapturePreview(); }}>
             {recording ? <Pause size={17} fill="currentColor"/> : <Play size={17} fill="currentColor"/>}
-            <span>{isTauri()?'Open capture':capturePhase==='Starting'||capturePhase==='Stopping'?`${capturePhase} sample…`:recording ? 'Pause sample' : 'Run sample capture'}</span>
-            <kbd>{binding(prefs.keybindings, 'capture')}</kbd>
+            <span>Record</span>
           </Button>
           <Button size="icon" title="Clear traffic" aria-label="Clear traffic" onClick={() => { setShowDemo(false); setSelectedFlow(null); }}><Trash2 size={18}/></Button>
         </div>
 
-        {(section === 'traffic' || section === 'api') && <WorkspaceTabs tabs={tabs} activeId={activeTab} section={section} closedCount={closedTabs.length} iconFor={(tab) => iconFor(tab.view)} onSelect={selectTab} onNew={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onClose={(id) => closeTabs([id])} onCloseMany={closeTabs} onReorder={reorderTab} onPin={pinTab} onRename={(id, name) => setTabs((current) => current.map((tab) => tab.id === id ? { ...tab, label: name } : tab))} onReopen={reopenClosedTab} onLayout={toggleSplit} pane={section === 'api' ? { count: paneCount, onCount: choosePaneCount, direction, onToggleDirection: () => setDirection(v => v === 'horizontal' ? 'vertical' : 'horizontal'), directionDisabled: compactApi && paneCount > 1, directionTitle: compactApi && paneCount > 1 ? "Panes stack automatically when space is limited" : "Change pane direction" } : undefined}/>}
+        {(section === 'traffic' || section === 'api') && <WorkspaceTabs tabs={tabs} activeId={activeTab} section={section} closedCount={closedTabs.length} iconFor={(tab) => iconFor(tab.view)} onSelect={selectTab} onNew={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onClose={(id) => closeTabs([id])} onCloseMany={closeTabs} onReorder={reorderTab} onPin={pinTab} onRename={(id, name) => setTabs((current) => current.map((tab) => tab.id === id ? { ...tab, label: name } : tab))} onReopen={reopenClosedTab} onLayout={toggleSplit} trafficPane={{ direction: trafficDirection, onToggleDirection: () => setTrafficDirection(value => value === 'horizontal' ? 'vertical' : 'horizontal') }} pane={section === 'api' ? { count: paneCount, onCount: choosePaneCount, direction, onToggleDirection: () => setDirection(v => v === 'horizontal' ? 'vertical' : 'horizontal'), directionDisabled: compactApi && paneCount > 1, directionTitle: compactApi && paneCount > 1 ? "Panes stack automatically when space is limited" : "Change pane direction" } : undefined}/>}
 
         <div className="content-area">
           <Suspense fallback={<div className="route-loading" role="status">Loading workspace…</div>}>
-          {section === 'traffic' && (isTauri() ? <NativeCaptureWorkspace/> : showDemo ? <div className="traffic-view">
+          {section === 'traffic' && (isTauri() ? <NativeTrafficView direction={trafficDirection} onConfigure={() => setCaptureSetupOpen(true)} onNewRequest={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)} onOpenFile={() => setSessionOpen(true)} /> : showDemo ? <div className="traffic-view">
             <div className="traffic-controls"><div className="traffic-heading"><Activity size={17}/><strong>{sessionName} · SAMPLE</strong><span className="muted-count">{flows.length} requests</span></div><div className="control-right"><div className="search-box"><Search size={15}/><input ref={trafficSearchRef} aria-label="Search traffic" placeholder="Search host, path, status…" value={query} onChange={(event) => setQuery(event.target.value)}/><kbd>{binding(prefs.keybindings, 'search')}</kbd></div><Button aria-expanded={advancedFiltersOpen} onClick={() => setAdvancedFiltersOpen((value) => !value)}><Filter size={15}/> <UiText text={"Filters"}/> <ChevronDown size={13}/></Button></div></div>
             <TrafficFilters flows={allFlows} filter={trafficFilter} onFilter={setTrafficFilter} facets={trafficFacets} onFacets={setTrafficFacets} advancedOpen={advancedFiltersOpen}/>
-            <div className="traffic-layout"><TrafficTable onFeedback={flash} onCompose={composeFlow} onCompare={()=>setCompareOpen(true)} density={prefs.density} onClearFilters={() => { setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); }} flows={flows} selectedFlow={selectedFlow} favoriteIds={favoriteIds} trackedIds={trackedIds} onSelectFlow={setSelectedFlow} onFavorite={toggleFavorite} onTrack={toggleTracked}/>
+            <div className={`traffic-layout${trafficDirection === 'vertical' ? ' vertical' : ''}`}><TrafficTable onFeedback={flash} onCompose={composeFlow} onCompare={()=>setCompareOpen(true)} density={prefs.density} onClearFilters={() => { setQuery(''); setTrafficFilter('all'); setTrafficFacets(emptyFacets); }} flows={flows} selectedFlow={selectedFlow} favoriteIds={favoriteIds} trackedIds={trackedIds} onSelectFlow={setSelectedFlow} onFavorite={toggleFavorite} onTrack={toggleTracked}/>
             <TrafficInspector onProtocols={()=>setProtocolOpen(true)} onCertificate={()=>setSettingsPage('Certificate')} source={sessionSource} detailOverride={selected ? details[selected.id] : undefined} onExport={() => setSessionOpen(true)} flow={selected} onClose={() => setSelectedFlow(null)} flash={flash}/>
             </div>
-          </div> : <div className="empty-canvas"><div className="empty-content"><div className="empty-graphic"><div className="graphic-ring ring-one"/><div className="graphic-ring ring-two"/><div className="graphic-core"><Activity size={29} strokeWidth={1.8}/></div><div className="orbit-dot orbit-a"/><div className="orbit-dot orbit-b"/></div><div className="eyebrow center"><UiText text={"READY TO INSPECT"}/></div><h1><UiText text={"See every request, clearly."}/></h1><p>Open the Windows app for native capture, or explore sample traffic and inspect each request here.</p><div className="empty-actions"><Button variant="default" onClick={() => { toggleCapturePreview(); }}><Play size={16} fill="currentColor"/> Run sample capture <span>{binding(prefs.keybindings, 'capture')}</span></Button><Button onClick={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)}><Plus size={17}/> <UiText text={"New API request"}/></Button></div><div className="quick-links"><Button variant="ghost" size="sm" onClick={() => setSessionOpen(true)}><FolderOpen size={15}/> <UiText text={"Open HAR file"}/></Button><span/><Button variant="ghost" size="sm" onClick={loadSamples}><UiText text={"Explore sample traffic"}/></Button></div></div></div>)}
+          </div> : <div className="empty-canvas plain"><div className="empty-shortcuts"><button onClick={() => { toggleCapturePreview(); }}>Start Recording <kbd>{binding(prefs.keybindings, 'capture')}</kbd></button><button onClick={() => openTab('api', `API ${tabs.filter((tab) => tab.view === 'api').length + 1}`)}>Create REST API <kbd>{binding(prefs.keybindings, 'newRequest')}</kbd></button><button onClick={() => setSessionOpen(true)}>Open File <kbd>{binding(prefs.keybindings, 'openSession')}</kbd></button></div></div>)}
           {section === 'api' && <div ref={apiWorkspaceRef} className="api-multi-workspace" onDragOver={e=>{if(!e.dataTransfer.types.includes('text/plain'))return;e.preventDefault();const r=e.currentTarget.getBoundingClientRect();setDropEdge(e.clientX<r.left+70?'left':e.clientX>r.right-70?'right':null);}} onDragLeave={()=>setDropEdge(null)} onDrop={e=>{e.preventDefault();const id=Number(e.dataTransfer.getData('text/plain'));const other=tabs.find(t=>t.view==='api'&&t.id!==id);if(dropEdge&&tabs.some(t=>t.id===id&&t.view==='api')&&other){setPaneCount(2);setActiveTab(dropEdge==='left'?id:other.id);setSplitTabId(dropEdge==='left'?other.id:id);}setDropEdge(null);}}>{dropEdge&&<div className={`api-edge-drop ${dropEdge}`}>Split API pane</div>}{paneCount>2 ? <ApiWorkspace tabs={tabs} active={active} count={paneCount} direction={effectiveDirection} environment={envActive} flash={flash} onDirty={setDirty} ratio={splitRatio} onRatio={setSplitRatio} onCount={choosePaneCount}/> : <div className={`api-document-layout ${effectiveDirection} ${splitTabId !== null ? 'split' : ''}`}><div className="api-document-pane" style={{ width: effectiveDirection==='horizontal' && splitTabId !== null ? `${splitRatio}%` : '100%', height:effectiveDirection==='vertical'&&splitTabId!==null?`${splitRatio}%`:undefined }}>{active.node?.kind === 'setup' ? <SetupFileView key={active.node.id} node={active.node}/> : <ApiView key={active.id} flash={flash} environment={envActive} requestName={active.node?.name ?? active.label} profileId={active.node?.kind === 'profile' ? active.node.id : undefined} tabId={active.id} onDirty={(dirty) => setDirty(active.id, dirty)}/>}</div>{splitTabId !== null && tabs.some((tab) => tab.id === splitTabId && tab.view === 'api') && <><div className="api-document-divider" role="separator" aria-label="Resize API panes" aria-orientation={effectiveDirection==='vertical'?'horizontal':'vertical'} aria-valuenow={splitRatio} aria-valuemin={30} aria-valuemax={70} tabIndex={0} onPointerDown={startSplitResize} onDoubleClick={() => setSplitRatio(50)} onKeyDown={(event) => { if (event.key === 'ArrowLeft'||event.key==='ArrowUp') setSplitRatio((value) => Math.max(30, value - 2)); if (event.key === 'ArrowRight'||event.key==='ArrowDown') setSplitRatio((value) => Math.min(70, value + 2)); }}/><div className="api-document-pane" style={{ flex: 1 }}><div className="api-pane-caption">{tabs.find((tab) => tab.id === splitTabId)?.label}<Button size="sm" variant="ghost" onClick={() => {setSplitTabId(null);setPaneCount(1);}}>Close split</Button></div>{(() => { const tab = tabs.find((item) => item.id === splitTabId)!; return tab.node?.kind === 'setup' ? <SetupFileView key={tab.node.id} node={tab.node}/> : <ApiView key={tab.id} flash={flash} environment={envActive} requestName={tab.node?.name ?? tab.label} profileId={tab.node?.kind === 'profile' ? tab.node.id : undefined} tabId={tab.id} onDirty={(dirty) => setDirty(tab.id, dirty)}/>; })()}</div></>}</div>}</div>}
           {section === 'rules' && (isTauri()?<NativeRulesView/>:<RulesView flash={flash}/>)}
           {section === 'history' && <HistoryView flash={flash} selection={historySelection} sidebarVisible={sidebarKind === 'history'} onShowSidebar={() => setShowSidebar(true)} onOpenRequest={(name) => openTab('api', name)} onImport={() => setSessionOpen(true)} onShowTraffic={() => { if(historySelection?.kind==='session'){const saved=readPreviewSessions().find(s=>s.id===historySelection.id);if(saved){loadSession(saved);return;}const fixture=findSession(historySelection.id);if(fixture){loadSession({id:fixture.id,name:fixture.name,flows:flowsForSession(fixture.id),details:{},created:new Date().toISOString()});return;}}loadSamples(); }}/>}
@@ -464,6 +490,7 @@ function App() {
     {sessionOpen && <SessionManager flows={allFlows} details={details} onLoad={loadSession} onClose={() => setSessionOpen(false)}/>}
     {compareOpen && <FlowCompare flows={allFlows} details={details} onClose={() => setCompareOpen(false)}/>}
     {protocolOpen && <ProtocolPreview onClose={() => setProtocolOpen(false)}/>}
+    {captureSetupOpen && <CaptureSetupDialog onClose={() => setCaptureSetupOpen(false)} />}
     {settingsPage && <SettingsCenter integrationTab={integrationTab} initial={settingsPage} certificateTarget={certificateTarget} onClose={() => setSettingsPage(null)} flash={flash} motion={motionEnabled} onMotion={() => setMotionEnabled(v => !v)}/>}
     </Suspense>
     {layoutOpen && <LayoutManager current={{ sidebarWidth, showSidebar, splitRatio, direction, zen, paneCount }} onApply={applyLayout} onClose={() => setLayoutOpen(false)}/>}

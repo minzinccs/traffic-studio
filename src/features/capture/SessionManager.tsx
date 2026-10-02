@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
+import { isTauri } from '@tauri-apps/api/core';
 import { Download, FileJson2, FolderOpen, X } from 'lucide-react';
 import { useDialogFocus } from '../../shell/useDialogFocus';
 import { Button } from '../../shell/Button';
 import { listFlows, getFlowDetail } from '../../bridge/mockBridge';
 import type { Flow, FlowDetail } from '../../domain/types';
 import { exportHar, maxBrowserHarChars, parseHar, readPreviewSessions, sessionsKey, snapshot, type PreviewSession } from './sessionFiles';
+import { NativeHarPanel } from './NativeHarPanel';
 import './sessionManager.css';
 
 type Props = { flows: Flow[]; details: Record<number, FlowDetail>; onLoad: (session: PreviewSession) => void; onClose: () => void };
@@ -68,6 +70,7 @@ export function SessionManager({ flows, details, onLoad, onClose }: Props) {
       </section>
       <section className="session-section" aria-labelledby="session-har-title"><div className="session-section-title"><h3 id="session-har-title">HAR import & export</h3><span>JSON · 20 MB file / 20M pasted characters</span></div><div className="session-file-row"><input ref={fileInput} className="session-visually-hidden" type="file" accept=".har,.json,application/json" aria-label="Choose HAR file" onChange={event => void readFile(event.target.files?.[0])}/><Button onClick={() => fileInput.current?.click()}><FolderOpen size={15}/> Choose HAR file</Button><span title={fileName}>{fileName || 'No file selected'}</span></div><label className="session-text-label" htmlFor="session-har-json">HAR JSON</label><textarea id="session-har-json" spellCheck={false} value={text} placeholder="Paste HAR JSON here, or choose a file above…" onChange={event => { if (event.target.value.length > maxBrowserHarChars) { notify('Pasted HAR exceeds the 20M-character browser limit.', true); return; } setText(event.target.value); setParsed(null); }}/><div className="session-action-row"><Button disabled={!text.trim()} onClick={() => { try { const result = parseHar(text); setParsed(result); notify(`${result.flows.length.toLocaleString()} HAR entries validated.`); } catch (error) { setParsed(null); notify(error instanceof Error ? error.message : 'Invalid HAR.', true); } }}><FileJson2 size={15}/> Validate HAR</Button><Button onClick={() => { setText(exportHar(flows, details)); setParsed(null); setFileName(''); notify('HAR export prepared. Review the JSON before downloading.'); }}>Prepare export</Button><Button disabled={!text.trim()} onClick={download}><Download size={15}/> Download HAR</Button></div>{parsed && <div className="session-valid"><span>{parsed.flows.length.toLocaleString()} entries ready to inspect</span><Button variant="default" onClick={() => { onLoad(parsed); onClose(); }}>Open imported HAR</Button></div>}</section>
       <section className="session-section session-sample" aria-labelledby="session-sample-title"><div><h3 id="session-sample-title">Performance sample</h3><p>Generate 10,000 synthetic rows to check table scrolling and filtering.</p></div><Button onClick={loadPerformanceSample}>Load sample rows</Button></section>
+      {isTauri() && <NativeHarPanel />}
     </div>
     <footer className="session-manager-footer"><span className={isError ? 'session-error' : ''} role={isError ? 'alert' : 'status'}>{message}</span><Button onClick={onClose}>Close</Button></footer>
   </div></div>;

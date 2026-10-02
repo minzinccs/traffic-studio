@@ -138,7 +138,7 @@ export function ApiView({ flash, requestName, profileId, tabId, onDirty, environ
   const activeParams = draft.params.filter((p) => p.key.trim());
 
   return <div className="api-view doc-slide">{curlOpen && <CurlImport onClose={() => setCurlOpen(false)} onApply={v => update({ ...v, params:[], headers: v.headers.map((h,i) => ({ ...h, id: Date.now()+i, enabled:true })) })}/>}
-    <div className="api-topline"><div><span className="eyebrow">{profileId ? 'COLLECTION PROFILE · LOCAL DRAFT' : 'API WORKSPACE · LOCAL DRAFT'}</span><input className="api-title-input" aria-label="Request name" value={draft.name} onChange={(event) => update({ name: event.target.value })}/></div>
+    <div className="api-topline">
       <div className="api-top-actions">
         <Button onClick={() => setShowCollection((value) => !value)}><Database size={15}/> Saved requests {saved.length > 0 && <span className="count-label">{saved.length}</span>}</Button>
         <Button onClick={() => setCurlOpen(true)}><UiText text={"Import cURL"}/></Button><Button onClick={save}><Save size={15}/> <UiText text={"Save locally"}/></Button>

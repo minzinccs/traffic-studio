@@ -2,7 +2,7 @@
 //
 // Available tools run locally: browser codecs, a bounded Regex worker, Web Crypto,
 // and the MIT qrcode encoder. JWT decoding does not verify signatures.
-export type ToolGroup = 'Codec' | 'Generate' | 'Later';
+export type ToolGroup = 'Codec' | 'Generate' | 'Capture' | 'Later';
 
 export type ToolDef = {
   id: string;
@@ -12,7 +12,7 @@ export type ToolDef = {
   hint?: string;
 };
 
-export const toolGroups: ToolGroup[] = ['Codec', 'Generate'];
+export const toolGroups: ToolGroup[] = ['Codec', 'Generate', 'Capture'];
 
 export const tools: ToolDef[] = [
   { id: 'Base64', label: 'Base64', group: 'Codec', available: true },
@@ -28,6 +28,7 @@ export const tools: ToolDef[] = [
   { id: 'RSA', label: 'RSA', group: 'Codec', available: true },
   { id: 'Regex', label: 'Regex', group: 'Codec', available: true },
   { id: 'QR code', label: 'QR code', group: 'Generate', available: true, hint: 'Local QR encoding.' },
+  { id: 'Packet capture', label: 'Packet capture', group: 'Capture', available: true, hint: 'Local dumpcap/Npcap frames + TLS key log. Optional; driver not installed by this app.' },
 ];
 
 export const defaultTool = 'Base64';

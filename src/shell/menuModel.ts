@@ -140,6 +140,7 @@ export function buildMenus(ctx: MenuContext): MenuDefinition[] {
           ],
         },
         { id: 'tools-terminal', label: 'Proxy Terminal (mock)', separatorBefore: true, action: () => ctx.openIntegration('Terminal') },
+        { id: 'tools-packet', label: 'Packet Capture (local)', hint: 'dumpcap/Npcap frames + TLS key log.', action: () => ctx.openToolbox('Packet capture') },
         { id: 'tools-mcp', label: 'MCP Server Preview', action: () => ctx.openIntegration('MCP') },
       ],
     },

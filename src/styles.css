@@ -42,3 +42,19 @@
 .shortcut-list kbd{min-width:172px;flex:none;text-align:center;font:11px 'JetBrains Mono',Consolas,monospace;color:#e6e6e6;background:#2b2b2b;border:1px solid #4a4a4a;border-radius:4px;padding:5px 8px}
 
 .route-loading{display:flex;align-items:center;justify-content:center;min-height:160px;color:#c9d0d3;font-size:12px;letter-spacing:.03em}
+.empty-canvas.plain{flex:1;display:flex;align-items:center;justify-content:center}
+.empty-shortcuts{display:flex;flex-direction:column;gap:10px;font-size:12px;color:#aab0b5}
+.empty-shortcuts button{background:none;border:0;color:#c8cdd2;font-size:12px;cursor:pointer;padding:2px 4px;text-align:left}
+.empty-shortcuts button:hover{color:#fff}
+.empty-shortcuts kbd{margin-left:8px;color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* Slim Reqable-style proxy bar: one line, dot + text left, tools right. */
+.capture-toolbar.slim{min-height:0;padding:10px 14px}
+.proxy-bar{flex:1;display:flex;align-items:center;gap:8px;min-width:0;height:40px;padding:0 8px 0 14px;background:#303030;border:1px solid #424242;border-radius:8px}
+.proxy-text{font-size:12px;color:#e5e7e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proxy-bar .icon-button{width:26px;height:26px}
+.proxy-right{margin-left:auto;display:flex;align-items:center;gap:2px}
+.proxy-shield svg{color:#e8b93e}
+.traffic-layout.vertical{flex-direction:column}
+.traffic-layout.vertical>.traffic-table-wrap{flex:none;max-height:45vh}
+.traffic-layout.vertical .inspector-shell{border-top:1px solid var(--border-soft)}

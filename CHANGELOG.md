@@ -7,6 +7,16 @@ history below is condensed to product-relevant milestones.
 ## [Unreleased]
 
 ### Changed
+- Traffic page is now Reqable-style: clean empty state (Start Recording
+  Ctrl+G / Create REST API Ctrl+T / Open File Ctrl+O) with only a flow
+  table when data exists. All native setup moved out of the main view
+  into the Capture setup dialog (workspace, port, mode, CA/TLS, HAR
+  import, packet tools), opened from Record / Configure in Capture.
+- Workbench Traffic panes use the same clean `NativeTrafficView`; the old
+  inline `NativeCaptureWorkspace` is removed.
+- Packet capture moved to Toolbox as a `Capture` tool + Tools menu entry;
+  native HAR import/export moved into Sessions & HAR (`File` menus) via a
+  new `NativeHarPanel`. Capture dialog keeps workspace/listener/TLS only.
 - API workspace slide timing: workspace-tab slide 0.68s (680ms),
   request-tab slide 0.64s (640ms); the two levels animate independently.
 - Workspace tab strip 47px → 33px; pane preset moved into the `...` panel menu.
