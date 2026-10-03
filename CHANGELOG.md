@@ -24,6 +24,7 @@ history below is condensed to product-relevant milestones.
   no longer invalidates on `KeyValueGrid` / `RequestBodyEditor` edits.
 
 ### Added
+- LAN ingest for the mobile companion: `POST /v1/ingest` (TLS + bearer, ≤50 flows / ≤100 events / ≤512 KiB) stores mobile flows as `flow` entities and debug events as `tracker_item` records; QR pairing payload (`schemaVersion`, host, port, fingerprint, token), per-device last-seen/counters with revoke (`lan_devices`, `lan_pairing`, `lan_revoke`), and a 120 req/min LAN rate limit.
 - Native flow full-text search: SQLite FTS5 `flow_search` index maintained by
   triggers, `flow_search` IPC command + typed bridge contract, native capture
   search box wired to the server (browser falls back to page filter).

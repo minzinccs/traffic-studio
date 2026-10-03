@@ -20,6 +20,9 @@ export type CommandMap = {
   lan_status:{args:undefined;result:LanStatus};
   lan_start:{args:{workspaceId:string;host:string;port:number;acknowledged:boolean};result:LanStatus};
   lan_stop:{args:undefined;result:void};
+  lan_devices:{args:undefined;result:LanDevice[]};
+  lan_pairing:{args:undefined;result:string};
+  lan_revoke:{args:{deviceId:string};result:LanDevice[]};
   runtime_diagnostics:{args:undefined;result:{hostWorkingSetBytes:number|null;uptimeSeconds:number}};
   native_error_log:{args:undefined;result:DiagnosticEntry[]};
   native_error_clear:{args:undefined;result:void};
@@ -95,7 +98,8 @@ export type CommandMap = {
 };
 export type PacketStatus={captureAvailable:boolean;analyzerAvailable:boolean;running:boolean;interface:number|null;files:Array<{name:string;bytes:number}>;totalBytes:number;keylogLoaded:boolean;keylogEntries:number;message:string};
 export type PacketRow={number:string;time:string;source:string;destination:string;protocol:string;length:string;httpMethod:string;httpStatus:string};
-export type LanStatus={running:boolean;workspaceId:string|null;host:string|null;port:number|null;fingerprint:string|null;token:string|null};
+export type LanStatus={running:boolean;workspaceId:string|null;host:string|null;port:number|null;fingerprint:string|null;token:string|null;pairing:string|null;deviceCount:number;ingestedFlows:number;ingestedEvents:number};
+export type LanDevice={id:string;label:string;peerIp:string;firstSeen:number;lastSeen:number;flowsIngested:number;eventsIngested:number};
 export type Bridge = {
   command<K extends keyof CommandMap>(name: K, args: CommandMap[K]['args']): Promise<CommandMap[K]['result']>;
   onRevision(callback: (event: RevisionEvent) => void): Promise<() => void>;

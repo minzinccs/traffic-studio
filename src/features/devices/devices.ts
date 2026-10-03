@@ -24,7 +24,7 @@ export const hostDevice: DeviceRecord = {
 export const connectedDevices: DeviceRecord[] = [];
 export const availableDevices: DeviceRecord[] = [];
 
-export const pairingNote = 'Discovery, QR pairing and transfer are not implemented. The native read-only LAN metadata gateway has separate controls and does not pair devices.';
+export const pairingNote = 'Pair mobile via the LAN panel: scan the QR pairing payload, verify the certificate fingerprint, then the device can read limited metadata and push flows/debug events (POST /v1/ingest). Revoke per device or stop sharing to rotate the token.';
 
 export function deviceGroups(): { kind: DeviceKind; label: string; devices: DeviceRecord[]; empty: string }[] {
   return [

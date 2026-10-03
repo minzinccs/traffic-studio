@@ -267,6 +267,23 @@ pub async fn lan_start(
 pub fn lan_stop(runtime: State<'_, crate::devices::LanReadRuntime>) -> ApiResult<()> {
     runtime.stop()
 }
+#[tauri::command]
+pub fn lan_devices(
+    runtime: State<'_, crate::devices::LanReadRuntime>,
+) -> ApiResult<Vec<crate::devices::LanDevice>> {
+    runtime.devices()
+}
+#[tauri::command]
+pub fn lan_pairing(runtime: State<'_, crate::devices::LanReadRuntime>) -> ApiResult<String> {
+    runtime.pairing()
+}
+#[tauri::command]
+pub fn lan_revoke(
+    runtime: State<'_, crate::devices::LanReadRuntime>,
+    device_id: String,
+) -> ApiResult<Vec<crate::devices::LanDevice>> {
+    runtime.revoke(&device_id)
+}
 #[tauri::command(async)]
 pub fn mcp_audit(
     db: State<'_, Database>,
