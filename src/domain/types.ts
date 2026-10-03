@@ -4,7 +4,7 @@ export type Tab = {
   id: number;
   label: string;
   view: 'traffic' | 'api';
-  node?: { id: string; name: string; kind: 'request' | 'setup' | 'profile' };
+  node?: { id: string; name: string; kind: 'request' | 'setup' | 'profile' | 'collection' };
   dirty?: boolean;
   pinned?: boolean;
   loading?: boolean;
@@ -41,7 +41,7 @@ export type FlowDetail = {
   responseHeaders: Pair[];
   requestBody?: string;
   responseBody: string;
-  responseBodyBase64?: string; // Original HAR bytes, retained independently of decoded text.
+  responseBodyBase64?: string;
   note?: string;
 };
 

@@ -1,4 +1,149 @@
-.tracker-card-row{display:flex;gap:6px;align-items:flex-start;padding:6px}.tracker-card-row>.issue-card{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.tracker-settings{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px;background:#303030;border:1px solid #565656}.tracker-settings input,.tracker-settings button,.tracker-record-list button,.issue-drawer input,.issue-drawer textarea,.issue-drawer select{background:#363636;border:1px solid #565656;color:#ddd;border-radius:4px;padding:7px}.tracker-record-list{overflow:auto}.tracker-record-list .tracker-card-row{border-bottom:1px solid #464646}.issue-drawer>label{display:flex;flex-direction:column;gap:6px;margin:14px 0;font-size:12px}.issue-drawer textarea{min-height:130px}.issue-drawer details label{display:flex;gap:6px;font-size:11px;padding:6px;overflow-wrap:anywhere}.kanban{overflow:auto;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);grid-template-columns:none}
-.tracker-category{min-width:150px;min-height:38px}
+.tracker-card-row {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    padding: 6px;
+}
 
-.tracker-data-table{width:100%;border-collapse:collapse;font-size:12px}.tracker-data-table th,.tracker-data-table td{padding:10px;text-align:left;border-bottom:1px solid #464646}.tracker-data-table th{color:#aaa}.tracker-timeline{display:flex;flex-direction:column;gap:8px;overflow:auto}.tracker-timeline button{display:flex;gap:20px;text-align:left;padding:12px;background:#303030;color:#ddd;border:1px solid #565656;border-left:3px solid var(--user-accent,#dfa73d)}.tracker-timeline small{color:#aaa}
+.tracker-card-row>.issue-card {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tracker-settings {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+}
+
+.tracker-settings input,
+.tracker-settings button,
+.tracker-record-list button,
+.issue-drawer input,
+.issue-drawer textarea,
+.issue-drawer select {
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 7px;
+}
+
+.tracker-record-list {
+    overflow: auto;
+}
+
+.tracker-record-list .tracker-card-row {
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.issue-drawer>label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 14px 0;
+    font-size: 12px;
+}
+
+.issue-drawer textarea {
+    min-height: 130px;
+}
+
+.issue-drawer details label {
+    display: flex;
+    gap: 6px;
+    font-size: 11px;
+    padding: 6px;
+    overflow-wrap: anywhere;
+}
+
+.kanban {
+    overflow: auto;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(240px, 1fr);
+    grid-template-columns: none;
+}
+
+.tracker-category {
+    min-width: 150px;
+    min-height: 38px;
+}
+
+.tracker-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.tracker-data-table th,
+.tracker-data-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.tracker-data-table th {
+    color: var(--muted);
+}
+
+.tracker-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: auto;
+}
+
+.tracker-timeline button {
+    display: flex;
+    gap: 20px;
+    text-align: left;
+    padding: 12px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--user-accent, var(--amber));
+}
+
+.tracker-timeline small {
+    color: var(--muted);
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .tracker-settings,
+.app-shell[data-theme=light] .tracker-settings input,
+.app-shell[data-theme=light] .tracker-settings button,
+.app-shell[data-theme=light] .tracker-record-list button,
+.app-shell[data-theme=light] .issue-drawer input,
+.app-shell[data-theme=light] .issue-drawer textarea,
+.app-shell[data-theme=light] .issue-drawer select {
+    background: #FFFFFF;
+    color: #222;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .tracker-record-list .tracker-card-row,
+.app-shell[data-theme=light] .tracker-data-table th,
+.app-shell[data-theme=light] .tracker-data-table td {
+    border-color: #D5D9DA;
+}
+
+.app-shell[data-theme=light] .tracker-data-table th {
+    color: #555;
+}
+
+.app-shell[data-theme=light] .tracker-timeline button {
+    background: #FAFAFA;
+    color: #222;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .tracker-timeline small {
+    color: #555;
+}

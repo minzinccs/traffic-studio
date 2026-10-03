@@ -1,5 +1,57 @@
-.scoped-variables { margin: 12px 0; border: 1px solid var(--border, #464646); padding: 10px; min-width: 0; }
-.scoped-variables p { font-size: 11px; color: var(--muted, #aaa); }
-.scoped-variable { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
-.scoped-variable > input { flex: 1; min-width: 90px; width: 100%; }
-.scoped-variable label { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.scoped-variables {
+    margin: 12px 0;
+    border: 1px solid var(--border);
+    padding: 10px;
+    min-width: 0;
+    border-radius: 5px;
+}
+
+.scoped-variables legend {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0 4px;
+}
+
+.scoped-variables p {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.scoped-variable {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0;
+}
+
+.scoped-variable>input {
+    flex: 1;
+    min-width: 90px;
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 6px 8px;
+    font: inherit;
+}
+
+.scoped-variable label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .scoped-variables {
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .scoped-variable>input {
+    background: #FFFFFF;
+    color: #222;
+    border-color: #C5C9CA;
+}

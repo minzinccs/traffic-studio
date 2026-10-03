@@ -1,1 +1,148 @@
-.native-lan{margin-top:18px;padding:20px;border:1px solid #45423b;border-radius:10px;background:#2b2b2b;max-width:860px}.native-lan-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.native-lan-heading h2{margin:6px 0;font-size:17px}.native-lan p{color:#b8bec2;font-size:12px;line-height:1.5}.lan-live,.lan-idle{padding:5px 10px;border-radius:999px;font-size:11px}.lan-live{color:#95e8b2;background:#214634}.lan-idle{color:#b8bec2;background:#383838}.lan-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}.lan-form label{display:grid;gap:6px;color:#c9d0d4;font-size:11px}.lan-form input:not([type=checkbox]),.lan-form select{box-sizing:border-box;width:100%;min-height:36px;padding:7px 9px;border:1px solid #5b6062;border-radius:6px;background:#242526;color:#f1f3f4;font:inherit}.lan-form input:focus-visible,.lan-form select:focus-visible{outline:2px solid #edb44f;outline-offset:2px}.lan-form .lan-confirm{grid-column:1/-1;display:flex;align-items:flex-start;gap:8px;line-height:1.4}.lan-form .lan-confirm input{margin:2px 0 0}.lan-details{display:grid;gap:10px}.lan-details>div{display:grid;gap:4px}.lan-details span{font-size:11px;color:#a9b2b7}.lan-details code{overflow-wrap:anywhere;color:#dedfe0}.lan-token{user-select:all}.native-lan .lan-error{color:#ff9f9f}.native-lan .lan-help{margin-bottom:0}.lan-help code{overflow-wrap:anywhere}
+.native-lan {
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    max-width: 860px;
+}
+
+.native-lan-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.native-lan-heading h2 {
+    margin: 6px 0;
+    font-size: 17px;
+    color: var(--text);
+}
+
+.native-lan p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.lan-live,
+.lan-idle {
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+}
+
+.lan-live {
+    color: var(--green);
+    background: color-mix(in srgb, var(--green) 22%, transparent);
+}
+
+.lan-idle {
+    color: var(--muted);
+    background: var(--surface-3);
+}
+
+.lan-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+
+.lan-form label {
+    display: grid;
+    gap: 6px;
+    color: var(--text);
+    font-size: 11px;
+}
+
+.lan-form input:not([type=checkbox]),
+.lan-form select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+}
+
+.lan-form input:focus-visible,
+.lan-form select:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+}
+
+.lan-form .lan-confirm {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+}
+
+.lan-form .lan-confirm input {
+    margin: 2px 0 0;
+}
+
+.lan-details {
+    display: grid;
+    gap: 10px;
+}
+
+.lan-details>div {
+    display: grid;
+    gap: 4px;
+}
+
+.lan-details span {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.lan-details code {
+    overflow-wrap: anywhere;
+    color: var(--text);
+}
+
+.lan-token {
+    user-select: all;
+}
+
+.native-lan .lan-error {
+    color: var(--danger);
+}
+
+.native-lan .lan-help {
+    margin-bottom: 0;
+}
+
+.lan-help code {
+    overflow-wrap: anywhere;
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .native-lan {
+    background: #FAFAFA;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .native-lan-heading h2,
+.app-shell[data-theme=light] .lan-details code {
+    color: #222;
+}
+
+.app-shell[data-theme=light] .lan-form input:not([type=checkbox]),
+.app-shell[data-theme=light] .lan-form select {
+    background: #FFFFFF;
+    color: #222;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .lan-idle {
+    background: #E7E7E7;
+    color: #555;
+}

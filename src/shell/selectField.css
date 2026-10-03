@@ -1,7 +1,22 @@
-/* Reqable-style HeadlessUI picker: layout lives in Tailwind classes (SelectField.tsx). */
-/* Light-theme overrides for the floating options. */
-.reqable-select-options { --req-focus: #f59e0b1a; }
-.app-shell[data-theme=light] .reqable-select-options { background:#fff !important; color:#25282a !important; border-color:#adb5b9 !important; }
-.app-shell[data-theme=light] .reqable-select-options [data-focus] { background:#ececec !important; }
-.app-shell[data-theme=light] .reqable-select-options [data-selected] { color:#744916 !important; }
-.app-shell[data-theme=light] .reqable-select-options .text-\[\#f59e0b\] { color:#744916 !important; }
+/* SelectField — dark theme is Tailwind hardcoded (in TSX). Light overrides live here. */
+.reqable-select-options {
+    --req-focus: color-mix(in srgb, var(--amber) 10%, transparent);
+}
+
+.app-shell[data-theme=light] .reqable-select-options {
+    background: #FFFFFF !important;
+    color: #25282A !important;
+    border-color: #C5C9CA !important;
+}
+
+.app-shell[data-theme=light] .reqable-select-options [data-focus] {
+    background: #E7E7E7 !important;
+}
+
+.app-shell[data-theme=light] .reqable-select-options [data-selected] {
+    color: #B0771A !important;
+}
+
+.app-shell[data-theme=light] .reqable-select-options .text-\[\#f59e0b\] {
+    color: #B0771A !important;
+}

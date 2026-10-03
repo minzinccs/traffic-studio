@@ -1,0 +1,121 @@
+.collection-overview {
+    width: 100%;
+    height: 100%;
+    padding: 26px 30px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.collection-overview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #3A3D42;
+}
+
+.collection-overview-head>div {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.collection-overview-head svg {
+    color: #F0B14A;
+    flex: none;
+}
+
+.collection-overview-head h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 4px 0;
+    letter-spacing: -.02em;
+}
+
+.collection-overview-head p {
+    color: #A8AEB4;
+    font-size: 12px;
+    margin: 0;
+}
+
+.collection-overview-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #3A3D42;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #26282B;
+}
+
+.collection-overview-row {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) minmax(0, 1.4fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 1px solid #3A3D42;
+    background: transparent;
+    color: #E8EAEC;
+    text-align: left;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.collection-overview-row:last-child {
+    border-bottom: 0;
+}
+
+.collection-overview-row:hover {
+    background: #2F3236;
+}
+
+.collection-overview-name {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.collection-overview-url {
+    color: #A8AEB4;
+    font: 11px 'JetBrains Mono', Consolas, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.collection-overview-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px 20px;
+    color: #A8AEB4;
+    text-align: center;
+}
+
+.collection-overview-empty svg {
+    color: #F0B14A;
+}
+
+.collection-overview-empty h2 {
+    font-size: 15px;
+    color: #E8EAEC;
+    margin: 0;
+    font-weight: 600;
+}
+
+.collection-overview-empty p {
+    font-size: 12px;
+    margin: 0;
+}
+
+.collection-overview .no-results {
+    padding: 40px 0;
+}

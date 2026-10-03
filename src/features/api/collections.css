@@ -2,63 +2,63 @@
     display: flex;
     gap: 4px;
     padding: 8px 10px;
-    border-bottom: 1px solid #383838
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .api-sidebar-tabs button {
     flex: 1;
-    border: 1px solid #424242;
+    border: 1px solid var(--border-soft);
     border-radius: 4px;
-    background: #303030;
-    color: #aeb6bb;
+    background: var(--surface);
+    color: var(--muted);
     padding: 6px;
-    font-size: 10px
+    font-size: 10px;
 }
 
 .api-sidebar-tabs button.active {
-    background: #383838;
-    border-color: #927349;
-    color: #f1c581
+    background: var(--surface-2);
+    border-color: var(--amber);
+    color: var(--amber);
 }
 
 .collection-scroll {
     flex: 1;
     min-height: 0;
-    overflow: auto
+    overflow: auto;
 }
 
 .collection-explain {
     margin: 12px;
-    color: #939da3;
+    color: var(--muted);
     font-size: 10px;
-    line-height: 1.5
+    line-height: 1.5;
 }
 
 .collection-add {
     display: flex;
     gap: 4px;
-    margin: 0 10px 12px
+    margin: 0 10px 12px;
 }
 
 .collection-add input {
     min-width: 0;
     flex: 1;
-    background: #303030;
-    border: 1px solid #424242;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
     border-radius: 4px;
-    color: #e6e9eb;
+    color: var(--text);
     padding: 6px;
-    font-size: 11px
+    font-size: 11px;
 }
 
 .collection-add button {
     display: grid;
     place-items: center;
     width: 28px;
-    border: 1px solid #9d783f;
-    background: #383838;
-    color: #f0bc70;
-    border-radius: 4px
+    border: 1px solid var(--amber);
+    background: var(--surface-2);
+    color: var(--amber);
+    border-radius: 4px;
 }
 
 .collection-folder {
@@ -67,7 +67,7 @@
     gap: 4px;
     height: 32px;
     padding: 0 7px;
-    border-top: 1px solid #383838
+    border-top: 1px solid var(--border-soft);
 }
 
 .collection-folder strong {
@@ -76,12 +76,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 11px
+    font-size: 11px;
 }
 
 .collection-folder span {
     font: 10px Consolas, monospace;
-    color: #75c79e
+    color: var(--green);
 }
 
 .collection-folder button,
@@ -93,23 +93,23 @@
     height: 23px;
     border: 0;
     background: transparent;
-    color: #9ba5aa
+    color: var(--muted);
 }
 
 .collection-folder button:hover,
 .collection-profile>button:last-child:hover {
-    color: #efbf75
+    color: var(--amber);
 }
 
 .collection-profile {
     height: 29px;
     display: flex;
     align-items: center;
-    padding: 0 7px 0 27px
+    padding: 0 7px 0 27px;
 }
 
 .collection-profile.selected {
-    background: #303030
+    background: var(--surface-2);
 }
 
 .collection-profile>button:first-child {
@@ -121,19 +121,19 @@
     overflow: hidden;
     border: 0;
     background: transparent;
-    color: #bbc3c6;
+    color: var(--muted);
     text-align: left;
-    font-size: 10px
+    font-size: 10px;
 }
 
 .collection-profile>button:first-child span {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap
+    white-space: nowrap;
 }
 
 .collection-profile svg {
-    color: #d2a861
+    color: var(--amber);
 }
 
 .collection-editor {
@@ -141,8 +141,8 @@
     max-height: 48%;
     overflow: auto;
     padding: 10px;
-    border-top: 1px solid #424242;
-    background: #303030
+    border-top: 1px solid var(--border-soft);
+    background: var(--surface);
 }
 
 .collection-editor-head {
@@ -150,21 +150,21 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    color: #d6ad70;
+    color: var(--amber);
     font-size: 10px;
-    letter-spacing: .08em
+    letter-spacing: .08em;
 }
 
 .collection-editor-head button {
     display: flex;
     align-items: center;
     gap: 4px;
-    border: 1px solid #715b3b;
-    background: #383838;
-    color: #edc280;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--amber);
     padding: 4px 6px;
     border-radius: 4px;
-    font-size: 10px
+    font-size: 10px;
 }
 
 .collection-editor label {
@@ -172,44 +172,44 @@
     flex-direction: column;
     gap: 3px;
     margin: 7px 0;
-    color: #a8b0b4;
-    font-size: 10px
+    color: var(--muted);
+    font-size: 10px;
 }
 
 .collection-editor input,
 .collection-editor select,
 .collection-editor textarea {
     width: 100%;
-    background: #2b2b2b;
-    border: 1px solid #424242;
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
     border-radius: 3px;
-    color: #e6e9ea;
+    color: var(--text);
     padding: 5px;
-    font-size: 11px
+    font-size: 11px;
 }
 
 .collection-editor textarea {
     min-height: 44px;
-    resize: vertical
+    resize: vertical;
 }
 
 .collection-notice {
     display: block;
     min-height: 16px;
-    color: #e1bd81;
-    font-size: 10px
+    color: var(--amber);
+    font-size: 10px;
 }
 
 .collection-open {
     width: 100%;
     margin-top: 4px;
     padding: 7px;
-    border: 1px solid #bb8d48;
-    background: #d8a85c;
-    color: #252525;
+    border: 1px solid var(--amber);
+    background: var(--amber);
+    color: #281800;
     border-radius: 4px;
     font-size: 10px;
-    font-weight: 700
+    font-weight: 700;
 }
 
 .collection-folder .collection-rename {
@@ -217,11 +217,11 @@
     flex: 1;
     height: 24px;
     padding: 2px 4px;
-    border: 1px solid #b98c51;
+    border: 1px solid var(--amber);
     border-radius: 3px;
-    background: #2b2b2b;
-    color: #f4e5cc;
-    font-size: 11px
+    background: var(--bg);
+    color: var(--text);
+    font-size: 11px;
 }
 
 .collection-profile-actions {
@@ -229,7 +229,7 @@
     align-items: center;
     gap: 6px;
     padding-bottom: 6px;
-    border-bottom: 1px solid #424242
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .collection-profile-actions>button {
@@ -237,16 +237,54 @@
     align-items: center;
     gap: 4px;
     flex: none;
-    border: 1px solid #565656;
+    border: 1px solid var(--border-soft);
     border-radius: 3px;
-    background: #383838;
-    color: #d7dde0;
+    background: var(--surface-2);
+    color: var(--text);
     padding: 4px;
-    font-size: 10px
+    font-size: 10px;
 }
 
 .collection-profile-actions label {
     min-width: 0;
     flex: 1;
-    margin: 0
+    margin: 0;
+}
+
+.collection-folder .collection-name-btn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.collection-folder .collection-name-btn:hover {
+    background: var(--surface-3);
+}
+
+.collection-folder .collection-name-btn strong {
+    flex: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 11px;
+}
+
+/* Light theme surface override for collections (feature CSS did not have one before). */
+.app-shell[data-theme=light] .collection-editor,
+.app-shell[data-theme=light] .collection-add input,
+.app-shell[data-theme=light] .collection-editor input,
+.app-shell[data-theme=light] .collection-editor select,
+.app-shell[data-theme=light] .collection-editor textarea {
+    background: #FAFAFA;
+    color: #25282A;
+    border-color: #ADB5B9;
 }

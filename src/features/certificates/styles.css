@@ -1,7 +1,91 @@
-.certificate-manager article { margin-top:12px; padding:12px; border:1px solid var(--border); border-radius:8px; }
-.certificate-manager article strong { overflow-wrap:anywhere; }
-.certificate-manager input { font-family:monospace; }
-.certificate-manager p { line-height:1.5; }
-.certificate-manager .certificate-pem{display:block;width:100%;min-height:130px;box-sizing:border-box;margin:10px 0;font:11px/1.45 ui-monospace,Consolas,monospace;resize:vertical;overflow:auto}
-.certificate-guide{margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2,#292929)}
-.certificate-guide h4{margin:0 0 8px;font-size:14px}.certificate-guide ol{margin:0 0 10px;padding-left:20px;line-height:1.55}.certificate-guide li{margin:4px 0}.certificate-guide p{margin:0;color:var(--muted,#aeb4b8);line-height:1.5}
+.certificate-manager article {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.certificate-manager article strong {
+    overflow-wrap: anywhere;
+    color: var(--text);
+}
+
+.certificate-manager input {
+    font-family: monospace;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 6px 8px;
+}
+
+.certificate-manager p {
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.certificate-manager .certificate-pem {
+    display: block;
+    width: 100%;
+    min-height: 130px;
+    box-sizing: border-box;
+    margin: 10px 0;
+    font: 11px/1.45 ui-monospace, Consolas, monospace;
+    resize: vertical;
+    overflow: auto;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.certificate-guide {
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-2);
+}
+
+.certificate-guide h4 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.certificate-guide ol {
+    margin: 0 0 10px;
+    padding-left: 20px;
+    line-height: 1.55;
+}
+
+.certificate-guide li {
+    margin: 4px 0;
+}
+
+.certificate-guide p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .certificate-manager article,
+.app-shell[data-theme=light] .certificate-guide {
+    background: #FAFAFA;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .certificate-manager article strong,
+.app-shell[data-theme=light] .certificate-guide h4 {
+    color: #222;
+}
+
+.app-shell[data-theme=light] .certificate-manager input,
+.app-shell[data-theme=light] .certificate-manager .certificate-pem {
+    background: #FFFFFF;
+    color: #222;
+    border-color: #C5C9CA;
+}

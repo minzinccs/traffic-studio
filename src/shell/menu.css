@@ -1,23 +1,37 @@
 /* FE-1 menu bar + portal overlay layer.
    The overlay is portaled to <body>, so it uses explicit Mine Shaft colors
-   instead of the .app-shell CSS variables (which would not apply there). */
-.menu-bar { display: flex; align-items: stretch; height: 100%; gap: 1px; }
+   for the dark theme, and body[data-theme=light] overrides for the light theme. */
+.menu-bar {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  gap: 1px;
+}
 
-.menu-layer-root { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+.menu-layer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+}
 
 .menu-layer-popover {
   position: fixed;
   min-width: 238px;
   max-width: 340px;
-  background: #363636;
-  border: 1px solid #4b4b4b;
+  background: #26282B;
+  border: 1px solid #4A4E54;
   border-radius: 8px;
   padding: 5px;
   box-shadow: 0 18px 42px #0009;
   pointer-events: auto;
 }
 
-.menu-layer-list { list-style: none; margin: 0; padding: 0; }
+.menu-layer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 
 .menu-layer-item {
   width: 100%;
@@ -26,30 +40,117 @@
   gap: 9px;
   border: 0;
   background: transparent;
-  color: #e6e6e6;
+  color: #E8EAEC;
   border-radius: 5px;
   padding: 8px 9px;
   font-size: 12px;
   text-align: left;
 }
+
 .menu-layer-item:hover,
 .menu-layer-item.active,
-.menu-layer-item.expanded { background: #414141; color: #fff; }
+.menu-layer-item.expanded {
+  background: #38393C;
+  color: #FFFFFF;
+}
 
-.menu-layer-item.disabled { color: #7d7d7d; cursor: not-allowed; }
-.menu-layer-item.disabled:hover { background: transparent; color: #7d7d7d; }
+.menu-layer-item.disabled {
+  color: #6B7278;
+  cursor: not-allowed;
+}
 
-.menu-layer-icon { display: grid; place-items: center; width: 16px; color: #c9a25a; flex: none; }
-.menu-layer-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-layer-item.disabled:hover {
+  background: transparent;
+  color: #6B7278;
+}
+
+.menu-layer-icon {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  color: #F0B14A;
+  flex: none;
+}
+
+.menu-layer-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .menu-layer-kbd {
   font: 10px 'JetBrains Mono', Consolas, monospace;
-  color: #9a9a9a;
-  background: #2b2b2b;
-  border: 1px solid #4a4a4a;
+  color: #A8AEB4;
+  background: #1E1F22;
+  border: 1px solid #3A3D42;
   border-radius: 3px;
   padding: 1px 5px;
   flex: none;
 }
-.menu-layer-check { color: #dfa73d; flex: none; }
-.menu-layer-caret { color: #8f8f8f; flex: none; }
-.menu-layer-sep { height: 1px; background: #474747; margin: 5px 4px; }
+
+.menu-layer-check {
+  color: #F0B14A;
+  flex: none;
+}
+
+.menu-layer-caret {
+  color: #A8AEB4;
+  flex: none;
+}
+
+.menu-layer-sep {
+  height: 1px;
+  background: #3A3D42;
+  margin: 5px 4px;
+}
+
+/* Light theme — body carries the theme attribute because the portal leaves .app-shell. */
+body[data-theme=light] .menu-layer-popover {
+  background: #FFFFFF;
+  border-color: #C5C9CA;
+  box-shadow: 0 18px 42px #0003;
+}
+
+body[data-theme=light] .menu-layer-item {
+  color: #25282A;
+}
+
+body[data-theme=light] .menu-layer-item:hover,
+body[data-theme=light] .menu-layer-item.active,
+body[data-theme=light] .menu-layer-item.expanded {
+  background: #E7E7E7;
+  color: #222;
+}
+
+body[data-theme=light] .menu-layer-item.disabled {
+  color: #999;
+}
+
+body[data-theme=light] .menu-layer-item.disabled:hover {
+  color: #999;
+  background: transparent;
+}
+
+body[data-theme=light] .menu-layer-icon {
+  color: #B0771A;
+}
+
+body[data-theme=light] .menu-layer-check {
+  color: #B0771A;
+}
+
+body[data-theme=light] .menu-layer-kbd {
+  color: #555;
+  background: #F0F0F0;
+  border-color: #C5C9CA;
+}
+
+body[data-theme=light] .menu-layer-caret {
+  color: #777;
+}
+
+body[data-theme=light] .menu-layer-sep {
+  background: #D5D9DA;
+}

@@ -1,22 +1,22 @@
 .api-workspace {
     position: relative;
-    gap: 0
+    gap: 0;
 }
 
 .api-workspace .api-editor {
-    flex: none
+    flex: none;
 }
 
 .api-split-resizer {
     width: 7px;
     flex: none;
     cursor: col-resize;
-    background: #1E1F22
+    background: var(--bg);
 }
 
 .api-split-resizer:hover,
 .api-split-resizer:focus-visible {
-    background: #F0B14A
+    background: var(--amber);
 }
 
 .api-response-toggle {
@@ -25,68 +25,71 @@
     top: -22px;
     border: 0;
     background: transparent;
-    color: #A8AEB4;
-    font-size: 10px
+    color: var(--muted);
+    font-size: 10px;
 }
 
 .api-response-tabs {
     display: flex;
     gap: 4px;
-    border-bottom: 1px solid #3A3D42;
-    padding: 6px 10px
+    border-bottom: 1px solid var(--border-soft);
+    padding: 6px 10px;
 }
 
 .api-response-tabs button {
     border: 0;
     border-radius: 3px;
     background: transparent;
-    color: #A8AEB4;
+    color: var(--muted);
     padding: 5px 8px;
-    font-size: 10px
+    font-size: 10px;
 }
 
 .api-response-tabs button.active {
-    background: #2F3236;
-    color: #F0B14A
+    background: var(--surface-2);
+    color: var(--amber);
 }
 
+/* Timing pane — bounded height so long native field lists scroll instead of stretching the pane. */
 .api-timing {
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 18px;
-    color: #A8AEB4;
-    font-size: 11px
+    color: var(--muted);
+    font-size: 11px;
+    max-height: 320px;
+    overflow: auto;
 }
 
 .api-timing strong {
     font-size: 18px;
-    color: #F0B14A
+    color: var(--amber);
 }
 
 .pair-head,
 .pair-row {
-    grid-template-columns: 35px minmax(70px, 1fr) minmax(70px, 1fr) 84px
+    grid-template-columns: 35px minmax(70px, 1fr) minmax(70px, 1fr) 84px;
 }
 
 .pair-row-actions {
     height: 100%;
     display: flex;
     align-items: center;
-    border-left: 1px solid #3A3D42
+    border-left: 1px solid var(--border-soft);
 }
 
 .pair-row-actions button {
     width: 28px;
     height: 100%;
     border: 0;
-    border-right: 1px solid #3A3D42;
+    border-right: 1px solid var(--border-soft);
     background: transparent;
-    color: #A8AEB4
+    color: var(--muted);
 }
 
 .pair-row-actions button:hover {
-    color: #F0B14A
+    color: var(--amber);
 }
 
 .api-settings {
@@ -94,64 +97,64 @@
     flex-direction: column;
     gap: 14px;
     padding: 18px;
-    color: #A8AEB4;
-    font-size: 11px
+    color: var(--muted);
+    font-size: 11px;
 }
 
 .api-settings label {
     display: flex;
     align-items: center;
-    gap: 9px
+    gap: 9px;
 }
 
 .api-settings input[type=number] {
     width: 110px;
-    background: #2F3236;
-    border: 1px solid #3A3D42;
-    color: #E8EAEC;
-    padding: 6px
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    color: var(--text);
+    padding: 6px;
 }
 
 .api-settings input[type=checkbox] {
-    accent-color: #F0B14A
+    accent-color: var(--amber);
 }
 
 .api-settings p {
-    color: #6B7278;
-    line-height: 1.5
+    color: var(--faint);
+    line-height: 1.5;
 }
 
 @media(max-width:1100px) {
     .api-view .api-topline {
         flex-wrap: wrap;
-        gap: 8px
+        gap: 8px;
     }
 
     .api-view .api-workspace {
         flex-direction: column;
-        min-height: 420px
+        min-height: 420px;
     }
 
     .api-view .api-workspace .api-editor {
         width: 100% !important;
-        min-height: 210px
+        min-height: 210px;
     }
 
     .api-view .api-workspace .api-response {
-        min-height: 180px
+        min-height: 180px;
     }
 
     .api-view .api-split-resizer {
-        display: none
+        display: none;
     }
 
     .api-view .request-tabs {
         overflow-x: auto;
-        gap: 12px
+        gap: 12px;
     }
 
     .api-view .request-tabs button {
-        white-space: nowrap
+        white-space: nowrap;
     }
 }
 
@@ -159,60 +162,60 @@
     max-height: 35vh;
     overflow: auto;
     padding: 8px;
-    border: 1px solid #4A4E54
+    border: 1px solid var(--border);
 }
 
 .native-run-history {
     max-height: 28vh;
     overflow: auto;
-    flex-shrink: 0
+    flex-shrink: 0;
 }
 
 .native-request-documents {
     max-height: 22vh;
     overflow: auto;
-    flex-shrink: 0
+    flex-shrink: 0;
 }
 
 .api-format-transfer textarea {
     width: 100%;
     min-height: 160px;
-    max-height: 32vh
+    max-height: 32vh;
 }
 
 .request-send-row {
     display: flex;
     align-items: stretch;
     gap: 10px;
-    margin-top: 20px
+    margin-top: 20px;
 }
 
 .request-send-row .request-compose {
     flex: 1;
     min-width: 0;
-    margin-top: 0
+    margin-top: 0;
 }
 
 .request-send {
     align-self: stretch;
     min-width: 112px;
     font-size: 13px;
-    font-weight: 700
+    font-weight: 700;
 }
 
 @media(max-height:650px) {
     .api-view .request-send-row {
-        margin-top: 12px
+        margin-top: 12px;
     }
 }
 
 .request-tabs button {
-    position: relative
+    position: relative;
 }
 
 .api-view .request-tabs button.active {
     border-bottom-width: 0;
-    border-bottom-color: transparent
+    border-bottom-color: transparent;
 }
 
 .api-view .request-tabs button.active::after {
@@ -222,41 +225,41 @@
     right: 0;
     bottom: 8px;
     height: 2px;
-    background: #F0B14A
+    background: var(--amber);
 }
 
 .api-view.doc-slide {
-    animation: workspace-doc-in 180ms ease-out both
+    animation: workspace-doc-in 180ms ease-out both;
 }
 
 .app-shell[data-motion="off"] .api-view.doc-slide {
-    animation: none
+    animation: none;
 }
 
 @keyframes workspace-doc-in {
     from {
-        opacity: 0
+        opacity: 0;
     }
 
     to {
-        opacity: 1
+        opacity: 1;
     }
 }
 
 .api-view .pair-editor.slide {
-    animation: request-tab-in 140ms ease-out both
+    animation: request-tab-in 140ms ease-out both;
 }
 
 .app-shell[data-motion="off"] .api-view .pair-editor.slide {
-    animation: none
+    animation: none;
 }
 
 @keyframes request-tab-in {
     from {
-        opacity: 0
+        opacity: 0;
     }
 
     to {
-        opacity: 1
+        opacity: 1;
     }
 }

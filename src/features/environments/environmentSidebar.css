@@ -1,14 +1,123 @@
 /* FE-2 — Environment sidebar. Reuses .explorer-sidebar for width + resizer behaviour. */
-.env-sidebar-actions{padding:11px 11px 3px}
-.env-add{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #424242;border-radius:4px;background:#303030;color:#aeb7bb;padding:8px;font-size:10px}
-.env-add:hover{border-color:#bd9353;color:#f0bf70}
-.env-scroll{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;padding:8px 0 10px}
-.env-scroll>.env-row{width:100%;display:flex;align-items:center;gap:8px;padding:9px 11px;border:0;background:transparent;color:#abb3b8;text-align:left}
-.env-scroll>.env-row:hover{background:#303030}
-.env-scroll>.env-row.selected{background:#303030;color:#edc17e;box-shadow:inset 2px 0 #efb34f}
-.env-scroll>.env-row>svg{flex:none;color:#d0a359}
-.env-row-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
-.env-row-copy strong{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.env-row-copy small{font-size:10px;color:#879099}
-.env-note{display:flex;align-items:flex-start;gap:7px;margin:14px 11px 0;padding-top:11px;border-top:1px solid #383838;color:#7f888f;font-size:10px;line-height:1.5}
-.env-note svg{flex:none;margin-top:1px;color:#c9af82}
+.env-sidebar-actions {
+    padding: 11px 11px 3px;
+}
+
+.env-add {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    background: var(--surface-2);
+    color: var(--muted);
+    padding: 8px;
+    font-size: 10px;
+}
+
+.env-add:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+}
+
+.env-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-width: thin;
+    padding: 8px 0 10px;
+}
+
+.env-scroll>.env-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    text-align: left;
+}
+
+.env-scroll>.env-row:hover {
+    background: var(--surface-2);
+}
+
+.env-scroll>.env-row.selected {
+    background: var(--surface-2);
+    color: var(--amber);
+    box-shadow: inset 2px 0 var(--amber);
+}
+
+.env-scroll>.env-row>svg {
+    flex: none;
+    color: var(--amber);
+}
+
+.env-row-copy {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.env-row-copy strong {
+    font-size: 11px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.env-row-copy small {
+    font-size: 10px;
+    color: var(--faint);
+}
+
+.env-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin: 14px 11px 0;
+    padding-top: 11px;
+    border-top: 1px solid var(--border-soft);
+    color: var(--faint);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.env-note svg {
+    flex: none;
+    margin-top: 1px;
+    color: var(--amber);
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .env-add {
+    background: #FFFFFF;
+    color: #555;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .env-add:hover {
+    border-color: #B0771A;
+    color: #B0771A;
+}
+
+.app-shell[data-theme=light] .env-scroll>.env-row:hover {
+    background: #E7E7E7;
+}
+
+.app-shell[data-theme=light] .env-scroll>.env-row.selected {
+    background: #E7E7E7;
+    color: #B0771A;
+    box-shadow: inset 2px 0 #B0771A;
+}
+
+.app-shell[data-theme=light] .env-scroll>.env-row>svg {
+    color: #B0771A;
+}

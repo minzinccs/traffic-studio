@@ -1,1 +1,159 @@
-.native-traffic{height:100%;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:8px}.native-traffic-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.native-traffic-status{color:var(--muted);font-size:12px}.native-traffic-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted)}.native-traffic-empty-title{color:var(--text)}.native-traffic-empty ul{list-style:none;display:flex;flex-direction:column;gap:6px;padding:0;margin:0}.native-traffic-empty button{background:none;border:0;color:var(--text);cursor:pointer}.native-traffic-empty kbd{color:var(--amber);margin-left:6px}.native-traffic-hint{font-size:12px}.native-traffic-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.native-traffic-split.vertical{grid-template-columns:minmax(0,1fr)}.native-traffic-split.vertical .native-traffic-inspector{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}.native-traffic-table-wrap{overflow:auto}.native-traffic table{width:100%;border-collapse:collapse;text-align:left}.native-traffic td,.native-traffic th{padding:8px;border-bottom:1px solid var(--line)}.native-traffic td button{overflow-wrap:anywhere;text-align:left;background:none;border:0;color:var(--text);cursor:pointer}.native-traffic-inspector{border-left:1px solid var(--line);padding-left:16px}.native-traffic-inspector pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto}@media(max-width:1250px){.native-traffic-split{grid-template-columns:minmax(0,1fr)}.native-traffic-inspector{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}}
+.native-traffic {
+    height: 100%;
+    overflow: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.native-traffic-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.native-traffic-status {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.native-traffic-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+}
+
+.native-traffic-empty-title {
+    color: var(--text);
+}
+
+.native-traffic-empty ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;
+    margin: 0;
+}
+
+.native-traffic-empty button {
+    background: none;
+    border: 0;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.native-traffic-empty kbd {
+    color: var(--amber);
+    margin-left: 6px;
+}
+
+.native-traffic-hint {
+    font-size: 12px;
+}
+
+.native-traffic-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+}
+
+.native-traffic-split.vertical {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.native-traffic-split.vertical .native-traffic-inspector {
+    border-left: 0;
+    border-top: 1px solid var(--border-soft);
+    padding: 16px 0 0;
+}
+
+.native-traffic-table-wrap {
+    overflow: auto;
+}
+
+.native-traffic table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.native-traffic td,
+.native-traffic th {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text);
+}
+
+.native-traffic td button {
+    overflow-wrap: anywhere;
+    text-align: left;
+    background: none;
+    border: 0;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.native-traffic-inspector {
+    border-left: 1px solid var(--border-soft);
+    padding-left: 16px;
+    color: var(--text);
+}
+
+.native-traffic-inspector pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 360px;
+    overflow: auto;
+    color: var(--text);
+}
+
+@media (max-width: 1250px) {
+    .native-traffic-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .native-traffic-inspector {
+        border-left: 0;
+        border-top: 1px solid var(--border-soft);
+        padding: 16px 0 0;
+    }
+}
+
+/* ── Light theme override ─────────────────────────────────────── */
+.app-shell[data-theme=light] .native-traffic {
+    background: #F0F0F0;
+    color: #222;
+}
+
+.app-shell[data-theme=light] .native-traffic td,
+.app-shell[data-theme=light] .native-traffic th {
+    color: #222;
+    border-color: #D5D9DA;
+}
+
+.app-shell[data-theme=light] .native-traffic td button,
+.app-shell[data-theme=light] .native-traffic-empty button {
+    color: #222;
+}
+
+.app-shell[data-theme=light] .native-traffic-inspector {
+    color: #222;
+    border-color: #D5D9DA;
+}
+
+.app-shell[data-theme=light] .native-traffic-inspector pre {
+    color: #222;
+    background: #FAFAFA;
+}
+
+.app-shell[data-theme=light] .native-traffic-status,
+.app-shell[data-theme=light] .native-traffic-hint {
+    color: #555;
+}

@@ -1,43 +1,458 @@
-.settings-backdrop{position:fixed;inset:0;z-index:100;background:#0009;display:flex;align-items:center;justify-content:center;padding:24px}.settings-center{width:900px;max-width:100%;height:min(760px,90vh);display:flex;flex-direction:column;border:1px solid #565656;border-radius:10px;background:#2b2b2b;color:#e9e9e9;box-shadow:0 24px 80px #0008}.settings-center header{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #464646}.settings-center h2{margin:5px 0 0}.settings-center h3{margin:0 0 18px}.settings-center button,.settings-center input,.settings-center select,.settings-center textarea{background:#363636;border:1px solid #565656;color:inherit;border-radius:4px;padding:7px 10px;font:inherit}.settings-center button{cursor:pointer}.settings-center button:disabled{opacity:.4;cursor:not-allowed}.settings-content{flex:1;display:flex;min-height:0}.settings-content nav{width:180px;flex:none;padding:12px;overflow:auto;border-right:1px solid #464646}.settings-content nav button{display:block;width:100%;border:0;text-align:left;background:transparent;margin-bottom:3px}.settings-content nav button[aria-current]{background:#424242;box-shadow:inset 3px 0 var(--user-accent,#dfa73d)}.settings-content main{overflow:auto;flex:1;padding:24px}.settings-content label{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:14px 0;max-width:590px}.settings-content label input:not([type=checkbox]),.settings-content label select,.settings-content textarea{width:230px;max-width:60%}.settings-content label:has(input[type=checkbox]){justify-content:flex-start}.settings-content p{color:#aaa;line-height:1.6;font-size:13px}.settings-status{padding:12px;border:1px solid #565656;background:#303030;border-radius:5px;margin:10px 0;font-size:12px}.settings-center footer{display:flex;gap:10px;justify-content:flex-end;align-items:center;border-top:1px solid #464646;padding:14px 22px}.settings-center footer span{flex:1;color:#ffb3ac;font-size:12px}.settings-center dl>div{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid #464646}.storage-list>div{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #464646;font-size:12px}.settings-center :focus-visible{outline:2px solid var(--user-accent,#dfa73d);outline-offset:2px}
-.app-shell[data-zen=true]>.app-menu,.app-shell[data-zen=true] .side-rail,.app-shell[data-zen=true] .capture-toolbar,.app-shell[data-zen=true]>.status-bar{display:none}.zen-exit{position:fixed;right:12px;top:8px;z-index:40;padding:8px;background:#363636;color:#e9e9e9;border:1px solid #777;border-radius:5px}.app-shell[data-toolbar=false] .capture-toolbar,.app-shell[data-statusbar=false]>.status-bar{display:none}
-.app-shell :focus-visible{outline-color:var(--user-accent,#dfa73d)}
-@media(max-width:700px){.settings-backdrop{padding:8px}.settings-content nav{width:125px;padding:5px}.settings-content main{padding:14px}.settings-content label{flex-wrap:wrap}.settings-content label input:not([type=checkbox]),.settings-content label select,.settings-content textarea{max-width:100%;width:100%}}
+/* Settings center shell — uses theme tokens so palette changes propagate. */
+.settings-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: #0009;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
 
-.app-shell[data-theme=light]{--bg:#f0f0f0;--surface:#f8f8f8;--surface-2:#e7e7e7;--surface-3:#eee;--text:#222;--muted:#555;color:#222;background:#f0f0f0}
-.app-shell[data-theme=light] :is(.app-menu,.side-rail,.tab-bar,.capture-toolbar,.explorer-sidebar,.traffic-grid-head,.workspace-page,.api-view,.empty-canvas,.status-bar){background:#f0f0f0;color:#222;border-color:#ccc}
-.app-shell[data-theme=light] :is(.item-panel,.detail-panel,.metric-card,.chart-panel,.tool-main,.tool-sidebar,.kanban-column,.api-editor,.api-response,.inspector,.settings-center,.layout-manager,.protocol-preview,.notification-center,.issue-drawer){background:#fafafa;color:#222;border-color:#ccc}
-.app-shell[data-theme=light] :is(input,select,textarea,button.outline-button,.secondary-action,.proxy-card,.settings-status,.message-controls button,.settings-center button,.layout-manager button,.protocol-preview button){background:#e7e7e7;color:#222;border-color:#bbb}
-.app-shell[data-theme=light] :is(.menu-trigger,.header-icon,.rail-button,.traffic-grid-row,.kv-val,.detail-row strong,.api-title-input,.workspace-tab,.traffic-url){color:#333}
-.app-shell[data-theme=light] :is(.traffic-grid-row:hover,.traffic-grid-row.selected,.workspace-tab.active,.item-row.selected){background:#dedede}
-.app-shell[data-theme=light] :is(.settings-content p,.workspace-page p,.demo-note,.eyebrow,.panel-heading){color:#555}
-.app-shell[data-theme=light] .traffic-grid-row:nth-child(even){background:#f6f6f6}.app-shell .brand-accent,.app-shell .rail-button.active{color:var(--user-accent)}.app-shell .traffic-grid-row.selected{box-shadow:inset 3px 0 var(--user-accent)}
+.settings-center {
+    width: 900px;
+    max-width: 100%;
+    height: min(760px, 90vh);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 24px 80px #0008;
+}
 
-.settings-backdrop,.notification-center,.zen-exit{zoom:calc(1 / var(--ui-zoom,1))}
-.dialog-loading{display:flex;align-items:center;gap:10px;min-width:200px;padding:18px 22px;border:1px solid #565656;border-radius:4px;background:#2b2b2b;color:#e9e9e9;box-shadow:0 24px 80px #0008}.dialog-loading:before{content:'';width:14px;height:14px;border:2px solid #777;border-top-color:var(--user-accent,#dfa73d);border-radius:50%;animation:dialog-spin .8s linear infinite}@keyframes dialog-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.dialog-loading:before{animation:none}}
+.settings-center header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border-soft);
+}
 
-.appearance-presets{display:flex;flex-wrap:wrap;gap:8px}.appearance-presets button{display:flex;gap:8px;align-items:center}.appearance-presets span{width:14px;height:14px;border-radius:50%}.appearance-preview{padding:16px;margin:16px 0;border:2px solid}.appearance-preview p{color:inherit}.appearance-profile{display:flex;align-items:center;gap:8px;margin-top:8px}.appearance-profile strong{flex:1;overflow-wrap:anywhere}.personalization{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #666}.app-shell{font-size:var(--personal-font-size,13px)}.app-shell :is(input,select,textarea,button){font-size:inherit}.app-shell :is(pre,code,.message-text,.api-body-editor){font-family:var(--personal-code-font,monospace)}.app-shell[data-corners=square] :is(button,input,select,textarea,.metric-card,.chart-panel,.settings-center,.item-panel){border-radius:0}.app-shell[data-contrast=true]{--muted:#d0d0d0}.app-shell[data-contrast=true] :is(.demo-note,.workspace-page p,.settings-content p,.traffic-url,.eyebrow){color:#e0e0e0}.app-shell[data-contrast=true] :is(button,input,select,textarea,.metric-card,.chart-panel){border-color:#999}.app-shell[data-contrast=true][data-theme=light] :is(.demo-note,.workspace-page p,.settings-content p,.traffic-url,.eyebrow){color:#222}
+.settings-center h2 {
+    margin: 5px 0 0;
+}
 
-/* Restrained geometry and one configurable interaction accent. */
-.app-shell[data-corners=soft] :is(button,input,select,textarea,.proxy-card,.metric-card,.chart-panel,.item-panel,.settings-center,.layout-manager,.protocol-preview,.notification-center,.issue-drawer){border-radius:3px}
-.app-shell .proxy-card{border-radius:4px}.app-shell .capture-button{border-radius:3px}
-.app-shell :is(.inspector-tabs button.active,.message-controls button[aria-pressed=true],.api-tabs button.active){border-color:var(--user-accent)}
-.app-shell :is(.inspector-resizer:hover,.inspector-resizer:focus-visible,.timeline-seg){background:var(--user-accent)}
-.app-shell .message-pane mark{background:var(--user-accent);color:#151515}
-.app-shell .settings-content nav button[aria-current]{box-shadow:inset 2px 0 var(--user-accent)}
+.settings-center h3 {
+    margin: 0 0 18px;
+}
 
-.app-shell[data-corners=soft] :is(.raw-url,.body-block,.toast,.request-compose,.empty-tile){border-radius:3px}.app-shell :is(.eyebrow,.inspector-flag,.toast svg){color:var(--user-accent)}
+.settings-center button,
+.settings-center input,
+.settings-center select,
+.settings-center textarea {
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    color: inherit;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font: inherit;
+}
 
-.app-shell :is(.primary-action,.capture-toggle,.capture-start){border-color:var(--user-accent)}.app-shell .inspector-tabs button.active{color:var(--user-accent)}.app-shell .timeline-seg{background:var(--user-accent)}
+.settings-center button {
+    cursor: pointer;
+}
 
-/* Stable row stripes use the displayed index, including virtualized rows. */
-.app-shell{--row-base:#292929;--row-alt:#343434;--row-hover:#3c3c3c;--row-selected:#484848}
-.app-shell[data-theme=light]{--row-base:#fafafa;--row-alt:#e8e8e8;--row-hover:#dedede;--row-selected:#d0d0d0}
-.app-shell .traffic-grid-row[data-stripe="0"]{background:var(--row-base)}
-.app-shell .traffic-grid-row[data-stripe="1"]{background:var(--row-alt)}
-.app-shell .traffic-grid-row:hover{background:var(--row-hover)}
-.app-shell .traffic-grid-row.multi-selected,.app-shell .traffic-grid-row.selected{background:var(--row-selected)}
-.app-shell .traffic-grid-row.selected{box-shadow:inset 3px 0 var(--user-accent)}
-.app-shell :is(.detail-row,.kv-row){background:var(--row-base);padding:10px 8px}
-.app-shell :is(.detail-row,.kv-row):nth-child(even){background:var(--row-alt)}
-.app-shell .message-headers tbody tr:nth-child(odd){background:var(--row-base)}
-.app-shell .message-headers tbody tr:nth-child(even){background:var(--row-alt)}
+.settings-center button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.settings-content {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.settings-content nav {
+    width: 180px;
+    flex: none;
+    padding: 12px;
+    overflow: auto;
+    border-right: 1px solid var(--border-soft);
+}
+
+.settings-content nav button {
+    display: block;
+    width: 100%;
+    border: 0;
+    text-align: left;
+    background: transparent;
+    margin-bottom: 3px;
+}
+
+.settings-content nav button[aria-current] {
+    background: var(--surface-2);
+    box-shadow: inset 3px 0 var(--user-accent, var(--amber));
+}
+
+.settings-content main {
+    overflow: auto;
+    flex: 1;
+    padding: 24px;
+}
+
+.settings-content label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+    margin: 14px 0;
+    max-width: 590px;
+}
+
+.settings-content label input:not([type=checkbox]),
+.settings-content label select,
+.settings-content textarea {
+    width: 230px;
+    max-width: 60%;
+}
+
+.settings-content label:has(input[type=checkbox]) {
+    justify-content: flex-start;
+}
+
+.settings-content p {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 13px;
+}
+
+.settings-status {
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    background: var(--surface-2);
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 12px;
+}
+
+.settings-center footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid var(--border-soft);
+    padding: 14px 22px;
+}
+
+.settings-center footer span {
+    flex: 1;
+    color: var(--danger);
+    font-size: 12px;
+}
+
+.settings-center dl>div {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.storage-list>div {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 12px;
+}
+
+.settings-center :focus-visible {
+    outline: 2px solid var(--user-accent, var(--amber));
+    outline-offset: 2px;
+}
+
+/* Zen mode hides chrome. */
+.app-shell[data-zen=true]>.app-menu,
+.app-shell[data-zen=true] .side-rail,
+.app-shell[data-zen=true] .capture-toolbar,
+.app-shell[data-zen=true]>.status-bar {
+    display: none;
+}
+
+.zen-exit {
+    position: fixed;
+    right: 12px;
+    top: 8px;
+    z-index: 40;
+    padding: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+}
+
+.app-shell[data-toolbar=false] .capture-toolbar,
+.app-shell[data-statusbar=false]>.status-bar {
+    display: none;
+}
+
+.app-shell :focus-visible {
+    outline-color: var(--user-accent, var(--amber));
+}
+
+@media(max-width:700px) {
+    .settings-backdrop {
+        padding: 8px;
+    }
+
+    .settings-content nav {
+        width: 125px;
+        padding: 5px;
+    }
+
+    .settings-content main {
+        padding: 14px;
+    }
+
+    .settings-content label {
+        flex-wrap: wrap;
+    }
+
+    .settings-content label input:not([type=checkbox]),
+    .settings-content label select,
+    .settings-content textarea {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+/* ── Light theme overrides ──────────────────────────────────────── */
+.app-shell[data-theme=light] .settings-backdrop {
+    background: #0003;
+}
+
+.app-shell[data-theme=light] .settings-center {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.app-shell[data-theme=light] .settings-center button,
+.app-shell[data-theme=light] .settings-center input,
+.app-shell[data-theme=light] .settings-center select,
+.app-shell[data-theme=light] .settings-center textarea {
+    background: #FFFFFF;
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.app-shell[data-theme=light] .settings-content nav button[aria-current] {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+/* ── Row striping: virtualized traffic table + shared detail rows ──
+   Token definitions (--row-*, light theme) live in theme.css.
+   Only the selectors below are unique to settings/feature composition. */
+
+.app-shell .traffic-grid-row[data-stripe="0"] {
+    background: var(--row-base);
+}
+
+.app-shell .traffic-grid-row[data-stripe="1"] {
+    background: var(--row-alt);
+}
+
+.app-shell .traffic-grid-row:hover {
+    background: var(--row-hover);
+}
+
+.app-shell .traffic-grid-row.multi-selected,
+.app-shell .traffic-grid-row.selected {
+    background: var(--row-selected);
+}
+
+.app-shell .traffic-grid-row.selected {
+    box-shadow: inset 3px 0 var(--user-accent, var(--amber));
+}
+
+.app-shell :is(.detail-row, .kv-row) {
+    background: var(--row-base);
+    padding: 10px 8px;
+}
+
+.app-shell :is(.detail-row, .kv-row):nth-child(even) {
+    background: var(--row-alt);
+}
+
+.app-shell .message-headers tbody tr:nth-child(odd) {
+    background: var(--row-base);
+}
+
+.app-shell .message-headers tbody tr:nth-child(even) {
+    background: var(--row-alt);
+}
+
+/* ── Personalization / appearance ───────────────────────────────── */
+.appearance-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.appearance-presets button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.appearance-presets span {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+.appearance-preview {
+    padding: 16px;
+    margin: 16px 0;
+    border: 2px solid;
+}
+
+.appearance-preview p {
+    color: inherit;
+}
+
+.appearance-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.appearance-profile strong {
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.personalization {
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.app-shell {
+    font-size: var(--personal-font-size, 13px);
+}
+
+.app-shell :is(input, select, textarea, button) {
+    font-size: inherit;
+}
+
+.app-shell :is(pre, code, .message-text, .api-body-editor) {
+    font-family: var(--personal-code-font, monospace);
+}
+
+.app-shell[data-corners=square] :is(button, input, select, textarea, .metric-card, .chart-panel, .settings-center, .item-panel) {
+    border-radius: 0;
+}
+
+.app-shell[data-contrast=true] {
+    --muted: #D0D0D0;
+}
+
+.app-shell[data-contrast=true] :is(.demo-note, .workspace-page p, .settings-content p, .traffic-url, .eyebrow) {
+    color: #E0E0E0;
+}
+
+.app-shell[data-contrast=true] :is(button, input, select, textarea, .metric-card, .chart-panel) {
+    border-color: #999;
+}
+
+.app-shell[data-contrast=true][data-theme=light] :is(.demo-note, .workspace-page p, .settings-content p, .traffic-url, .eyebrow) {
+    color: #222;
+}
+
+/* Restrained geometry + single interaction accent. */
+.app-shell[data-corners=soft] :is(button, input, select, textarea, .proxy-card, .metric-card, .chart-panel, .item-panel, .settings-center, .layout-manager, .protocol-preview, .notification-center, .issue-drawer) {
+    border-radius: 3px;
+}
+
+.app-shell .proxy-card {
+    border-radius: 4px;
+}
+
+.app-shell .capture-button {
+    border-radius: 3px;
+}
+
+.app-shell :is(.inspector-tabs button.active, .message-controls button[aria-pressed=true], .api-tabs button.active) {
+    border-color: var(--user-accent, var(--amber));
+}
+
+.app-shell :is(.inspector-resizer:hover, .inspector-resizer:focus-visible, .timeline-seg) {
+    background: var(--user-accent, var(--amber));
+}
+
+.app-shell .message-pane mark {
+    background: var(--user-accent, var(--amber));
+    color: #151515;
+}
+
+.app-shell .settings-content nav button[aria-current] {
+    box-shadow: inset 2px 0 var(--user-accent, var(--amber));
+}
+
+.app-shell[data-corners=soft] :is(.raw-url, .body-block, .toast, .request-compose, .empty-tile) {
+    border-radius: 3px;
+}
+
+.app-shell :is(.eyebrow, .inspector-flag, .toast svg) {
+    color: var(--user-accent, var(--amber));
+}
+
+.app-shell :is(.primary-action, .capture-toggle, .capture-start) {
+    border-color: var(--user-accent, var(--amber));
+}
+
+.app-shell .inspector-tabs button.active {
+    color: var(--user-accent, var(--amber));
+}
+
+.app-shell .timeline-seg {
+    background: var(--user-accent, var(--amber));
+}
+
+/* Dialog loading spinner. */
+.settings-backdrop,
+.notification-center,
+.zen-exit {
+    zoom: calc(1 / var(--ui-zoom, 1));
+}
+
+.dialog-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+    padding: 18px 22px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 24px 80px #0008;
+}
+
+.dialog-loading:before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--user-accent, var(--amber));
+    border-radius: 50%;
+    animation: dialog-spin .8s linear infinite;
+}
+
+@keyframes dialog-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .dialog-loading:before {
+        animation: none;
+    }
+}

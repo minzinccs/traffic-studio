@@ -4,20 +4,58 @@
 }
 
 .app-shell {
+  /* ── Core palette (dark, default) ─────────────────────────────── */
   --bg: #1E1F22;
   --surface: #26282B;
   --surface-2: #2F3236;
   --surface-3: #38393C;
   --border: #4A4E54;
   --border-soft: #3A3D42;
+  --line: #3A3D42;
+  /* alias kept for feature CSS that expects --line */
   --text: #E8EAEC;
   --muted: #A8AEB4;
   --faint: #6B7278;
   --amber: #F0B14A;
   --green: #6EC78C;
+  --danger: #E87373;
+
+  /* Row striping (traffic table, kv rows, header rows). */
+  --row-base: #292929;
+  --row-alt: #343434;
+  --row-hover: #3C3C3C;
+  --row-selected: #484848;
+
   background: #1E1F22;
 }
 
+/* ── Light theme tokens ─────────────────────────────────────────
+   Consolidated here so every feature CSS inherits from the same
+   source. Feature-level overrides only exist to fix surfaces the
+   tokens cannot reach (e.g. hardcoded control backgrounds). */
+.app-shell[data-theme=light] {
+  --bg: #F0F0F0;
+  --surface: #FAFAFA;
+  --surface-2: #E7E7E7;
+  --surface-3: #DEDEDE;
+  --border: #C5C9CA;
+  --border-soft: #D5D9DA;
+  --line: #D5D9DA;
+  --text: #25282A;
+  --muted: #555555;
+  --faint: #777777;
+  --green: #2E7D32;
+  --danger: #C0392B;
+
+  --row-base: #FAFAFA;
+  --row-alt: #E8E8E8;
+  --row-hover: #DEDEDE;
+  --row-selected: #D0D0D0;
+
+  background: #F0F0F0;
+}
+
+/* ── Chrome surfaces ─────────────────────────────────────────── */
 .app-menu,
 .side-rail,
 .status-bar {
@@ -97,14 +135,15 @@
   background: #38393C;
 }
 
+/* Accent rings track the user's accent (color-mix keeps the alpha). */
 .graphic-core {
   background: #2F3236;
-  border-color: #F0B14A;
+  border-color: var(--amber);
   box-shadow: none;
 }
 
 .graphic-ring {
-  border-color: #F0B14A40;
+  border-color: color-mix(in srgb, var(--amber) 25%, transparent);
 }
 
 .orbit-dot {
@@ -130,22 +169,118 @@
   border-color: #3A3D42;
 }
 
-.flow-row:nth-child(even) {
-  background: #26282B;
-}
-
-.flow-row:hover,
+/* Sidebar hover states — .flow-row is no longer rendered by TrafficTable. */
 .explorer-node:hover,
 .explorer-section:hover,
 .explorer-category-head:hover {
   background: #38393C;
 }
 
-.flow-row.selected {
-  background: #3A3528;
-}
-
 .toast {
   background: #2F3236;
   border-color: #4A4E54;
+}
+
+/* ── Light theme chrome overrides ─────────────────────────────── */
+.app-shell[data-theme=light] .app-menu,
+.app-shell[data-theme=light] .side-rail,
+.app-shell[data-theme=light] .status-bar,
+.app-shell[data-theme=light] .capture-toolbar,
+.app-shell[data-theme=light] .tab-bar,
+.app-shell[data-theme=light] .main-area,
+.app-shell[data-theme=light] .content-area,
+.app-shell[data-theme=light] .empty-canvas,
+.app-shell[data-theme=light] .traffic-view,
+.app-shell[data-theme=light] .workspace-page,
+.app-shell[data-theme=light] .api-view,
+.app-shell[data-theme=light] .setup-view {
+  background: #F0F0F0;
+  color: #222;
+  border-color: #CCC;
+}
+
+.app-shell[data-theme=light] .explorer-sidebar,
+.app-shell[data-theme=light] .proxy-card,
+.app-shell[data-theme=light] .proxy-bar,
+.app-shell[data-theme=light] .search-box,
+.app-shell[data-theme=light] .request-compose {
+  background: #FAFAFA;
+  border-color: #C5C9CA;
+  color: #222;
+}
+
+.app-shell[data-theme=light] .workspace-tab.active {
+  background: #FAFAFA;
+}
+
+.app-shell[data-theme=light] .graphic-core {
+  background: #FAFAFA;
+  border-color: var(--amber);
+}
+
+.app-shell[data-theme=light] .graphic-ring {
+  border-color: color-mix(in srgb, var(--amber) 25%, transparent);
+}
+
+.app-shell[data-theme=light] .metric-card,
+.app-shell[data-theme=light] .chart-panel,
+.app-shell[data-theme=light] .item-panel,
+.app-shell[data-theme=light] .detail-panel,
+.app-shell[data-theme=light] .device-card,
+.app-shell[data-theme=light] .tool-main,
+.app-shell[data-theme=light] .tool-sidebar,
+.app-shell[data-theme=light] .kanban-column,
+.app-shell[data-theme=light] .tracker-table,
+.app-shell[data-theme=light] .library-list,
+.app-shell[data-theme=light] .api-editor,
+.app-shell[data-theme=light] .api-response,
+.app-shell[data-theme=light] .collection-editor,
+.app-shell[data-theme=light] .inspector,
+.app-shell[data-theme=light] .modal {
+  background: #FAFAFA;
+  border-color: #CCC;
+}
+
+.app-shell[data-theme=light] .record-button,
+.app-shell[data-theme=light] .primary-action {
+  background: #B0771A;
+  border-color: #B0771A;
+  color: #FFFFFF;
+}
+
+.app-shell[data-theme=light] .record-button:hover,
+.app-shell[data-theme=light] .primary-action:hover {
+  background: #C08931;
+  color: #FFFFFF;
+}
+
+.app-shell[data-theme=light] .record-button kbd {
+  color: #FFF3DE;
+  background: #00000022;
+}
+
+.app-shell[data-theme=light] .clear-button,
+.app-shell[data-theme=light] .secondary-action,
+.app-shell[data-theme=light] .outline-button {
+  background: #FAFAFA;
+  border-color: #C5C9CA;
+  color: #222;
+}
+
+.app-shell[data-theme=light] .clear-button:hover,
+.app-shell[data-theme=light] .secondary-action:hover,
+.app-shell[data-theme=light] .outline-button:hover {
+  background: #E7E7E7;
+}
+
+.app-shell[data-theme=light] .explorer-node:hover,
+.app-shell[data-theme=light] .explorer-section:hover,
+.app-shell[data-theme=light] .explorer-category-head:hover {
+  background: #E7E7E7;
+}
+
+.app-shell[data-theme=light] .toast {
+  background: #FFFFFF;
+  border-color: #C5C9CA;
+  color: #222;
 }

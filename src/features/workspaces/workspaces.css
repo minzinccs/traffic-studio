@@ -1,1 +1,122 @@
-.workspace-manager{width:760px;max-width:96vw;max-height:90vh;overflow:auto;background:#2b2b2b;color:#e4e4e4;border:1px solid #555;border-radius:3px;padding:20px;box-shadow:0 24px 80px #0008}.workspace-manager header,.workspace-manager footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.workspace-manager h2{margin:7px 0}.workspace-manager p{font-size:13px;line-height:1.6;color:#aaa}.workspace-manager button,.workspace-manager input{background:#353535;color:#eee;border:1px solid #555;border-radius:3px;padding:8px;font:inherit}.workspace-manager button{cursor:pointer}.workspace-manager button:disabled{opacity:.5}.workspace-manager :focus-visible{outline:2px solid #dfa73d}.workspace-entry{display:flex;gap:8px;align-items:flex-end;padding:12px 0;border-bottom:1px solid #444}.workspace-entry label{display:flex;flex-direction:column;gap:5px;flex:1;font-size:11px}.workspace-entry input{width:100%;box-sizing:border-box}.workspace-create{display:flex;gap:8px;margin:20px 0}.workspace-create input{flex:1;min-width:0}.workspace-manager footer{font-size:11px;color:#999}.workspace-manager [role=alert]{color:#f3b0a5}@media(max-width:550px){.workspace-entry{flex-wrap:wrap}.workspace-entry label{flex-basis:100%}}
+.workspace-manager {
+    width: 760px;
+    max-width: 96vw;
+    max-height: 90vh;
+    overflow: auto;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 20px;
+    box-shadow: 0 24px 80px #0008;
+}
+
+.workspace-manager header,
+.workspace-manager footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.workspace-manager h2 {
+    margin: 7px 0;
+}
+
+.workspace-manager p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+.workspace-manager button,
+.workspace-manager input {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-soft);
+    border-radius: 3px;
+    padding: 8px;
+    font: inherit;
+}
+
+.workspace-manager button {
+    cursor: pointer;
+}
+
+.workspace-manager button:hover {
+    border-color: var(--amber);
+}
+
+.workspace-manager button:disabled {
+    opacity: .5;
+}
+
+.workspace-manager :focus-visible {
+    outline: 2px solid var(--amber);
+}
+
+.workspace-entry {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.workspace-entry label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.workspace-entry input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.workspace-create {
+    display: flex;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.workspace-create input {
+    flex: 1;
+    min-width: 0;
+}
+
+.workspace-manager footer {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.workspace-manager [role=alert] {
+    color: var(--danger);
+}
+
+@media (max-width:550px) {
+    .workspace-entry {
+        flex-wrap: wrap;
+    }
+
+    .workspace-entry label {
+        flex-basis: 100%;
+    }
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .workspace-manager {
+    background: #FAFAFA;
+    color: #222;
+    border-color: #C5C9CA;
+}
+
+.app-shell[data-theme=light] .workspace-manager button,
+.app-shell[data-theme=light] .workspace-manager input {
+    background: #FFFFFF;
+    color: #222;
+    border-color: #C5C9CA;
+}

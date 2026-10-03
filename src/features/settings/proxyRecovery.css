@@ -1,2 +1,37 @@
-.proxy-recovery-notice { display:flex; align-items:center; justify-content:space-between; gap:12px; flex:none; padding:8px 16px; background:var(--surface-2); border-bottom:1px solid var(--amber); color:var(--text); font-size:12px; }
-.proxy-recovery-notice button { border:1px solid var(--border); border-radius:5px; padding:5px 10px; background:var(--surface); color:var(--amber); }
+.proxy-recovery-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: none;
+    padding: 8px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--amber);
+    color: var(--text);
+    font-size: 12px;
+}
+
+.proxy-recovery-notice button {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 5px 10px;
+    background: var(--surface);
+    color: var(--amber);
+}
+
+.proxy-recovery-notice button:hover {
+    border-color: var(--amber);
+}
+
+/* ── Light theme ──────────────────────────────────────────────── */
+.app-shell[data-theme=light] .proxy-recovery-notice {
+    background: #FFF8EC;
+    color: #222;
+    border-bottom-color: #B0771A;
+}
+
+.app-shell[data-theme=light] .proxy-recovery-notice button {
+    background: #FFFFFF;
+    color: #B0771A;
+    border-color: #C5C9CA;
+}

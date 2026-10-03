@@ -1,36 +1,36 @@
 @keyframes workspace-enter {
   from {
     opacity: 0;
-    transform: translateY(3px)
+    transform: translateY(3px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0)
+    transform: translateY(0);
   }
 }
 
 @keyframes sidebar-enter {
   from {
     opacity: 0;
-    transform: translateX(-4px)
+    transform: translateX(-4px);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0)
+    transform: translateX(0);
   }
 }
 
 @keyframes detail-enter {
   from {
     opacity: 0;
-    transform: translateY(2px)
+    transform: translateY(2px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0)
+    transform: translateY(0);
   }
 }
 
@@ -39,11 +39,11 @@
 .api-document-layout,
 .empty-canvas,
 .setup-view {
-  animation: workspace-enter 140ms cubic-bezier(.2, .7, .2, 1) both
+  animation: workspace-enter 140ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
 .explorer-sidebar {
-  animation: sidebar-enter 130ms cubic-bezier(.2, .7, .2, 1) both
+  animation: sidebar-enter 130ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
 .inspector-shell,
@@ -54,7 +54,7 @@
 .inspector-body,
 .mock-resp,
 .tool-main {
-  animation: detail-enter 110ms ease-out both
+  animation: detail-enter 110ms ease-out both;
 }
 
 .rail-button,
@@ -73,47 +73,49 @@
 .inspector-tabs button,
 .api-response-tabs button,
 .traffic-filter-strip button {
-  transition: background-color 130ms ease, color 130ms ease, border-color 130ms ease, box-shadow 130ms ease
+  transition: background-color 130ms ease, color 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
 }
 
 .tool-sidebar button svg {
-  flex: none
+  flex: none;
 }
 
 .traffic-method {
   display: inline-flex;
   align-items: center;
-  gap: 4px
+  gap: 4px;
 }
 
 .traffic-method svg {
   flex: none;
-  opacity: .8
+  opacity: .8;
 }
 
 .traffic-row-menu button {
   display: flex;
   align-items: center;
-  gap: 8px
+  gap: 8px;
 }
 
-@media (prefers-reduced-motion:reduce) {
+/* OS-level reduced-motion always wins — do NOT gate on data-motion. */
+@media (prefers-reduced-motion: reduce) {
 
-  .app-shell:not([data-motion="on"]) *,
-  .app-shell:not([data-motion="on"]) *::before,
-  .app-shell:not([data-motion="on"]) *::after {
+  .app-shell *,
+  .app-shell *::before,
+  .app-shell *::after {
     animation-duration: .01ms !important;
     animation-delay: 0ms !important;
     transition-duration: .01ms !important;
-    scroll-behavior: auto !important
+    scroll-behavior: auto !important;
   }
 }
 
+/* Explicit user override in Settings → Animations: Off. */
 .app-shell[data-motion="off"] *,
 .app-shell[data-motion="off"] *::before,
 .app-shell[data-motion="off"] *::after {
   animation-duration: .01ms !important;
   animation-delay: 0ms !important;
   transition-duration: .01ms !important;
-  scroll-behavior: auto !important
+  scroll-behavior: auto !important;
 }
